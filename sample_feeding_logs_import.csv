@@ -1,0 +1,10 @@
+reptile_name,feeding_date,food_type,food_size,quantity,ate,notes
+Monty,2024-12-01,Mouse,Medium,1,true,Ate immediately. Good appetite.
+Monty,2024-12-08,Mouse,Medium,1,false,Refused - appears to be in shed cycle.
+Spike,2024-12-02,Dubia Roach,Adult,10,true,Very hungry. Ate all roaches quickly.
+Spike,2024-12-03,Collard Greens,,1,true,Ate most of the greens. Left some stems.
+Luna,2024-11-30,Pinky Mouse,Small,1,true,First feeding in new home. Ate well.
+Luna,2024-12-07,Pinky Mouse,Small,1,true,Consistent feeder. No issues.
+Rex,2024-12-05,Mealworm,Medium,5,true,Ate 4 out of 5 mealworms.
+Rex,2024-12-09,Cricket,Small,3,true,Hunting well. Very active.
+Sasha,2024-12-04,Pellets,,1,true,Ate pellets and some lettuce.
