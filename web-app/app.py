@@ -18,8 +18,9 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-# Initialize database
-db = ReptileDatabase('reptile_tracker.db')
+def get_db():
+    """Get database connection for current request"""
+    return ReptileDatabase('reptile_tracker.db')
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -28,6 +29,7 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     """Dashboard - show all reptiles"""
+    db = get_db()
     reptiles = db.get_all_reptiles()
     stats = db.get_dashboard_stats()
     return render_template('dashboard.html', reptiles=reptiles, stats=stats)
@@ -35,6 +37,7 @@ def index():
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):
     """Show detailed reptile information"""
+    db = get_db()
     reptile = db.get_reptile(reptile_id)
     if not reptile:
         flash('Reptile not found', 'error')
@@ -51,6 +54,7 @@ def reptile_details(reptile_id):
 @app.route('/reptile/add', methods=['GET', 'POST'])
 def add_reptile():
     """Add new reptile"""
+    db = get_db()
     if request.method == 'POST':
         try:
             # Handle image upload
@@ -91,6 +95,7 @@ def add_reptile():
 @app.route('/reptile/<int:reptile_id>/edit', methods=['GET', 'POST'])
 def edit_reptile(reptile_id):
     """Edit existing reptile"""
+    db = get_db()
     reptile = db.get_reptile(reptile_id)
     if not reptile:
         flash('Reptile not found', 'error')
@@ -135,6 +140,7 @@ def edit_reptile(reptile_id):
 @app.route('/reptile/<int:reptile_id>/delete', methods=['POST'])
 def delete_reptile(reptile_id):
     """Delete reptile"""
+    db = get_db()
     reptile = db.get_reptile(reptile_id)
     if reptile:
         db.delete_reptile(reptile_id)
@@ -144,6 +150,7 @@ def delete_reptile(reptile_id):
 @app.route('/feeding')
 def feeding_logs():
     """Show all feeding logs"""
+    db = get_db()
     logs = db.get_all_feeding_logs(limit=100)
     reptiles = db.get_all_reptiles()
     return render_template('feeding_logs.html', logs=logs, reptiles=reptiles)
@@ -151,6 +158,7 @@ def feeding_logs():
 @app.route('/feeding/add', methods=['GET', 'POST'])
 def add_feeding():
     """Add feeding log"""
+    db = get_db()
     if request.method == 'POST':
         try:
             data = {
@@ -173,6 +181,7 @@ def add_feeding():
 @app.route('/shed')
 def shed_records():
     """Show all shed records"""
+    db = get_db()
     records = db.get_all_shed_records(limit=100)
     reptiles = db.get_all_reptiles()
     return render_template('shed_records.html', records=records, reptiles=reptiles)
@@ -180,6 +189,7 @@ def shed_records():
 @app.route('/shed/add', methods=['GET', 'POST'])
 def add_shed():
     """Add shed record"""
+    db = get_db()
     if request.method == 'POST':
         try:
             data = {
