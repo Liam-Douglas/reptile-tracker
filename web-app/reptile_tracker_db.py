@@ -1238,26 +1238,6 @@ class ReptileDatabase:
         self.cursor.execute('DELETE FROM food_inventory WHERE id = ?', (inventory_id,))
         self.conn.commit()
         return self.cursor.rowcount > 0
-
-        '''
-        params = []
-        
-        if reptile_id:
-            query += ' AND reptile_id = ?'
-            params.append(reptile_id)
-        
-        if start_date:
-            query += ' AND expense_date >= ?'
-            params.append(start_date)
-        
-        if end_date:
-            query += ' AND expense_date <= ?'
-            params.append(end_date)
-        
-        query += ' GROUP BY category ORDER BY total DESC'
-        
-        self.cursor.execute(query, params)
-        return [dict(row) for row in self.cursor.fetchall()]
     
     def get_monthly_expenses(self, year: int = None, reptile_id: int = None) -> List[Dict]:
         """Get expense totals by month"""
