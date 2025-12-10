@@ -883,12 +883,12 @@ class ReptileTrackerApp:
         fields = {}
         
         form_fields = [
-            ("Name*", "name", reptile['name'] if reptile else ""),
-            ("Species*", "species", reptile['species'] if reptile else ""),
-            ("Morph", "morph", reptile['morph'] if reptile else ""),
-            ("Sex", "sex", reptile['sex'] if reptile else ""),
-            ("Date of Birth (YYYY-MM-DD)", "date_of_birth", reptile['date_of_birth'] if reptile else ""),
-            ("Acquisition Date (YYYY-MM-DD)", "acquisition_date", reptile['acquisition_date'] if reptile else ""),
+            ("Name*", "name", reptile['name'] if reptile and reptile['name'] else ""),
+            ("Species*", "species", reptile['species'] if reptile and reptile['species'] else ""),
+            ("Morph", "morph", reptile['morph'] if reptile and reptile['morph'] else ""),
+            ("Sex", "sex", reptile['sex'] if reptile and reptile['sex'] else ""),
+            ("Date of Birth (YYYY-MM-DD)", "date_of_birth", reptile['date_of_birth'] if reptile and reptile['date_of_birth'] else ""),
+            ("Acquisition Date (YYYY-MM-DD)", "acquisition_date", reptile['acquisition_date'] if reptile and reptile['acquisition_date'] else ""),
             ("Weight (grams)", "weight_grams", str(reptile['weight_grams']) if reptile and reptile['weight_grams'] else ""),
             ("Length (cm)", "length_cm", str(reptile['length_cm']) if reptile and reptile['length_cm'] else ""),
         ]
@@ -1013,11 +1013,22 @@ class ReptileTrackerApp:
         # Get values from fields
         data = {}
         selected_image = fields.get('selected_image_path')
+        
+        # Define valid data fields (exclude UI elements)
+        valid_fields = ['name', 'species', 'morph', 'sex', 'date_of_birth', 
+                       'acquisition_date', 'weight_grams', 'length_cm', 'notes']
+        
         for field_name, widget in fields.items():
+            # Skip non-data fields
+            if field_name not in valid_fields:
+                continue
+                
             if isinstance(widget, tk.Text):
                 value = widget.get('1.0', 'end-1c').strip()
-            else:
+            elif isinstance(widget, tk.Entry):
                 value = widget.get().strip()
+            else:
+                continue
             
             # Convert empty strings to None
             if value == "":
