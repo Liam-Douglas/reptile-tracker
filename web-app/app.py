@@ -363,3 +363,52 @@ if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
 
 # Made with Bob
+
+
+# ==================== WEIGHT TRACKING ROUTES ====================
+
+@app.route('/reptile/<int:reptile_id>/weight')
+def weight_tracking(reptile_id):
+    """Weight tracking page with graphs"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('index'))
+    
+    weight_history = db.get_weight_history(reptile_id)
+    chart_data = db.get_weight_chart_data(reptile_id)
+    
+    return render_template('weight_tracking.html', 
+                         reptile=reptile,
+                         weight_history=weight_history,
+                         chart_data=chart_data)
+
+@app.route('/reptile/<int:reptile_id>/weight/add', methods=['POST'])
+def add_weight(reptile_id):
+    """Add weight measurement"""
+    db = get_db()
+    try:
+        data = {
+            'reptile_id': reptile_id,
+            'measurement_date': request.form.get('measurement_date'),
+            'weight_grams': float(request.form.get('weight_grams')),
+            'notes': request.form.get('notes') or None
+        }
+        db.add_weight_measurement(**data)
+        
+        # Also update the reptile's current weight
+        db.update_reptile(reptile_id, weight_grams=data['weight_grams'])
+        
+        flash('Weight measurement added successfully!', 'success')
+    except Exception as e:
+        flash(f'Error adding weight: {str(e)}', 'error')
+    
+    return redirect(url_for('weight_tracking', reptile_id=reptile_id))
+
+@app.route('/weight/chart-data/<int:reptile_id>')
+def weight_chart_data(reptile_id):
+    """API endpoint for chart data"""
+    db = get_db()
+    data = db.get_weight_chart_data(reptile_id)
+    return jsonify(data)

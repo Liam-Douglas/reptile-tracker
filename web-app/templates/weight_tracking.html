@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Weight Tracking - {{ reptile.name }} - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📊 Weight Tracking - {{ reptile.name }}</h2>
+    <p>{{ reptile.species }}{% if reptile.morph %} - {{ reptile.morph }}{% endif %}</p>
+</div>
+
+<!-- Current Weight Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Current Weight</h3>
+    </div>
+    <div style="padding: 2rem; text-align: center;">
+        <div style="font-size: 3rem; font-weight: bold; color: var(--primary-color);">
+            {% if reptile.weight_grams %}
+                {{ reptile.weight_grams }}g
+            {% else %}
+                No data
+            {% endif %}
+        </div>
+        {% if weight_history|length > 1 %}
+            {% set latest = weight_history[0] %}
+            {% set previous = weight_history[1] %}
+            {% set change = latest.weight_grams - previous.weight_grams %}
+            <div style="margin-top: 1rem; font-size: 1.2rem;">
+                {% if change > 0 %}
+                    <span style="color: #10b981;">↑ +{{ "%.1f"|format(change) }}g</span>
+                {% elif change < 0 %}
+                    <span style="color: #ef4444;">↓ {{ "%.1f"|format(change) }}g</span>
+                {% else %}
+                    <span style="color: var(--text-secondary);">No change</span>
+                {% endif %}
+                <span style="color: var(--text-secondary); font-size: 0.9rem;">since last measurement</span>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Weight Chart -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Weight History Chart</h3>
+    </div>
+    <div style="padding: 2rem;">
+        {% if chart_data.dates|length > 0 %}
+            <canvas id="weightChart" style="max-height: 400px;"></canvas>
+        {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>No weight data yet. Add your first measurement below!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Weight Measurement -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Add Weight Measurement</h3>
+    </div>
+    
+    <form method="POST" action="{{ url_for('add_weight', reptile_id=reptile.id) }}">
+        <div class="form-group">
+            <label class="form-label" for="measurement_date">Date *</label>
+            <input type="date" 
+                   id="measurement_date" 
+                   name="measurement_date" 
+                   class="form-input" 
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="weight_grams">Weight (grams) *</label>
+            <input type="number" 
+                   id="weight_grams" 
+                   name="weight_grams" 
+                   class="form-input" 
+                   step="0.1"
+                   placeholder="e.g., 250.5"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="notes">Notes</label>
+            <textarea id="notes" 
+                      name="notes" 
+                      class="form-textarea" 
+                      placeholder="Any observations..."></textarea>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Measurement
+            </button>
+            <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Details
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Weight History Table -->
+{% if weight_history %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Measurement History</h3>
+    </div>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 1rem; text-align: left;">Date</th>
+                    <th style="padding: 1rem; text-align: left;">Weight</th>
+                    <th style="padding: 1rem; text-align: left;">Change</th>
+                    <th style="padding: 1rem; text-align: left;">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for measurement in weight_history %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">{{ measurement.measurement_date }}</td>
+                    <td style="padding: 1rem; font-weight: bold;">{{ measurement.weight_grams }}g</td>
+                    <td style="padding: 1rem;">
+                        {% if loop.index < weight_history|length %}
+                            {% set prev = weight_history[loop.index] %}
+                            {% set change = measurement.weight_grams - prev.weight_grams %}
+                            {% if change > 0 %}
+                                <span style="color: #10b981;">+{{ "%.1f"|format(change) }}g</span>
+                            {% elif change < 0 %}
+                                <span style="color: #ef4444;">{{ "%.1f"|format(change) }}g</span>
+                            {% else %}
+                                <span style="color: var(--text-secondary);">0g</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; color: var(--text-secondary);">
+                        {{ measurement.notes if measurement.notes else '-' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    // Set today's date as default
+    document.getElementById('measurement_date').valueAsDate = new Date();
+</script>
+
+{% if chart_data.dates|length > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    
+    const dates = {{ chart_data.dates|tojson }};
+    const weights = {{ chart_data.weights|tojson }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Weight (grams)',
+                data: weights,
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 16,
+                        weight: 'bold'
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + 'g';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return value + 'g';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+
+{% endblock %}
