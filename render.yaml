@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: reptile-tracker
+    runtime: python
+    buildCommand: cd web-app && pip install -r requirements.txt
+    startCommand: cd web-app && gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATA_DIR
+        value: /opt/render/project/data
+    disk:
+      name: reptile-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
+
+# Made with Bob
