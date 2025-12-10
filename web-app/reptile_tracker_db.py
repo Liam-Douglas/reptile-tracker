@@ -588,12 +588,11 @@ def calculate_age(date_of_birth: str) -> Optional[str]:
     except ValueError:
         return None
 
-# Made with Bob
-
+    # Made with Bob
     
     # ==================== WEIGHT HISTORY OPERATIONS ====================
     
-    def add_weight_measurement(self, reptile_id: int, measurement_date: str, 
+    def add_weight_measurement(self, reptile_id: int, measurement_date: str,
                               weight_grams: float, notes: str = None) -> int:
         """Add a weight measurement"""
         self.cursor.execute('''

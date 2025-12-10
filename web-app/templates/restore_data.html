@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Restore Data{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-upload"></i> Restore Data from Backup
+    </h1>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Warning Card -->
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #f59e0b;">
+    <div class="card-header" style="background: #fef3c7;">
+        <h3 class="card-title" style="color: #92400e;">
+            <i class="fas fa-exclamation-triangle"></i> Important Information
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8;">
+            <li><strong>Backup files must be in JSON format</strong> (exported from this app)</li>
+            <li><strong>Merge mode:</strong> Adds backup data to existing data (recommended)</li>
+            <li><strong>Replace mode:</strong> Deletes ALL existing data and replaces with backup (dangerous!)</li>
+            <li>Photo files are NOT included in backups - only photo metadata</li>
+            <li>Make sure you have a current backup before using Replace mode</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Restore Form -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Upload Backup File</h3>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label class="form-label" for="backup_file">
+                Backup File (JSON) *
+            </label>
+            <input type="file" 
+                   id="backup_file" 
+                   name="backup_file" 
+                   class="form-input" 
+                   accept=".json"
+                   required>
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                Select a JSON backup file exported from Reptile Tracker
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Restore Mode *</label>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <label style="display: flex; align-items: start; gap: 0.75rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; cursor: pointer; border: 2px solid transparent;" class="restore-mode-option">
+                    <input type="radio" 
+                           name="restore_mode" 
+                           value="merge" 
+                           checked
+                           style="margin-top: 0.25rem;">
+                    <div>
+                        <strong style="color: var(--primary-color);">Merge (Recommended)</strong>
+                        <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+                            Add backup data to your existing data. Existing records are kept.
+                        </p>
+                    </div>
+                </label>
+                
+                <label style="display: flex; align-items: start; gap: 0.75rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; cursor: pointer; border: 2px solid transparent;" class="restore-mode-option">
+                    <input type="radio" 
+                           name="restore_mode" 
+                           value="replace"
+                           style="margin-top: 0.25rem;">
+                    <div>
+                        <strong style="color: #ef4444;">Replace (Dangerous)</strong>
+                        <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+                            Delete ALL existing data and replace with backup. Cannot be undone!
+                        </p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Confirmation for Replace Mode -->
+        <div id="replaceConfirmation" style="display: none; margin-top: 1rem;">
+            <div class="card" style="border-left: 4px solid #ef4444;">
+                <div style="padding: 1.5rem; background: #fee2e2;">
+                    <h4 style="margin: 0 0 1rem 0; color: #991b1b;">
+                        <i class="fas fa-exclamation-circle"></i> Confirm Data Replacement
+                    </h4>
+                    <p style="margin: 0 0 1rem 0; color: #7f1d1d;">
+                        This will permanently delete ALL your current data including:
+                    </p>
+                    <ul style="margin: 0 0 1rem 1.5rem; color: #7f1d1d;">
+                        <li>All reptiles</li>
+                        <li>All feeding logs</li>
+                        <li>All shed records</li>
+                        <li>All weight/length history</li>
+                        <li>All photos</li>
+                        <li>All feeding reminders</li>
+                    </ul>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: bold; color: #991b1b;">
+                        <input type="checkbox" 
+                               name="confirm_replace" 
+                               value="yes"
+                               id="confirmReplaceCheckbox">
+                        I understand this cannot be undone
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary" id="restoreButton">
+                <i class="fas fa-upload"></i> Restore Data
+            </button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Backup/Restore Info -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-info-circle"></i> About Backup & Restore
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <h4 style="margin: 0 0 0.5rem 0;">What's Included in Backups:</h4>
+        <ul style="margin: 0 0 1.5rem 1.5rem; line-height: 1.8;">
+            <li>All reptile information</li>
+            <li>All feeding logs</li>
+            <li>All shed records</li>
+            <li>Weight and length tracking history</li>
+            <li>Photo metadata (paths and captions)</li>
+            <li>Feeding reminder settings</li>
+        </ul>
+        
+        <h4 style="margin: 0 0 0.5rem 0;">What's NOT Included:</h4>
+        <ul style="margin: 0 0 1.5rem 1.5rem; line-height: 1.8;">
+            <li>Actual photo files (you'll need to back these up separately)</li>
+            <li>User account information</li>
+        </ul>
+        
+        <h4 style="margin: 0 0 0.5rem 0;">Best Practices:</h4>
+        <ul style="margin: 0 0 0 1.5rem; line-height: 1.8;">
+            <li>Create regular backups (weekly or monthly)</li>
+            <li>Store backups in multiple locations (cloud storage, external drive)</li>
+            <li>Test your backups occasionally by restoring to a test instance</li>
+            <li>Always use Merge mode unless you specifically need to replace all data</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.restore-mode-option:has(input:checked) {
+    border-color: var(--primary-color) !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.restore-mode-option:hover {
+    border-color: var(--border-color) !important;
+}
+</style>
+
+<script>
+// Show/hide replace confirmation
+document.querySelectorAll('input[name="restore_mode"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const confirmation = document.getElementById('replaceConfirmation');
+        const restoreButton = document.getElementById('restoreButton');
+        
+        if (this.value === 'replace') {
+            confirmation.style.display = 'block';
+            restoreButton.disabled = true;
+            restoreButton.style.opacity = '0.5';
+        } else {
+            confirmation.style.display = 'none';
+            restoreButton.disabled = false;
+            restoreButton.style.opacity = '1';
+        }
+    });
+});
+
+// Enable restore button when confirmation is checked
+document.getElementById('confirmReplaceCheckbox')?.addEventListener('change', function() {
+    const restoreButton = document.getElementById('restoreButton');
+    const replaceMode = document.querySelector('input[name="restore_mode"]:checked').value;
+    
+    if (replaceMode === 'replace') {
+        restoreButton.disabled = !this.checked;
+        restoreButton.style.opacity = this.checked ? '1' : '0.5';
+    }
+});
+</script>
+{% endblock %}

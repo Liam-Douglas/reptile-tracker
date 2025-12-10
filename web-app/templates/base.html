@@ -29,6 +29,15 @@
             <a href="{{ url_for('import_page') }}" class="nav-link {% if request.endpoint == 'import_page' %}active{% endif %}">
                 <i class="fas fa-file-import"></i> Import Data
             </a>
+            <a href="{{ url_for('feeding_reminders') }}" class="nav-link">
+                <i class="fas fa-bell"></i> Feeding Reminders
+            </a>
+            <a href="{{ url_for('backup_data') }}" class="nav-link">
+                <i class="fas fa-download"></i> Backup Data
+            </a>
+            <a href="{{ url_for('restore_data') }}" class="nav-link">
+                <i class="fas fa-upload"></i> Restore Data
+            </a>
         </div>
     </nav>
 

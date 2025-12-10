@@ -467,6 +467,7 @@ def add_length(reptile_id):
 @app.route('/reptile/<int:reptile_id>/photos')
 def photo_gallery(reptile_id):
     """Display photo gallery for a reptile"""
+    db = get_db()
     reptile = db.get_reptile(reptile_id)
     if not reptile:
         flash('Reptile not found', 'error')
@@ -481,6 +482,7 @@ def photo_gallery(reptile_id):
 @app.route('/reptile/<int:reptile_id>/photos/upload', methods=['POST'])
 def upload_photo(reptile_id):
     """Upload a new photo for a reptile"""
+    db = get_db()
     reptile = db.get_reptile(reptile_id)
     if not reptile:
         flash('Reptile not found', 'error')
@@ -527,6 +529,7 @@ def upload_photo(reptile_id):
 @app.route('/reptile/<int:reptile_id>/photos/<int:photo_id>/set-primary', methods=['POST'])
 def set_primary_photo(reptile_id, photo_id):
     """Set a photo as the primary photo"""
+    db = get_db()
     try:
         db.set_primary_photo(photo_id, reptile_id)
         flash('Primary photo updated!', 'success')
@@ -538,6 +541,7 @@ def set_primary_photo(reptile_id, photo_id):
 @app.route('/reptile/<int:reptile_id>/photos/<int:photo_id>/delete', methods=['POST'])
 def delete_photo(reptile_id, photo_id):
     """Delete a photo"""
+    db = get_db()
     try:
         # Get photo info before deleting
         photos = db.get_photos(reptile_id)
@@ -625,5 +629,182 @@ def disable_feeding_reminder(reptile_id):
         flash(f'Error disabling reminder: {str(e)}', 'error')
     
     return redirect(url_for('reptile_details', reptile_id=reptile_id))
+# ==================== DATA BACKUP & RESTORE ROUTES ====================
+
+@app.route('/backup')
+def backup_data():
+    """Export all data as JSON"""
+    db = get_db()
+    
+    try:
+        # Gather all data
+        backup_data = {
+            'export_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'version': '1.2.0',
+            'reptiles': db.get_all_reptiles(),
+            'feeding_logs': db.get_all_feeding_logs(),
+            'shed_records': db.get_all_shed_records(),
+            'weight_history': [],
+            'length_history': [],
+            'photos': [],
+            'feeding_reminders': db.get_feeding_reminders()
+        }
+        
+        # Get weight and length history for all reptiles
+        for reptile in backup_data['reptiles']:
+            weight_hist = db.get_weight_history(reptile['id'])
+            length_hist = db.get_length_history(reptile['id'])
+            photos = db.get_photos(reptile['id'])
+            
+            for record in weight_hist:
+                record['reptile_id'] = reptile['id']
+                backup_data['weight_history'].append(record)
+            
+            for record in length_hist:
+                record['reptile_id'] = reptile['id']
+                backup_data['length_history'].append(record)
+            
+            for photo in photos:
+                backup_data['photos'].append(photo)
+        
+        # Create JSON response
+        json_data = jsonify(backup_data)
+        response = make_response(json_data)
+        response.headers['Content-Disposition'] = f'attachment; filename=reptile_tracker_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+        response.headers['Content-Type'] = 'application/json'
+        
+        return response
+    except Exception as e:
+        flash(f'Error creating backup: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/restore', methods=['GET', 'POST'])
+def restore_data():
+    """Restore data from JSON backup"""
+    if request.method == 'POST':
+        if 'backup_file' not in request.files:
+            flash('No file uploaded', 'error')
+            return redirect(url_for('restore_data'))
+        
+        file = request.files['backup_file']
+        if file.filename == '':
+            flash('No file selected', 'error')
+            return redirect(url_for('restore_data'))
+        
+        if not file.filename.endswith('.json'):
+            flash('Invalid file type. Please upload a JSON backup file', 'error')
+            return redirect(url_for('restore_data'))
+        
+        try:
+            # Read and parse JSON
+            import json
+            backup_data = json.load(file)
+            
+            # Validate backup structure
+            required_keys = ['reptiles', 'feeding_logs', 'shed_records']
+            if not all(key in backup_data for key in required_keys):
+                flash('Invalid backup file format', 'error')
+                return redirect(url_for('restore_data'))
+            
+            db = get_db()
+            restore_mode = request.form.get('restore_mode', 'merge')
+            
+            if restore_mode == 'replace':
+                # Clear existing data (dangerous!)
+                if request.form.get('confirm_replace') != 'yes':
+                    flash('Please confirm data replacement', 'error')
+                    return redirect(url_for('restore_data'))
+                
+                # Delete all existing data
+                db.cursor.execute('DELETE FROM feeding_logs')
+                db.cursor.execute('DELETE FROM shed_records')
+                db.cursor.execute('DELETE FROM weight_history')
+                db.cursor.execute('DELETE FROM length_history')
+                db.cursor.execute('DELETE FROM photos')
+                db.cursor.execute('DELETE FROM feeding_reminders')
+                db.cursor.execute('DELETE FROM reptiles')
+                db.conn.commit()
+            
+            # Restore reptiles
+            reptile_id_map = {}  # Map old IDs to new IDs
+            for reptile in backup_data['reptiles']:
+                old_id = reptile['id']
+                new_id = db.add_reptile(
+                    name=reptile['name'],
+                    species=reptile['species'],
+                    morph=reptile.get('morph'),
+                    sex=reptile.get('sex'),
+                    date_of_birth=reptile.get('date_of_birth'),
+                    acquisition_date=reptile.get('acquisition_date'),
+                    weight_grams=reptile.get('weight_grams'),
+                    length_cm=reptile.get('length_cm'),
+                    notes=reptile.get('notes'),
+                    image_path=reptile.get('image_path')
+                )
+                reptile_id_map[old_id] = new_id
+            
+            # Restore feeding logs
+            for log in backup_data['feeding_logs']:
+                if log['reptile_id'] in reptile_id_map:
+                    db.add_feeding_log(
+                        reptile_id=reptile_id_map[log['reptile_id']],
+                        feeding_date=log['feeding_date'],
+                        food_type=log['food_type'],
+                        food_size=log.get('food_size'),
+                        quantity=log.get('quantity', 1),
+                        ate=log.get('ate', True),
+                        notes=log.get('notes')
+                    )
+            
+            # Restore shed records
+            for record in backup_data['shed_records']:
+                if record['reptile_id'] in reptile_id_map:
+                    db.add_shed_record(
+                        reptile_id=reptile_id_map[record['reptile_id']],
+                        shed_date=record['shed_date'],
+                        complete=record.get('complete', True),
+                        notes=record.get('notes')
+                    )
+            
+            # Restore weight history
+            if 'weight_history' in backup_data:
+                for record in backup_data['weight_history']:
+                    if record['reptile_id'] in reptile_id_map:
+                        db.add_weight_measurement(
+                            reptile_id=reptile_id_map[record['reptile_id']],
+                            weight_grams=record['weight_grams'],
+                            measurement_date=record['measurement_date'],
+                            notes=record.get('notes')
+                        )
+            
+            # Restore length history
+            if 'length_history' in backup_data:
+                for record in backup_data['length_history']:
+                    if record['reptile_id'] in reptile_id_map:
+                        db.add_length_measurement(
+                            reptile_id=reptile_id_map[record['reptile_id']],
+                            length_cm=record['length_cm'],
+                            measurement_date=record['measurement_date'],
+                            notes=record.get('notes')
+                        )
+            
+            # Restore feeding reminders
+            if 'feeding_reminders' in backup_data:
+                for reminder in backup_data['feeding_reminders']:
+                    if reminder['reptile_id'] in reptile_id_map:
+                        db.add_feeding_reminder(
+                            reptile_id=reptile_id_map[reminder['reptile_id']],
+                            feeding_interval_days=reminder['feeding_interval_days']
+                        )
+            
+            flash(f'Data restored successfully! Imported {len(reptile_id_map)} reptiles.', 'success')
+            return redirect(url_for('index'))
+            
+        except Exception as e:
+            flash(f'Error restoring data: {str(e)}', 'error')
+            return redirect(url_for('restore_data'))
+    
+    return render_template('restore_data.html')
+
 
 
