@@ -226,13 +226,6 @@ def uploaded_file(filename):
     """Serve uploaded files"""
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-if __name__ == '__main__':
-    # Create upload folder if it doesn't exist
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    app.run(debug=True, host='0.0.0.0', port=5001)
-
-# Made with Bob
-
 # ==================== IMPORT/EXPORT ROUTES ====================
 
 @app.route('/import')
@@ -362,3 +355,11 @@ def upload_import():
     except Exception as e:
         flash(f'Error processing file: {str(e)}', 'error')
         return redirect(url_for('import_page'))
+
+
+if __name__ == '__main__':
+    # Create upload folder if it doesn't exist
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    app.run(debug=True, host='0.0.0.0', port=5001)
+
+# Made with Bob
