@@ -229,7 +229,7 @@ class ReptileDatabase:
         return self.cursor.lastrowid
     
     def get_shed_records(self, reptile_id: int = None, start_date: str = None,
-                        end_date: str = None) -> List[Dict]:
+                        end_date: str = None, limit: int = None) -> List[Dict]:
         """Get shed records with optional filters"""
         query = '''
             SELECT sr.*, r.name as reptile_name 
@@ -252,6 +252,9 @@ class ReptileDatabase:
             params.append(end_date)
         
         query += ' ORDER BY sr.shed_date DESC'
+        
+        if limit:
+            query += f' LIMIT {limit}'
         
         self.cursor.execute(query, params)
         return [dict(row) for row in self.cursor.fetchall()]
