@@ -95,14 +95,17 @@
                     </td>
                     <td style="padding: 1rem;">
                         {% if reminder.next_feeding_date %}
-                            {% set today = now().strftime('%Y-%m-%d') %}
-                            {% if reminder.next_feeding_date < today %}
+                            {# Status will be determined by checking if it's in overdue list #}
+                            {% set is_overdue = false %}
+                            {% for item in overdue %}
+                                {% if item.reptile_id == reminder.reptile_id %}
+                                    {% set is_overdue = true %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if is_overdue %}
                                 <span style="color: #ef4444; font-weight: bold;">
                                     <i class="fas fa-exclamation-circle"></i> Overdue
-                                </span>
-                            {% elif reminder.next_feeding_date == today %}
-                                <span style="color: #f59e0b; font-weight: bold;">
-                                    <i class="fas fa-clock"></i> Due Today
                                 </span>
                             {% else %}
                                 <span style="color: #10b981;">
