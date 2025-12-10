@@ -217,6 +217,21 @@ class ReptileDatabase:
         self.conn.commit()
         return self.cursor.rowcount > 0
     
+    def get_all_feeding_logs(self, limit: int = None) -> List[Dict]:
+        """Get all feeding logs across all reptiles"""
+        query = '''
+            SELECT fl.*, r.name as reptile_name
+            FROM feeding_logs fl
+            JOIN reptiles r ON fl.reptile_id = r.id
+            ORDER BY fl.feeding_date DESC
+        '''
+        
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
     # ==================== SHED RECORD OPERATIONS ====================
     
     def add_shed_record(self, reptile_id: int, shed_date: str, complete: bool = True,
@@ -281,6 +296,21 @@ class ReptileDatabase:
         self.conn.commit()
         return self.cursor.rowcount > 0
     
+    def get_all_shed_records(self, limit: int = None) -> List[Dict]:
+        """Get all shed records across all reptiles"""
+        query = '''
+            SELECT sr.*, r.name as reptile_name
+            FROM shed_records sr
+            JOIN reptiles r ON sr.reptile_id = r.id
+            ORDER BY sr.shed_date DESC
+        '''
+        
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
     # ==================== STATISTICS & ANALYTICS ====================
     
     def get_reptile_stats(self, reptile_id: int) -> Dict:
@@ -339,18 +369,39 @@ class ReptileDatabase:
         self.cursor.execute('SELECT COUNT(*) as count FROM reptiles')
         stats['total_reptiles'] = self.cursor.fetchone()['count']
         
+        # Total feedings
+        self.cursor.execute('SELECT COUNT(*) as count FROM feeding_logs')
+        stats['total_feedings'] = self.cursor.fetchone()['count']
+        
+        # Total sheds
+        self.cursor.execute('SELECT COUNT(*) as count FROM shed_records')
+        stats['total_sheds'] = self.cursor.fetchone()['count']
+        
+        # Feeding success rate
+        self.cursor.execute('''
+            SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN ate = 1 THEN 1 ELSE 0 END) as successful
+            FROM feeding_logs
+        ''')
+        feeding_data = self.cursor.fetchone()
+        if feeding_data['total'] > 0:
+            stats['feeding_success_rate'] = (feeding_data['successful'] / feeding_data['total']) * 100
+        else:
+            stats['feeding_success_rate'] = 0
+        
         # Recent feedings (last 7 days)
         self.cursor.execute('''
-            SELECT COUNT(*) as count 
-            FROM feeding_logs 
+            SELECT COUNT(*) as count
+            FROM feeding_logs
             WHERE feeding_date >= date('now', '-7 days')
         ''')
         stats['recent_feedings'] = self.cursor.fetchone()['count']
         
         # Recent sheds (last 30 days)
         self.cursor.execute('''
-            SELECT COUNT(*) as count 
-            FROM shed_records 
+            SELECT COUNT(*) as count
+            FROM shed_records
             WHERE shed_date >= date('now', '-30 days')
         ''')
         stats['recent_sheds'] = self.cursor.fetchone()['count']
@@ -359,7 +410,7 @@ class ReptileDatabase:
         self.cursor.execute('''
             SELECT COUNT(DISTINCT r.id) as count
             FROM reptiles r
-            LEFT JOIN feeding_logs fl ON r.id = fl.reptile_id 
+            LEFT JOIN feeding_logs fl ON r.id = fl.reptile_id
                 AND fl.feeding_date >= date('now', '-7 days')
             WHERE fl.id IS NULL
         ''')

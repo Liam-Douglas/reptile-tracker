@@ -13,14 +13,24 @@ from datetime import datetime
 from reptile_tracker_db import ReptileDatabase
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
+
+# Use persistent storage path if available (for Render/Railway)
+DATA_DIR = os.environ.get('DATA_DIR', os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(DATA_DIR, 'reptile_tracker.db')
+UPLOAD_PATH = os.path.join(DATA_DIR, 'uploads')
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_PATH
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+# Ensure directories exist
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(UPLOAD_PATH, exist_ok=True)
+
 def get_db():
     """Get database connection for current request"""
-    return ReptileDatabase('reptile_tracker.db')
+    return ReptileDatabase(DB_PATH)
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -163,9 +173,10 @@ def add_feeding():
         try:
             data = {
                 'reptile_id': int(request.form.get('reptile_id')),
-                'date': request.form.get('date'),
+                'feeding_date': request.form.get('date'),
                 'food_type': request.form.get('food_type'),
-                'amount': request.form.get('amount') or None,
+                'food_size': request.form.get('food_size') or None,
+                'quantity': int(request.form.get('quantity', 1)),
                 'ate': request.form.get('ate') == 'yes',
                 'notes': request.form.get('notes') or None
             }

@@ -69,19 +69,52 @@ pip install --user -r requirements.txt
 
 5. Reload your web app
 
-### Deploy to Render (Free)
+### Deploy to Render (Free with Persistent Storage)
 
-Render offers free web service hosting:
+Render offers free web service hosting with persistent disk storage:
+
+#### Option 1: Using render.yaml (Recommended)
 
 1. Create account at [render.com](https://render.com)
 
 2. Connect your GitHub repository
 
-3. Create a new Web Service:
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
+3. Render will automatically detect the `render.yaml` file and configure:
+   - Python runtime
+   - Build and start commands
+   - **Persistent disk storage** (1GB) mounted at `/opt/render/project/data`
+   - Environment variables for data persistence
 
-4. Your app will be deployed automatically!
+4. Your app will be deployed with persistent storage!
+
+#### Option 2: Manual Setup
+
+1. Create account at [render.com](https://render.com)
+
+2. Create a new Web Service and connect your repository
+
+3. Configure the service:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
+
+4. **Add Persistent Disk** (Important for data persistence):
+   - Go to your service's "Disks" tab
+   - Click "Add Disk"
+   - Name: `reptile-data`
+   - Mount Path: `/opt/render/project/data`
+   - Size: 1 GB (free tier)
+
+5. **Add Environment Variable**:
+   - Go to "Environment" tab
+   - Add: `DATA_DIR` with value `/opt/render/project/data`
+
+6. Deploy and your data will now persist across restarts!
+
+#### Important Notes for Render:
+- Without persistent disk, your database resets on every deployment
+- The free tier includes 1GB of persistent storage
+- Data in the disk survives deployments and restarts
+- Uploads and database are stored in the persistent disk
 
 ## Project Structure
 
