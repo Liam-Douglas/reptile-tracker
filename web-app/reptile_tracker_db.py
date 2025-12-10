@@ -1050,6 +1050,25 @@ class ReptileDatabase:
             SELECT category, COUNT(*) as count, SUM(amount) as total
             FROM expenses
             WHERE 1=1
+        '''
+        params = []
+        
+        if reptile_id:
+            query += ' AND reptile_id = ?'
+            params.append(reptile_id)
+        
+        if start_date:
+            query += ' AND expense_date >= ?'
+            params.append(start_date)
+        
+        if end_date:
+            query += ' AND expense_date <= ?'
+            params.append(end_date)
+        
+        query += ' GROUP BY category ORDER BY total DESC'
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
     
     # ==================== FOOD INVENTORY OPERATIONS ====================
     
