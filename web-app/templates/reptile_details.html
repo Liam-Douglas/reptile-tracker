@@ -82,6 +82,9 @@
         </a>
         <a href="{{ url_for('photo_gallery', reptile_id=reptile.id) }}" class="btn btn-secondary">
             <i class="fas fa-images"></i> Photo Gallery
+        <a href="{{ url_for('set_feeding_reminder', reptile_id=reptile.id) }}" class="btn btn-secondary">
+            <i class="fas fa-bell"></i> Feeding Reminder
+        </a>
         </a>
         <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="btn btn-secondary">
             <i class="fas fa-utensils"></i> Add Feeding

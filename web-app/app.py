@@ -44,7 +44,11 @@ def index():
     db = get_db()
     reptiles = db.get_all_reptiles()
     stats = db.get_dashboard_stats()
-    return render_template('dashboard.html', reptiles=reptiles, stats=stats)
+    overdue_feedings = db.get_overdue_feedings()
+    return render_template('dashboard.html',
+                         reptiles=reptiles,
+                         stats=stats,
+                         overdue_feedings=overdue_feedings)
 
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):
@@ -183,6 +187,10 @@ def add_feeding():
                 'notes': request.form.get('notes') or None
             }
             db.add_feeding_log(**data)
+            
+            # Update feeding reminder dates if reminder exists
+            db.update_feeding_reminder_dates(data['reptile_id'], data['feeding_date'])
+            
             flash('Feeding log added successfully!', 'success')
             return redirect(url_for('feeding_logs'))
         except Exception as e:
@@ -551,4 +559,71 @@ def delete_photo(reptile_id, photo_id):
         flash(f'Error deleting photo: {str(e)}', 'error')
     
     return redirect(url_for('photo_gallery', reptile_id=reptile_id))
+# ==================== FEEDING REMINDER ROUTES ====================
+
+@app.route('/feeding-reminders')
+def feeding_reminders():
+    """Display all feeding reminders and overdue feedings"""
+    db = get_db()
+    all_reminders = db.get_feeding_reminders()
+    overdue = db.get_overdue_feedings()
+    
+    return render_template('feeding_reminders.html',
+                         reminders=all_reminders,
+                         overdue=overdue)
+
+@app.route('/reptile/<int:reptile_id>/feeding-reminder/set', methods=['GET', 'POST'])
+def set_feeding_reminder(reptile_id):
+    """Set or update feeding reminder for a reptile"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            feeding_interval_days = int(request.form.get('feeding_interval_days'))
+            
+            if feeding_interval_days < 1:
+                flash('Feeding interval must be at least 1 day', 'error')
+                return redirect(url_for('set_feeding_reminder', reptile_id=reptile_id))
+            
+            db.add_feeding_reminder(reptile_id, feeding_interval_days)
+            
+            # Update dates if there's a recent feeding
+            recent_feeding = db.get_feeding_logs(reptile_id, limit=1)
+            if recent_feeding:
+                db.update_feeding_reminder_dates(reptile_id, recent_feeding[0]['feeding_date'])
+            
+            flash(f'Feeding reminder set to every {feeding_interval_days} days', 'success')
+            return redirect(url_for('reptile_details', reptile_id=reptile_id))
+        except Exception as e:
+            flash(f'Error setting reminder: {str(e)}', 'error')
+    
+    # Get existing reminder if any
+    existing_reminders = db.get_feeding_reminders(reptile_id)
+    existing_reminder = existing_reminders[0] if existing_reminders else None
+    
+    return render_template('set_feeding_reminder.html',
+                         reptile=reptile,
+                         existing_reminder=existing_reminder)
+
+@app.route('/reptile/<int:reptile_id>/feeding-reminder/disable', methods=['POST'])
+def disable_feeding_reminder(reptile_id):
+    """Disable feeding reminder for a reptile"""
+    db = get_db()
+    try:
+        db.cursor.execute('''
+            UPDATE feeding_reminders 
+            SET is_active = 0 
+            WHERE reptile_id = ?
+        ''', (reptile_id,))
+        db.conn.commit()
+        flash('Feeding reminder disabled', 'success')
+    except Exception as e:
+        flash(f'Error disabling reminder: {str(e)}', 'error')
+    
+    return redirect(url_for('reptile_details', reptile_id=reptile_id))
+
 

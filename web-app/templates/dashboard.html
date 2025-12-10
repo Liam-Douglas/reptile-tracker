@@ -26,6 +26,48 @@
         <div class="stat-label">Success Rate</div>
     </div>
 </div>
+<!-- Overdue Feedings Alert -->
+{% if overdue_feedings %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #ef4444;">
+    <div class="card-header" style="background: #fee2e2;">
+        <h3 class="card-title" style="color: #991b1b;">
+            <i class="fas fa-exclamation-triangle"></i> Overdue Feedings ({{ overdue_feedings|length }})
+        </h3>
+        <a href="{{ url_for('feeding_reminders') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+            View All Reminders
+        </a>
+    </div>
+    <div style="padding: 1rem;">
+        <div style="display: grid; gap: 0.75rem;">
+            {% for item in overdue_feedings[:3] %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: 6px;">
+                <div>
+                    <strong>
+                        <a href="{{ url_for('reptile_details', reptile_id=item.reptile_id) }}" style="color: var(--primary-color); text-decoration: none;">
+                            {{ item.reptile_name }}
+                        </a>
+                    </strong>
+                    <span style="color: #ef4444; margin-left: 0.5rem; font-size: 0.9rem;">
+                        ({{ item.days_overdue }} days overdue)
+                    </span>
+                </div>
+                <a href="{{ url_for('add_feeding') }}?reptile_id={{ item.reptile_id }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <i class="fas fa-utensils"></i> Feed Now
+                </a>
+            </div>
+            {% endfor %}
+            {% if overdue_feedings|length > 3 %}
+            <div style="text-align: center; padding-top: 0.5rem;">
+                <a href="{{ url_for('feeding_reminders') }}" style="color: var(--primary-color); text-decoration: none;">
+                    View {{ overdue_feedings|length - 3 }} more overdue feeding(s) →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 
 <!-- Reptiles Grid -->
 {% if reptiles %}

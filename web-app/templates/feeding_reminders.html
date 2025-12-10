@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Feeding Reminders{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-bell"></i> Feeding Reminders
+    </h1>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Overdue Feedings Alert -->
+{% if overdue %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #ef4444;">
+    <div class="card-header" style="background: #fee2e2;">
+        <h3 class="card-title" style="color: #991b1b;">
+            <i class="fas fa-exclamation-triangle"></i> Overdue Feedings ({{ overdue|length }})
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; gap: 1rem;">
+            {% for item in overdue %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid #ef4444;">
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0;">
+                        <a href="{{ url_for('reptile_details', reptile_id=item.reptile_id) }}" style="color: var(--primary-color); text-decoration: none;">
+                            {{ item.reptile_name }}
+                        </a>
+                    </h4>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                        <i class="fas fa-calendar-times"></i> 
+                        Due: {{ item.next_feeding_date }}
+                        <span style="color: #ef4444; font-weight: bold; margin-left: 0.5rem;">
+                            ({{ item.days_overdue }} days overdue)
+                        </span>
+                    </p>
+                    <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
+                        <i class="fas fa-clock"></i> Feeding interval: Every {{ item.feeding_interval_days }} days
+                    </p>
+                </div>
+                <a href="{{ url_for('add_feeding') }}?reptile_id={{ item.reptile_id }}" class="btn btn-primary">
+                    <i class="fas fa-utensils"></i> Feed Now
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- All Active Reminders -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Active Reminders ({{ reminders|length }})</h3>
+    </div>
+    
+    {% if reminders %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 1rem; text-align: left;">Reptile</th>
+                    <th style="padding: 1rem; text-align: left;">Interval</th>
+                    <th style="padding: 1rem; text-align: left;">Last Fed</th>
+                    <th style="padding: 1rem; text-align: left;">Next Feeding</th>
+                    <th style="padding: 1rem; text-align: left;">Status</th>
+                    <th style="padding: 1rem; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reminder in reminders %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">
+                        <a href="{{ url_for('reptile_details', reptile_id=reminder.reptile_id) }}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                            {{ reminder.reptile_name }}
+                        </a>
+                    </td>
+                    <td style="padding: 1rem;">Every {{ reminder.feeding_interval_days }} days</td>
+                    <td style="padding: 1rem;">
+                        {% if reminder.last_fed_date %}
+                            {{ reminder.last_fed_date }}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">Not fed yet</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if reminder.next_feeding_date %}
+                            {{ reminder.next_feeding_date }}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if reminder.next_feeding_date %}
+                            {% set today = now().strftime('%Y-%m-%d') %}
+                            {% if reminder.next_feeding_date < today %}
+                                <span style="color: #ef4444; font-weight: bold;">
+                                    <i class="fas fa-exclamation-circle"></i> Overdue
+                                </span>
+                            {% elif reminder.next_feeding_date == today %}
+                                <span style="color: #f59e0b; font-weight: bold;">
+                                    <i class="fas fa-clock"></i> Due Today
+                                </span>
+                            {% else %}
+                                <span style="color: #10b981;">
+                                    <i class="fas fa-check-circle"></i> On Schedule
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <a href="{{ url_for('set_feeding_reminder', reptile_id=reminder.reptile_id) }}" 
+                               class="btn btn-secondary" 
+                               style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="{{ url_for('add_feeding') }}?reptile_id={{ reminder.reptile_id }}" 
+                               class="btn btn-primary" 
+                               style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                <i class="fas fa-utensils"></i> Feed
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <i class="fas fa-bell-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+        <p>No feeding reminders set up yet.</p>
+        <p style="margin-top: 1rem;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                Go to Dashboard to Set Reminders
+            </a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Responsive table */
+@media (max-width: 768px) {
+    table {
+        font-size: 0.85rem;
+    }
+    
+    th, td {
+        padding: 0.5rem !important;
+    }
+    
+    .btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+</style>
+{% endblock %}

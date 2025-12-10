@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Set Feeding Reminder - {{ reptile.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-bell"></i> Set Feeding Reminder - {{ reptile.name }}
+    </h1>
+    <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Details
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            {% if existing_reminder %}
+                Update Feeding Schedule
+            {% else %}
+                Set Up Feeding Schedule
+            {% endif %}
+        </h3>
+    </div>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label class="form-label" for="feeding_interval_days">
+                Feeding Interval (days) *
+            </label>
+            <input type="number" 
+                   id="feeding_interval_days" 
+                   name="feeding_interval_days" 
+                   class="form-input" 
+                   min="1"
+                   value="{{ existing_reminder.feeding_interval_days if existing_reminder else '' }}"
+                   placeholder="e.g., 7 for weekly, 14 for bi-weekly"
+                   required>
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                How often should {{ reptile.name }} be fed? Common intervals:
+                <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                    <li>3-4 days: Young/growing reptiles</li>
+                    <li>7 days: Adult snakes, most lizards</li>
+                    <li>14 days: Large adult snakes</li>
+                    <li>30 days: Very large snakes (pythons, boas)</li>
+                </ul>
+            </small>
+        </div>
+
+        {% if existing_reminder %}
+        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 0.5rem 0;">Current Schedule</h4>
+            <p style="margin: 0.25rem 0; color: var(--text-secondary);">
+                <strong>Interval:</strong> Every {{ existing_reminder.feeding_interval_days }} days
+            </p>
+            {% if existing_reminder.last_fed_date %}
+            <p style="margin: 0.25rem 0; color: var(--text-secondary);">
+                <strong>Last Fed:</strong> {{ existing_reminder.last_fed_date }}
+            </p>
+            {% endif %}
+            {% if existing_reminder.next_feeding_date %}
+            <p style="margin: 0.25rem 0; color: var(--text-secondary);">
+                <strong>Next Feeding:</strong> {{ existing_reminder.next_feeding_date }}
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> 
+                {% if existing_reminder %}
+                    Update Reminder
+                {% else %}
+                    Set Reminder
+                {% endif %}
+            </button>
+            
+            {% if existing_reminder %}
+            <button type="button" 
+                    class="btn btn-danger"
+                    onclick="if(confirm('Are you sure you want to disable this feeding reminder?')) { document.getElementById('disableForm').submit(); }">
+                <i class="fas fa-bell-slash"></i> Disable Reminder
+            </button>
+            {% endif %}
+            
+            <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if existing_reminder %}
+<!-- Hidden form for disabling reminder -->
+<form id="disableForm" method="POST" action="{{ url_for('disable_feeding_reminder', reptile_id=reptile.id) }}" style="display: none;">
+</form>
+{% endif %}
+
+<!-- Info Card -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-info-circle"></i> How Feeding Reminders Work
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8;">
+            <li>Set a feeding interval based on your reptile's needs</li>
+            <li>The system tracks when you last fed your reptile</li>
+            <li>You'll see reminders on the dashboard when feeding is due</li>
+            <li>Overdue feedings are highlighted in red</li>
+            <li>Update the interval anytime as your reptile's needs change</li>
+            <li>Disable reminders if you prefer manual tracking</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
