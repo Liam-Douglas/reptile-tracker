@@ -4,5 +4,9 @@ Flask>=2.3.0
 Werkzeug>=2.3.0
 Pillow>=9.0.0
 
+# For data import/export
+pandas>=2.0.0
+openpyxl>=3.1.0
+
 # For production deployment
 gunicorn>=21.0.0

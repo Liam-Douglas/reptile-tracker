@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Import Data - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📥 Import Data</h2>
+    <p>Bulk import reptiles, feeding logs, or shed records from Excel or CSV files</p>
+</div>
+
+<!-- Instructions Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">📋 How to Import</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <ol style="line-height: 1.8; padding-left: 1.5rem;">
+            <li><strong>Download a template</strong> for the type of data you want to import</li>
+            <li><strong>Fill in your data</strong> in the Excel or CSV file (you can delete the example row)</li>
+            <li><strong>Upload the file</strong> using the form below</li>
+            <li><strong>Review the results</strong> - any errors will be shown</li>
+        </ol>
+        
+        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+            <strong>💡 Tips:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.8;">
+                <li>Keep the column headers exactly as shown in the template</li>
+                <li>For feeding logs and shed records, reptile names must match existing reptiles</li>
+                <li>Dates should be in YYYY-MM-DD format (e.g., 2024-01-15)</li>
+                <li>Use "yes" or "no" for yes/no fields</li>
+                <li>Leave optional fields empty if not needed</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Download Templates Section -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">📥 Download Templates</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            
+            <!-- Reptiles Template -->
+            <div style="border: 2px solid var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🦎</div>
+                <h4 style="margin: 0.5rem 0;">Reptiles</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0 1rem;">
+                    Import your reptile collection
+                </p>
+                <a href="{{ url_for('download_template', data_type='reptiles') }}" 
+                   class="btn btn-primary" 
+                   style="width: 100%;">
+                    <i class="fas fa-download"></i> Download Template
+                </a>
+            </div>
+            
+            <!-- Feeding Logs Template -->
+            <div style="border: 2px solid var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🍖</div>
+                <h4 style="margin: 0.5rem 0;">Feeding Logs</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0 1rem;">
+                    Import feeding history
+                </p>
+                <a href="{{ url_for('download_template', data_type='feeding') }}" 
+                   class="btn btn-primary" 
+                   style="width: 100%;">
+                    <i class="fas fa-download"></i> Download Template
+                </a>
+            </div>
+            
+            <!-- Shed Records Template -->
+            <div style="border: 2px solid var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔄</div>
+                <h4 style="margin: 0.5rem 0;">Shed Records</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0 1rem;">
+                    Import shed tracking data
+                </p>
+                <a href="{{ url_for('download_template', data_type='sheds') }}" 
+                   class="btn btn-primary" 
+                   style="width: 100%;">
+                    <i class="fas fa-download"></i> Download Template
+                </a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Upload Form -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">📤 Upload Data File</h3>
+    </div>
+    
+    <form method="POST" action="{{ url_for('upload_import') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label class="form-label" for="data_type">Data Type *</label>
+            <select id="data_type" name="data_type" class="form-select" required>
+                <option value="">Select data type...</option>
+                <option value="reptiles">🦎 Reptiles</option>
+                <option value="feeding">🍖 Feeding Logs</option>
+                <option value="sheds">🔄 Shed Records</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="file">File *</label>
+            <input type="file" 
+                   id="file" 
+                   name="file" 
+                   class="form-input" 
+                   accept=".xlsx,.xls,.csv"
+                   required>
+            <small style="color: var(--text-secondary);">
+                Accepted formats: Excel (.xlsx, .xls) or CSV (.csv)
+            </small>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload and Import
+            </button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Field Reference -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">📖 Field Reference</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        
+        <details style="margin-bottom: 1rem;">
+            <summary style="cursor: pointer; font-weight: bold; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">
+                🦎 Reptiles Fields
+            </summary>
+            <div style="padding: 1rem; margin-top: 0.5rem; border-left: 3px solid var(--primary-color);">
+                <ul style="line-height: 1.8;">
+                    <li><strong>name</strong> * - Reptile's name (required)</li>
+                    <li><strong>species</strong> * - Species name (required)</li>
+                    <li><strong>morph</strong> - Color morph or pattern</li>
+                    <li><strong>sex</strong> - Male, Female, or Unknown</li>
+                    <li><strong>date_of_birth</strong> - Birth date (YYYY-MM-DD)</li>
+                    <li><strong>acquisition_date</strong> - Date acquired (YYYY-MM-DD)</li>
+                    <li><strong>weight_grams</strong> - Weight in grams (number)</li>
+                    <li><strong>length_cm</strong> - Length in centimeters (number)</li>
+                    <li><strong>notes</strong> - Additional notes</li>
+                </ul>
+            </div>
+        </details>
+        
+        <details style="margin-bottom: 1rem;">
+            <summary style="cursor: pointer; font-weight: bold; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">
+                🍖 Feeding Logs Fields
+            </summary>
+            <div style="padding: 1rem; margin-top: 0.5rem; border-left: 3px solid var(--primary-color);">
+                <ul style="line-height: 1.8;">
+                    <li><strong>reptile_name</strong> * - Name of reptile (must exist) (required)</li>
+                    <li><strong>feeding_date</strong> * - Date of feeding (YYYY-MM-DD) (required)</li>
+                    <li><strong>food_type</strong> * - Type of food (required)</li>
+                    <li><strong>food_size</strong> - Size of food item</li>
+                    <li><strong>quantity</strong> - Number of items (default: 1)</li>
+                    <li><strong>ate</strong> - Did they eat? (yes/no, default: yes)</li>
+                    <li><strong>notes</strong> - Additional notes</li>
+                </ul>
+            </div>
+        </details>
+        
+        <details>
+            <summary style="cursor: pointer; font-weight: bold; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px;">
+                🔄 Shed Records Fields
+            </summary>
+            <div style="padding: 1rem; margin-top: 0.5rem; border-left: 3px solid var(--primary-color);">
+                <ul style="line-height: 1.8;">
+                    <li><strong>reptile_name</strong> * - Name of reptile (must exist) (required)</li>
+                    <li><strong>shed_date</strong> * - Date of shed (YYYY-MM-DD) (required)</li>
+                    <li><strong>complete</strong> - Was shed complete? (yes/no, default: yes)</li>
+                    <li><strong>shed_length_cm</strong> - Length of shed skin in cm (number)</li>
+                    <li><strong>notes</strong> - Additional notes</li>
+                </ul>
+            </div>
+        </details>
+        
+    </div>
+</div>
+
+<style>
+details summary:hover {
+    background: var(--hover-color);
+}
+
+details[open] summary {
+    margin-bottom: 0.5rem;
+}
+</style>
+
+{% endblock %}

@@ -26,6 +26,9 @@
             <a href="{{ url_for('shed_records') }}" class="nav-link {% if request.endpoint == 'shed_records' %}active{% endif %}">
                 <i class="fas fa-sync"></i> Shed Records
             </a>
+            <a href="{{ url_for('import_page') }}" class="nav-link {% if request.endpoint == 'import_page' %}active{% endif %}">
+                <i class="fas fa-file-import"></i> Import Data
+            </a>
         </div>
     </nav>
 

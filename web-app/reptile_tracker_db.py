@@ -417,6 +417,118 @@ class ReptileDatabase:
         stats['needs_feeding'] = self.cursor.fetchone()['count']
         
         return stats
+    
+    # ==================== BULK IMPORT OPERATIONS ====================
+    
+    def bulk_import_reptiles(self, reptiles_data: List[Dict]) -> Tuple[int, List[str]]:
+        """
+        Bulk import reptiles from a list of dictionaries
+        Returns: (number_imported, list_of_errors)
+        """
+        imported = 0
+        errors = []
+        
+        for idx, reptile in enumerate(reptiles_data, start=2):  # Start at 2 (row 1 is header)
+            try:
+                # Validate required fields
+                if not reptile.get('name') or not reptile.get('species'):
+                    errors.append(f"Row {idx}: Missing required fields (name or species)")
+                    continue
+                
+                # Add reptile
+                self.add_reptile(
+                    name=str(reptile.get('name', '')),
+                    species=str(reptile.get('species', '')),
+                    morph=str(reptile.get('morph', '')) if reptile.get('morph') else None,
+                    sex=str(reptile.get('sex', '')) if reptile.get('sex') else None,
+                    date_of_birth=str(reptile.get('date_of_birth', '')) if reptile.get('date_of_birth') else None,
+                    acquisition_date=str(reptile.get('acquisition_date', '')) if reptile.get('acquisition_date') else None,
+                    weight_grams=float(reptile.get('weight_grams')) if reptile.get('weight_grams') else None,
+                    length_cm=float(reptile.get('length_cm')) if reptile.get('length_cm') else None,
+                    notes=str(reptile.get('notes', '')) if reptile.get('notes') else None,
+                    image_path=None  # Images not supported in bulk import
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f"Row {idx}: {str(e)}")
+        
+        return imported, errors
+    
+    def bulk_import_feeding_logs(self, logs_data: List[Dict]) -> Tuple[int, List[str]]:
+        """
+        Bulk import feeding logs from a list of dictionaries
+        Returns: (number_imported, list_of_errors)
+        """
+        imported = 0
+        errors = []
+        
+        for idx, log in enumerate(logs_data, start=2):
+            try:
+                # Validate required fields
+                if not log.get('reptile_name') or not log.get('feeding_date') or not log.get('food_type'):
+                    errors.append(f"Row {idx}: Missing required fields")
+                    continue
+                
+                # Find reptile by name
+                self.cursor.execute('SELECT id FROM reptiles WHERE name = ?', (log.get('reptile_name'),))
+                reptile = self.cursor.fetchone()
+                
+                if not reptile:
+                    errors.append(f"Row {idx}: Reptile '{log.get('reptile_name')}' not found")
+                    continue
+                
+                # Add feeding log
+                self.add_feeding_log(
+                    reptile_id=reptile['id'],
+                    feeding_date=str(log.get('feeding_date')),
+                    food_type=str(log.get('food_type')),
+                    food_size=str(log.get('food_size', '')) if log.get('food_size') else None,
+                    quantity=int(log.get('quantity', 1)),
+                    ate=str(log.get('ate', 'yes')).lower() in ['yes', 'true', '1', 'y'],
+                    notes=str(log.get('notes', '')) if log.get('notes') else None
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f"Row {idx}: {str(e)}")
+        
+        return imported, errors
+    
+    def bulk_import_shed_records(self, records_data: List[Dict]) -> Tuple[int, List[str]]:
+        """
+        Bulk import shed records from a list of dictionaries
+        Returns: (number_imported, list_of_errors)
+        """
+        imported = 0
+        errors = []
+        
+        for idx, record in enumerate(records_data, start=2):
+            try:
+                # Validate required fields
+                if not record.get('reptile_name') or not record.get('shed_date'):
+                    errors.append(f"Row {idx}: Missing required fields")
+                    continue
+                
+                # Find reptile by name
+                self.cursor.execute('SELECT id FROM reptiles WHERE name = ?', (record.get('reptile_name'),))
+                reptile = self.cursor.fetchone()
+                
+                if not reptile:
+                    errors.append(f"Row {idx}: Reptile '{record.get('reptile_name')}' not found")
+                    continue
+                
+                # Add shed record
+                self.add_shed_record(
+                    reptile_id=reptile['id'],
+                    shed_date=str(record.get('shed_date')),
+                    complete=str(record.get('complete', 'yes')).lower() in ['yes', 'true', '1', 'y', 'complete'],
+                    shed_length_cm=float(record.get('shed_length_cm')) if record.get('shed_length_cm') else None,
+                    notes=str(record.get('notes', '')) if record.get('notes') else None
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f"Row {idx}: {str(e)}")
+        
+        return imported, errors
 
 
 # Utility functions for date handling

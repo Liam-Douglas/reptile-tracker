@@ -3,11 +3,13 @@ Reptile Tracker Web Application
 Flask-based web interface for tracking reptile care
 """
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file, make_response
 from werkzeug.utils import secure_filename
 import os
 import sys
 from datetime import datetime
+import pandas as pd
+from io import BytesIO
 
 # Import database module from local directory
 from reptile_tracker_db import ReptileDatabase
@@ -230,3 +232,133 @@ if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
 
 # Made with Bob
+
+# ==================== IMPORT/EXPORT ROUTES ====================
+
+@app.route('/import')
+def import_page():
+    """Show import page"""
+    return render_template('import_data.html')
+
+@app.route('/import/template/<data_type>')
+def download_template(data_type):
+    """Download Excel template for data import"""
+    
+    if data_type == 'reptiles':
+        # Create reptiles template
+        df = pd.DataFrame(columns=[
+            'name', 'species', 'morph', 'sex', 'date_of_birth', 
+            'acquisition_date', 'weight_grams', 'length_cm', 'notes'
+        ])
+        # Add example row
+        df.loc[0] = [
+            'Example Snake', 'Ball Python', 'Banana', 'Male', '2023-01-15',
+            '2023-06-20', 250.5, 90.0, 'Example notes here'
+        ]
+        filename = 'reptiles_import_template.xlsx'
+        
+    elif data_type == 'feeding':
+        # Create feeding logs template
+        df = pd.DataFrame(columns=[
+            'reptile_name', 'feeding_date', 'food_type', 'food_size', 
+            'quantity', 'ate', 'notes'
+        ])
+        # Add example row
+        df.loc[0] = [
+            'Example Snake', '2024-01-15', 'Mouse', 'Medium', 1, 'yes', 'Ate well'
+        ]
+        filename = 'feeding_logs_import_template.xlsx'
+        
+    elif data_type == 'sheds':
+        # Create shed records template
+        df = pd.DataFrame(columns=[
+            'reptile_name', 'shed_date', 'complete', 'shed_length_cm', 'notes'
+        ])
+        # Add example row
+        df.loc[0] = [
+            'Example Snake', '2024-01-20', 'yes', 95.0, 'Complete shed'
+        ]
+        filename = 'shed_records_import_template.xlsx'
+    else:
+        flash('Invalid template type', 'error')
+        return redirect(url_for('import_page'))
+    
+    # Create Excel file in memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Data')
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
+@app.route('/import/upload', methods=['POST'])
+def upload_import():
+    """Process uploaded import file"""
+    if 'file' not in request.files:
+        flash('No file uploaded', 'error')
+        return redirect(url_for('import_page'))
+    
+    file = request.files['file']
+    data_type = request.form.get('data_type')
+    
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('import_page'))
+    
+    if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
+        flash('Invalid file type. Please upload Excel (.xlsx, .xls) or CSV file', 'error')
+        return redirect(url_for('import_page'))
+    
+    try:
+        # Read file based on type
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+        
+        # Convert DataFrame to list of dictionaries
+        data = df.to_dict('records')
+        
+        # Remove example rows (first row if it contains 'Example')
+        if data and any('Example' in str(v) for v in data[0].values()):
+            data = data[1:]
+        
+        if not data:
+            flash('No data found in file', 'error')
+            return redirect(url_for('import_page'))
+        
+        db = get_db()
+        
+        # Import based on data type
+        if data_type == 'reptiles':
+            imported, errors = db.bulk_import_reptiles(data)
+            flash(f'Successfully imported {imported} reptile(s)', 'success')
+            
+        elif data_type == 'feeding':
+            imported, errors = db.bulk_import_feeding_logs(data)
+            flash(f'Successfully imported {imported} feeding log(s)', 'success')
+            
+        elif data_type == 'sheds':
+            imported, errors = db.bulk_import_shed_records(data)
+            flash(f'Successfully imported {imported} shed record(s)', 'success')
+        else:
+            flash('Invalid data type', 'error')
+            return redirect(url_for('import_page'))
+        
+        # Show errors if any
+        if errors:
+            for error in errors[:10]:  # Show first 10 errors
+                flash(error, 'warning')
+            if len(errors) > 10:
+                flash(f'... and {len(errors) - 10} more errors', 'warning')
+        
+        return redirect(url_for('import_page'))
+        
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}', 'error')
+        return redirect(url_for('import_page'))
