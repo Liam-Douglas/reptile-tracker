@@ -30,6 +30,12 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_PATH, exist_ok=True)
 
+# Log database path for debugging
+print(f"[INFO] Database path: {DB_PATH}")
+print(f"[INFO] Data directory: {DATA_DIR}")
+print(f"[INFO] Upload path: {UPLOAD_PATH}")
+print(f"[INFO] Database exists: {os.path.exists(DB_PATH)}")
+
 def get_db():
     """Get database connection for current request"""
     return ReptileDatabase(DB_PATH)
