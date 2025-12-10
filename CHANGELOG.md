@@ -7,6 +7,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2025-12-10
+
+### 🎉 Major Release - Complete Feature Overhaul
+
+#### 🆕 New Features
+
+**Weight & Length Tracking**
+- Weight history tracking with measurements over time
+- Length history tracking with growth monitoring
+- Interactive charts and graphs for visualizing growth
+- Add measurements with dates and notes
+- View complete measurement history
+
+**Photo Gallery System**
+- Upload multiple photos per reptile
+- Set primary photo for reptile profile
+- Photo captions and metadata
+- Delete photos with file cleanup
+- Gallery view with all reptile photos
+
+**Email & SMS Notifications**
+- Email notifications via SMTP (Gmail, Outlook, etc.)
+- SMS notifications via Twilio
+- Customizable notification settings page
+- Test notification functionality
+- Daily reminder time configuration
+- Advance notice settings (0-7 days)
+- Overdue-only notification mode
+
+**Data Backup & Restore**
+- Complete data export to JSON format
+- Backup includes all reptiles, logs, photos, and settings
+- Restore from backup with merge or replace options
+- Timestamped backup files
+- Comprehensive data preservation
+
+#### 🐛 Critical Bug Fixes
+
+**Database Structure**
+- Fixed: Database methods were outside class scope
+- Fixed: `get_overdue_feedings()` method not accessible
+- Fixed: Missing `length_history` table in schema
+- Fixed: Indentation issues causing AttributeErrors
+
+**Data Persistence**
+- Fixed: Data loss on Render deployments
+- Configured persistent disk storage at `/opt/render/project/data`
+- Added `DATA_DIR` environment variable support
+- Database and uploads now persist between deployments
+
+**Template Errors**
+- Fixed: `now()` function undefined in feeding_reminders.html
+- Fixed: Duplicate closing `</a>` tag in navigation
+- Fixed: Missing `db = get_db()` in photo gallery routes
+
+**Application Stability**
+- Fixed: Internal Server Error on length tracking page
+- Fixed: Internal Server Error on feeding reminders page
+- Fixed: Missing return statement in length tracking route
+
+#### 📚 Documentation
+
+**New Documentation Files**
+- `DATA_PERSISTENCE.md` - Data persistence configuration guide
+- `NOTIFICATION_SETUP.md` - Complete notification setup guide
+- `RENDER_FIX_DATA_PERSISTENCE.md` - Troubleshooting guide
+- `TEST_RESULTS.md` - Comprehensive test results
+- Updated `CONTRIBUTING.md` with new feature ideas
+
+#### 🔧 Technical Improvements
+
+**Database Schema Updates**
+- Added `weight_history` table
+- Added `length_history` table
+- Added `photos` table with primary photo support
+- Added `notification_settings` table
+- Added `feeding_reminders` table
+
+**New Dependencies**
+- `twilio>=8.0.0` - SMS notification support
+- `APScheduler>=3.10.0` - Scheduled task support
+
+**New Routes**
+- `/reptile/<id>/weight` - Weight tracking page
+- `/reptile/<id>/length` - Length tracking page
+- `/reptile/<id>/photos` - Photo gallery
+- `/notification-settings` - Notification configuration
+- `/backup` - Data backup download
+- `/restore` - Data restore upload
+
+#### 🎨 UI/UX Improvements
+- Mobile-responsive navigation menu
+- Flash message auto-dismiss
+- Improved card layouts
+- Better form styling
+- Consistent color scheme
+- Loading states and feedback
+
+---
+
 ## [1.1.0] - 2024-12-10
 
 ### 🎉 Added - Data Import Feature
@@ -136,6 +236,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **v2.0.0** (2025-12-10) - Major Release: Weight/Length Tracking, Photo Gallery, Notifications, Backup/Restore
 - **v1.1.0** (2024-12-10) - Data Import Feature
 - **v1.0.1** (2024-12-10) - Critical Bug Fixes
 - **v1.0.0** (2024-12-09) - Initial Release
@@ -144,21 +245,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Upcoming Features
 
-### Planned for v1.2.0
-- [ ] Data export (Excel/CSV)
-- [ ] Weight tracking charts
-- [ ] Feeding schedule reminders
-- [ ] Multi-user support with authentication
-- [ ] Dark mode theme
-- [ ] Mobile app (PWA)
+### Planned for v2.1.0
+- [ ] Automated notification scheduler (APScheduler/cron)
+- [ ] Health records & veterinary visit tracking
+- [ ] Temperature & humidity logging with graphs
+- [ ] Breeding records and genetics tracking
+
+### Planned for v2.2.0
+- [ ] Expense tracking for food, supplies, vet visits
+- [ ] Multiple enclosure management
+- [ ] Feeding calculator (prey size recommendations)
+- [ ] Growth rate analysis with ML predictions
+- [ ] Medication reminders and tracking
+- [ ] QR code labels for enclosures
 
 ### Under Consideration
-- [ ] Veterinary records tracking
-- [ ] Breeding records
-- [ ] Expense tracking
-- [ ] Photo gallery
-- [ ] Print reports
-- [ ] API for third-party integrations
+- [ ] Mobile-responsive PWA
+- [ ] Multi-user support with permissions
+- [ ] Smart device integration (thermostats, cameras)
+- [ ] Social features (share profiles, connect with keepers)
+- [ ] Dark/light theme toggle
+- [ ] Multi-language support
+- [ ] Voice commands integration
+- [ ] AI-powered health insights
 
 ---
 
