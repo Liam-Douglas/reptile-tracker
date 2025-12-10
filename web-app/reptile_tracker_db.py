@@ -136,6 +136,21 @@ class ReptileDatabase:
             )
         ''')
         
+        # Notification settings table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS notification_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email_enabled BOOLEAN DEFAULT 0,
+                email TEXT,
+                sms_enabled BOOLEAN DEFAULT 0,
+                phone TEXT,
+                reminder_time TEXT DEFAULT '09:00',
+                advance_notice INTEGER DEFAULT 0,
+                notify_overdue_only BOOLEAN DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
         self.conn.commit()
     
     # ==================== REPTILE OPERATIONS ====================
@@ -806,6 +821,45 @@ class ReptileDatabase:
             'dates': [row['measurement_date'] for row in data],
             'lengths': [row['length_cm'] for row in data]
         }
+    
+    # ==================== NOTIFICATION SETTINGS OPERATIONS ====================
+    
+    def get_notification_settings(self) -> Optional[Dict]:
+        """Get notification settings"""
+        self.cursor.execute('SELECT * FROM notification_settings LIMIT 1')
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def save_notification_settings(self, email_enabled: bool = False, email: str = None,
+                                   sms_enabled: bool = False, phone: str = None,
+                                   reminder_time: str = '09:00', advance_notice: int = 0,
+                                   notify_overdue_only: bool = False) -> bool:
+        """Save or update notification settings"""
+        # Check if settings exist
+        existing = self.get_notification_settings()
+        
+        if existing:
+            # Update existing settings
+            self.cursor.execute('''
+                UPDATE notification_settings 
+                SET email_enabled = ?, email = ?, sms_enabled = ?, phone = ?,
+                    reminder_time = ?, advance_notice = ?, notify_overdue_only = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (email_enabled, email, sms_enabled, phone, reminder_time, 
+                  advance_notice, notify_overdue_only, existing['id']))
+        else:
+            # Insert new settings
+            self.cursor.execute('''
+                INSERT INTO notification_settings 
+                (email_enabled, email, sms_enabled, phone, reminder_time, 
+                 advance_notice, notify_overdue_only)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (email_enabled, email, sms_enabled, phone, reminder_time,
+                  advance_notice, notify_overdue_only))
+        
+        self.conn.commit()
+        return True
 
 
 # Utility functions for date handling

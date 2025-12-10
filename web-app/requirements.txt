@@ -10,3 +10,7 @@ openpyxl>=3.1.0
 
 # For production deployment
 gunicorn>=21.0.0
+
+# For notifications
+twilio>=8.0.0
+APScheduler>=3.10.0

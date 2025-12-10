@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Settings - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📧 Notification Settings</h1>
+    <p>Configure email and SMS reminders for feeding schedules</p>
+</div>
+
+<div class="settings-container">
+    <form method="POST" action="{{ url_for('save_notification_settings') }}" class="settings-form">
+        
+        <!-- Email Settings -->
+        <div class="settings-section">
+            <h2>📧 Email Notifications</h2>
+            <p class="section-description">Receive feeding reminders via email</p>
+            
+            <div class="form-group">
+                <label for="email_enabled">
+                    <input type="checkbox" id="email_enabled" name="email_enabled" 
+                           {% if settings.email_enabled %}checked{% endif %}>
+                    Enable Email Notifications
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" 
+                       value="{{ settings.email or '' }}" 
+                       placeholder="your@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="reminder_time">Daily Reminder Time</label>
+                <input type="time" id="reminder_time" name="reminder_time" 
+                       value="{{ settings.reminder_time or '09:00' }}">
+                <small>Time to check for overdue feedings and send reminders</small>
+            </div>
+        </div>
+        
+        <!-- SMS Settings -->
+        <div class="settings-section">
+            <h2>📱 SMS Notifications</h2>
+            <p class="section-description">Receive feeding reminders via text message (requires Twilio setup)</p>
+            
+            <div class="form-group">
+                <label for="sms_enabled">
+                    <input type="checkbox" id="sms_enabled" name="sms_enabled" 
+                           {% if settings.sms_enabled %}checked{% endif %}>
+                    Enable SMS Notifications
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" 
+                       value="{{ settings.phone or '' }}" 
+                       placeholder="+1234567890">
+                <small>Include country code (e.g., +1 for US, +61 for Australia)</small>
+            </div>
+        </div>
+        
+        <!-- Notification Preferences -->
+        <div class="settings-section">
+            <h2>⚙️ Notification Preferences</h2>
+            
+            <div class="form-group">
+                <label for="advance_notice">Advance Notice (days)</label>
+                <input type="number" id="advance_notice" name="advance_notice" 
+                       value="{{ settings.advance_notice or 0 }}" 
+                       min="0" max="7">
+                <small>Send reminder this many days before feeding is due (0 = day of only)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="notify_overdue_only">
+                    <input type="checkbox" id="notify_overdue_only" name="notify_overdue_only" 
+                           {% if settings.notify_overdue_only %}checked{% endif %}>
+                    Only notify for overdue feedings
+                </label>
+            </div>
+        </div>
+        
+        <!-- Test Notification -->
+        <div class="settings-section">
+            <h2>🧪 Test Notifications</h2>
+            <p class="section-description">Send a test notification to verify your settings</p>
+            
+            <div class="button-group">
+                <button type="button" onclick="sendTestEmail()" class="btn btn-secondary">
+                    📧 Send Test Email
+                </button>
+                <button type="button" onclick="sendTestSMS()" class="btn btn-secondary">
+                    📱 Send Test SMS
+                </button>
+            </div>
+        </div>
+        
+        <!-- Save Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    
+    <!-- Setup Instructions -->
+    <div class="setup-instructions">
+        <h2>📋 Setup Instructions</h2>
+        
+        <div class="instruction-section">
+            <h3>Email Setup (Gmail Example)</h3>
+            <ol>
+                <li>Go to Render Dashboard → Your Service → Environment</li>
+                <li>Add these environment variables:
+                    <ul>
+                        <li><code>SMTP_ENABLED=true</code></li>
+                        <li><code>SMTP_SERVER=smtp.gmail.com</code></li>
+                        <li><code>SMTP_PORT=587</code></li>
+                        <li><code>SMTP_USERNAME=your-email@gmail.com</code></li>
+                        <li><code>SMTP_PASSWORD=your-app-password</code></li>
+                        <li><code>FROM_EMAIL=your-email@gmail.com</code></li>
+                    </ul>
+                </li>
+                <li>For Gmail, create an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a></li>
+                <li>Redeploy your service</li>
+            </ol>
+        </div>
+        
+        <div class="instruction-section">
+            <h3>SMS Setup (Twilio)</h3>
+            <ol>
+                <li>Sign up for <a href="https://www.twilio.com/try-twilio" target="_blank">Twilio</a> (free trial available)</li>
+                <li>Get your Account SID, Auth Token, and Phone Number</li>
+                <li>Add these environment variables in Render:
+                    <ul>
+                        <li><code>TWILIO_ENABLED=true</code></li>
+                        <li><code>TWILIO_ACCOUNT_SID=your-account-sid</code></li>
+                        <li><code>TWILIO_AUTH_TOKEN=your-auth-token</code></li>
+                        <li><code>TWILIO_PHONE_NUMBER=+1234567890</code></li>
+                    </ul>
+                </li>
+                <li>Redeploy your service</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendTestEmail() {
+    if (!document.getElementById('email').value) {
+        alert('Please enter an email address first');
+        return;
+    }
+    
+    fetch('{{ url_for("send_test_notification") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: 'email',
+            email: document.getElementById('email').value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Test email sent! Check your inbox.');
+        } else {
+            alert('❌ Failed to send test email: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('❌ Error: ' + error);
+    });
+}
+
+function sendTestSMS() {
+    if (!document.getElementById('phone').value) {
+        alert('Please enter a phone number first');
+        return;
+    }
+    
+    fetch('{{ url_for("send_test_notification") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: 'sms',
+            phone: document.getElementById('phone').value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Test SMS sent! Check your phone.');
+        } else {
+            alert('❌ Failed to send test SMS: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('❌ Error: ' + error);
+    });
+}
+</script>
+
+<style>
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.settings-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.settings-section {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.settings-section:last-of-type {
+    border-bottom: none;
+}
+
+.settings-section h2 {
+    margin-top: 0;
+    color: #2c5f2d;
+}
+
+.section-description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="time"],
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.form-group small {
+    display: block;
+    color: #666;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.setup-instructions {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.setup-instructions h2 {
+    margin-top: 0;
+    color: #2c5f2d;
+}
+
+.instruction-section {
+    margin-bottom: 30px;
+}
+
+.instruction-section h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.instruction-section ol {
+    margin-left: 20px;
+}
+
+.instruction-section li {
+    margin-bottom: 10px;
+}
+
+.instruction-section code {
+    background: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.instruction-section a {
+    color: #2c5f2d;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
