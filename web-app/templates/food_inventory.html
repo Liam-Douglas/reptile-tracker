@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Food Inventory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-box"></i> Food Inventory
+    </h1>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('inventory_transactions') }}" class="btn btn-secondary">
+            <i class="fas fa-history"></i> Transaction History
+        </a>
+        <a href="{{ url_for('add_inventory_item') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Stock
+        </a>
+    </div>
+</div>
+
+<!-- Stock Alerts -->
+{% if out_of_stock %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #ef4444;">
+    <div class="card-header" style="background: #fee2e2;">
+        <h3 class="card-title" style="color: #991b1b;">
+            <i class="fas fa-exclamation-triangle"></i> Out of Stock ({{ out_of_stock|length }})
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; gap: 0.5rem;">
+            {% for item in out_of_stock %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: 4px;">
+                <span><strong>{{ item.food_type }}</strong> - {{ item.food_size }}</span>
+                <a href="{{ url_for('add_inventory_item') }}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                    <i class="fas fa-plus"></i> Restock
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if low_stock %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #f59e0b;">
+    <div class="card-header" style="background: #fef3c7;">
+        <h3 class="card-title" style="color: #92400e;">
+            <i class="fas fa-exclamation-circle"></i> Low Stock Alert ({{ low_stock|length }})
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; gap: 0.5rem;">
+            {% for item in low_stock %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: 4px;">
+                <div>
+                    <strong>{{ item.food_type }}</strong> - {{ item.food_size }}
+                    <span style="color: #f59e0b; margin-left: 0.5rem;">
+                        ({{ item.quantity }} {{ item.unit }} remaining)
+                    </span>
+                </div>
+                <a href="{{ url_for('inventory_item_details', inventory_id=item.id) }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                    <i class="fas fa-plus"></i> Add More
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Inventory Grid -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Food Items ({{ inventory|length }})</h3>
+    </div>
+    
+    {% if inventory %}
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+            {% for item in inventory %}
+            <div class="inventory-card {% if item.quantity == 0 %}out-of-stock{% elif item.quantity <= 5 %}low-stock{% endif %}">
+                <div class="inventory-header">
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.1rem;">{{ item.food_type }}</h4>
+                        <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+                            {{ item.food_size }}
+                        </p>
+                    </div>
+                    <div class="stock-badge {% if item.quantity == 0 %}badge-danger{% elif item.quantity <= 5 %}badge-warning{% else %}badge-success{% endif %}">
+                        {{ item.quantity }}
+                    </div>
+                </div>
+                
+                <div class="inventory-body">
+                    <div class="inventory-detail">
+                        <i class="fas fa-box"></i>
+                        <span>{{ item.unit }}</span>
+                    </div>
+                    
+                    {% if item.cost_per_unit %}
+                    <div class="inventory-detail">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>${{ "%.2f"|format(item.cost_per_unit) }} per {{ item.unit }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.supplier %}
+                    <div class="inventory-detail">
+                        <i class="fas fa-store"></i>
+                        <span>{{ item.supplier }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.expiry_date %}
+                    <div class="inventory-detail">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Expires: {{ item.expiry_date }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.purchase_date %}
+                    <div class="inventory-detail">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Purchased: {{ item.purchase_date }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="inventory-footer">
+                    <a href="{{ url_for('inventory_item_details', inventory_id=item.id) }}" 
+                       class="btn btn-secondary" 
+                       style="flex: 1; padding: 0.5rem;">
+                        <i class="fas fa-eye"></i> Details
+                    </a>
+                    <form method="POST" action="{{ url_for('adjust_inventory', inventory_id=item.id) }}" style="flex: 1;">
+                        <input type="hidden" name="quantity_change" value="1">
+                        <input type="hidden" name="notes" value="Quick add">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.5rem;">
+                            <i class="fas fa-plus"></i> Add 1
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No food items in inventory yet.</p>
+        <p style="margin-top: 1rem;">
+            <a href="{{ url_for('add_inventory_item') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Your First Item
+            </a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.inventory-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.inventory-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.inventory-card.out-of-stock {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.inventory-card.low-stock {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.inventory-header {
+    padding: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stock-badge {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.inventory-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.inventory-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.inventory-detail i {
+    width: 20px;
+    text-align: center;
+    color: var(--primary-color);
+}
+
+.inventory-footer {
+    padding: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .inventory-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}

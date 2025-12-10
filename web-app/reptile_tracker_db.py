@@ -149,6 +149,63 @@ class ReptileDatabase:
                 notify_overdue_only BOOLEAN DEFAULT 0,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        
+        # Expenses table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER,
+                expense_date DATE NOT NULL,
+                category TEXT NOT NULL,
+                amount REAL NOT NULL,
+                currency TEXT DEFAULT 'USD',
+                vendor TEXT,
+                description TEXT,
+                receipt_path TEXT,
+                payment_method TEXT,
+                is_recurring BOOLEAN DEFAULT 0,
+                tags TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        # Food inventory table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS food_inventory (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                food_type TEXT NOT NULL,
+                food_size TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 0,
+                unit TEXT DEFAULT 'items',
+                cost_per_unit REAL,
+                supplier TEXT,
+                purchase_date DATE,
+                expiry_date DATE,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(food_type, food_size)
+            )
+        ''')
+        
+        # Food inventory transactions table (for tracking stock changes)
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS inventory_transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                inventory_id INTEGER NOT NULL,
+                transaction_type TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                transaction_date DATE NOT NULL,
+                reference_id INTEGER,
+                reference_type TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (inventory_id) REFERENCES food_inventory (id) ON DELETE CASCADE
+            )
+        ''')
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE SET NULL
+            )
+        ''')
         ''')
         
         self.conn.commit()
@@ -860,6 +917,354 @@ class ReptileDatabase:
         
         self.conn.commit()
         return True
+    
+    # ==================== EXPENSE OPERATIONS ====================
+    
+    def add_expense(self, expense_date: str, category: str, amount: float,
+                   reptile_id: int = None, currency: str = 'USD', vendor: str = None,
+                   description: str = None, receipt_path: str = None,
+                   payment_method: str = None, is_recurring: bool = False,
+                   tags: str = None, notes: str = None) -> int:
+        """Add a new expense record"""
+        self.cursor.execute('''
+            INSERT INTO expenses (reptile_id, expense_date, category, amount, currency,
+                                vendor, description, receipt_path, payment_method,
+                                is_recurring, tags, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (reptile_id, expense_date, category, amount, currency, vendor,
+              description, receipt_path, payment_method, is_recurring, tags, notes))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_expense(self, expense_id: int) -> Optional[Dict]:
+        """Get a single expense by ID"""
+        self.cursor.execute('''
+            SELECT e.*, r.name as reptile_name
+            FROM expenses e
+            LEFT JOIN reptiles r ON e.reptile_id = r.id
+            WHERE e.id = ?
+        ''', (expense_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def get_expenses(self, reptile_id: int = None, category: str = None,
+                    start_date: str = None, end_date: str = None,
+                    limit: int = None, offset: int = 0) -> List[Dict]:
+        """Get expenses with optional filtering"""
+        query = '''
+            SELECT e.*, r.name as reptile_name
+            FROM expenses e
+            LEFT JOIN reptiles r ON e.reptile_id = r.id
+            WHERE 1=1
+        '''
+        params = []
+        
+        if reptile_id:
+            query += ' AND e.reptile_id = ?'
+            params.append(reptile_id)
+        
+        if category:
+            query += ' AND e.category = ?'
+            params.append(category)
+        
+        if start_date:
+            query += ' AND e.expense_date >= ?'
+            params.append(start_date)
+        
+        if end_date:
+            query += ' AND e.expense_date <= ?'
+            params.append(end_date)
+        
+        query += ' ORDER BY e.expense_date DESC, e.created_at DESC'
+        
+        if limit:
+            query += ' LIMIT ? OFFSET ?'
+            params.extend([limit, offset])
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def update_expense(self, expense_id: int, **kwargs) -> bool:
+        """Update expense information"""
+        allowed_fields = ['reptile_id', 'expense_date', 'category', 'amount', 'currency',
+                         'vendor', 'description', 'receipt_path', 'payment_method',
+                         'is_recurring', 'tags', 'notes']
+        
+        updates = {k: v for k, v in kwargs.items() if k in allowed_fields}
+        if not updates:
+            return False
+        
+        set_clause = ', '.join([f"{k} = ?" for k in updates.keys()])
+        values = list(updates.values()) + [expense_id]
+        
+        self.cursor.execute(f'''
+            UPDATE expenses 
+            SET {set_clause}, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', values)
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
+    def delete_expense(self, expense_id: int) -> bool:
+        """Delete an expense record"""
+        self.cursor.execute('DELETE FROM expenses WHERE id = ?', (expense_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
+    def get_expense_categories(self) -> List[str]:
+        """Get list of unique expense categories"""
+        self.cursor.execute('SELECT DISTINCT category FROM expenses ORDER BY category')
+        return [row['category'] for row in self.cursor.fetchall()]
+    
+    def get_expense_summary(self, start_date: str = None, end_date: str = None,
+                           reptile_id: int = None) -> Dict:
+        """Get expense summary statistics"""
+        query = 'SELECT COUNT(*) as count, SUM(amount) as total, AVG(amount) as average FROM expenses WHERE 1=1'
+        params = []
+        
+        if reptile_id:
+            query += ' AND reptile_id = ?'
+            params.append(reptile_id)
+        
+        if start_date:
+            query += ' AND expense_date >= ?'
+            params.append(start_date)
+        
+        if end_date:
+            query += ' AND expense_date <= ?'
+            params.append(end_date)
+        
+        self.cursor.execute(query, params)
+        row = self.cursor.fetchone()
+        
+        return {
+            'count': row['count'] or 0,
+            'total': row['total'] or 0.0,
+            'average': row['average'] or 0.0
+        }
+    
+    def get_expenses_by_category(self, start_date: str = None, end_date: str = None,
+                                 reptile_id: int = None) -> List[Dict]:
+        """Get expense totals grouped by category"""
+        query = '''
+            SELECT category, COUNT(*) as count, SUM(amount) as total
+            FROM expenses
+            WHERE 1=1
+    
+    # ==================== FOOD INVENTORY OPERATIONS ====================
+    
+    def add_food_item(self, food_type: str, food_size: str, quantity: int,
+                     unit: str = 'items', cost_per_unit: float = None,
+                     supplier: str = None, purchase_date: str = None,
+                     expiry_date: str = None, notes: str = None) -> int:
+        """Add or update food inventory item"""
+        # Check if item already exists
+        self.cursor.execute('''
+            SELECT id, quantity FROM food_inventory 
+            WHERE food_type = ? AND food_size = ?
+        ''', (food_type, food_size))
+        existing = self.cursor.fetchone()
+        
+        if existing:
+            # Update existing item - add to quantity
+            new_quantity = existing['quantity'] + quantity
+            self.cursor.execute('''
+                UPDATE food_inventory 
+                SET quantity = ?, cost_per_unit = ?, supplier = ?,
+                    purchase_date = ?, expiry_date = ?, notes = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (new_quantity, cost_per_unit, supplier, purchase_date,
+                  expiry_date, notes, existing['id']))
+            inventory_id = existing['id']
+        else:
+            # Insert new item
+            self.cursor.execute('''
+                INSERT INTO food_inventory (food_type, food_size, quantity, unit,
+                                          cost_per_unit, supplier, purchase_date,
+                                          expiry_date, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (food_type, food_size, quantity, unit, cost_per_unit,
+                  supplier, purchase_date, expiry_date, notes))
+            inventory_id = self.cursor.lastrowid
+        
+        # Log transaction
+        self.cursor.execute('''
+            INSERT INTO inventory_transactions (inventory_id, transaction_type,
+                                               quantity, transaction_date, notes)
+            VALUES (?, 'purchase', ?, ?, ?)
+        ''', (inventory_id, quantity, purchase_date or get_current_date(),
+              f'Added {quantity} {unit}'))
+        
+        self.conn.commit()
+        return inventory_id
+    
+    def get_food_inventory(self, include_zero: bool = False) -> List[Dict]:
+        """Get all food inventory items"""
+        query = 'SELECT * FROM food_inventory'
+        if not include_zero:
+            query += ' WHERE quantity > 0'
+        query += ' ORDER BY food_type, food_size'
+        
+        self.cursor.execute(query)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_food_item(self, inventory_id: int) -> Optional[Dict]:
+        """Get a single food inventory item"""
+        self.cursor.execute('SELECT * FROM food_inventory WHERE id = ?', (inventory_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def get_food_item_by_type(self, food_type: str, food_size: str) -> Optional[Dict]:
+        """Get food item by type and size"""
+        self.cursor.execute('''
+            SELECT * FROM food_inventory 
+            WHERE food_type = ? AND food_size = ?
+        ''', (food_type, food_size))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def update_food_quantity(self, inventory_id: int, quantity_change: int,
+                            transaction_type: str = 'adjustment',
+                            reference_id: int = None, reference_type: str = None,
+                            notes: str = None) -> bool:
+        """Update food inventory quantity (positive to add, negative to subtract)"""
+        # Get current quantity
+        item = self.get_food_item(inventory_id)
+        if not item:
+            return False
+        
+        new_quantity = item['quantity'] + quantity_change
+        if new_quantity < 0:
+            new_quantity = 0  # Don't allow negative quantities
+        
+        # Update quantity
+        self.cursor.execute('''
+            UPDATE food_inventory 
+            SET quantity = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (new_quantity, inventory_id))
+        
+        # Log transaction
+        self.cursor.execute('''
+            INSERT INTO inventory_transactions (inventory_id, transaction_type,
+                                               quantity, transaction_date,
+                                               reference_id, reference_type, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (inventory_id, transaction_type, quantity_change, get_current_date(),
+              reference_id, reference_type, notes))
+        
+        self.conn.commit()
+        return True
+    
+    def deduct_food_from_feeding(self, food_type: str, food_size: str,
+                                quantity: int, feeding_log_id: int) -> bool:
+        """Deduct food from inventory when logging a feeding"""
+        item = self.get_food_item_by_type(food_type, food_size)
+        if not item:
+            return False
+        
+        return self.update_food_quantity(
+            item['id'],
+            -quantity,  # Negative to subtract
+            transaction_type='feeding',
+            reference_id=feeding_log_id,
+            reference_type='feeding_log',
+            notes=f'Fed {quantity} {food_size} {food_type}'
+        )
+    
+    def get_inventory_transactions(self, inventory_id: int = None,
+                                   limit: int = None) -> List[Dict]:
+        """Get inventory transaction history"""
+        query = '''
+            SELECT t.*, i.food_type, i.food_size
+            FROM inventory_transactions t
+            JOIN food_inventory i ON t.inventory_id = i.id
+        '''
+        params = []
+        
+        if inventory_id:
+            query += ' WHERE t.inventory_id = ?'
+            params.append(inventory_id)
+        
+        query += ' ORDER BY t.transaction_date DESC, t.created_at DESC'
+        
+        if limit:
+            query += ' LIMIT ?'
+            params.append(limit)
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_low_stock_items(self, threshold: int = 5) -> List[Dict]:
+        """Get food items with low stock"""
+        self.cursor.execute('''
+            SELECT * FROM food_inventory 
+            WHERE quantity <= ? AND quantity > 0
+            ORDER BY quantity ASC
+        ''', (threshold,))
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_out_of_stock_items(self) -> List[Dict]:
+        """Get food items that are out of stock"""
+        self.cursor.execute('''
+            SELECT * FROM food_inventory 
+            WHERE quantity = 0
+            ORDER BY food_type, food_size
+        ''')
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def delete_food_item(self, inventory_id: int) -> bool:
+        """Delete a food inventory item"""
+        self.cursor.execute('DELETE FROM food_inventory WHERE id = ?', (inventory_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+
+        '''
+        params = []
+        
+        if reptile_id:
+            query += ' AND reptile_id = ?'
+            params.append(reptile_id)
+        
+        if start_date:
+            query += ' AND expense_date >= ?'
+            params.append(start_date)
+        
+        if end_date:
+            query += ' AND expense_date <= ?'
+            params.append(end_date)
+        
+        query += ' GROUP BY category ORDER BY total DESC'
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_monthly_expenses(self, year: int = None, reptile_id: int = None) -> List[Dict]:
+        """Get expense totals by month"""
+        if not year:
+            year = datetime.now().year
+        
+        query = '''
+            SELECT 
+                strftime('%m', expense_date) as month,
+                strftime('%Y-%m', expense_date) as year_month,
+                COUNT(*) as count,
+                SUM(amount) as total
+            FROM expenses
+            WHERE strftime('%Y', expense_date) = ?
+        '''
+        params = [str(year)]
+        
+        if reptile_id:
+            query += ' AND reptile_id = ?'
+            params.append(reptile_id)
+        
+        query += ' GROUP BY year_month ORDER BY year_month'
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
+
 
 
 # Utility functions for date handling

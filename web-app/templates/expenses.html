@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Expenses{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-dollar-sign"></i> Expense Tracking
+    </h1>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('expense_reports') }}" class="btn btn-secondary">
+            <i class="fas fa-chart-bar"></i> Reports
+        </a>
+        <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Expense
+        </a>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dbeafe;">
+            <i class="fas fa-receipt" style="color: #1e40af;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">{{ summary.count }}</div>
+            <div class="stat-label">Total Expenses</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dcfce7;">
+            <i class="fas fa-dollar-sign" style="color: #15803d;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">${{ "%.2f"|format(summary.total) }}</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7;">
+            <i class="fas fa-chart-line" style="color: #a16207;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">${{ "%.2f"|format(summary.average) }}</div>
+            <div class="stat-label">Average Expense</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-filter"></i> Filters
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <form method="GET" action="{{ url_for('expenses_list') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                    <label for="reptile_id" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Reptile</label>
+                    <select name="reptile_id" id="reptile_id" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="">All Reptiles</option>
+                        {% for reptile in reptiles %}
+                        <option value="{{ reptile.id }}" {% if selected_reptile == reptile.id %}selected{% endif %}>
+                            {{ reptile.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="category" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Category</label>
+                    <select name="category" id="category" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                            {{ cat }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="start_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date or '' }}" 
+                           style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+                
+                <div>
+                    <label for="end_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">End Date</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date or '' }}" 
+                           style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+            </div>
+            
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('expenses_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Expenses List -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Expenses ({{ expenses|length }})</h3>
+    </div>
+    
+    {% if expenses %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 1rem; text-align: left;">Date</th>
+                    <th style="padding: 1rem; text-align: left;">Category</th>
+                    <th style="padding: 1rem; text-align: left;">Description</th>
+                    <th style="padding: 1rem; text-align: left;">Reptile</th>
+                    <th style="padding: 1rem; text-align: right;">Amount</th>
+                    <th style="padding: 1rem; text-align: left;">Vendor</th>
+                    <th style="padding: 1rem; text-align: center;">Receipt</th>
+                    <th style="padding: 1rem; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">{{ expense.expense_date }}</td>
+                    <td style="padding: 1rem;">
+                        <span style="padding: 0.25rem 0.75rem; background: var(--bg-secondary); border-radius: 12px; font-size: 0.85rem;">
+                            {{ expense.category }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if expense.description %}
+                            {{ expense.description[:50] }}{% if expense.description|length > 50 %}...{% endif %}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if expense.reptile_name %}
+                            <a href="{{ url_for('reptile_details', reptile_id=expense.reptile_id) }}" 
+                               style="color: var(--primary-color); text-decoration: none;">
+                                {{ expense.reptile_name }}
+                            </a>
+                        {% else %}
+                            <span style="color: var(--text-secondary);">General</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; text-align: right; font-weight: 500;">
+                        ${{ "%.2f"|format(expense.amount) }}
+                    </td>
+                    <td style="padding: 1rem;">
+                        {{ expense.vendor or '-' }}
+                    </td>
+                    <td style="padding: 1rem; text-align: center;">
+                        {% if expense.receipt_path %}
+                            <a href="{{ url_for('static', filename='../uploads/' + expense.receipt_path) }}" 
+                               target="_blank" 
+                               style="color: var(--primary-color);">
+                                <i class="fas fa-file-invoice"></i>
+                            </a>
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <a href="{{ url_for('expense_details', expense_id=expense.id) }}" 
+                               class="btn btn-secondary" 
+                               style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('edit_expense', expense_id=expense.id) }}" 
+                               class="btn btn-primary" 
+                               style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <i class="fas fa-receipt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No expenses found.</p>
+        <p style="margin-top: 1rem;">
+            <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Your First Expense
+            </a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    table {
+        font-size: 0.85rem;
+    }
+    
+    th, td {
+        padding: 0.5rem !important;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

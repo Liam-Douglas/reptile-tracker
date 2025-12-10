@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Expense Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-chart-bar"></i> Expense Reports & Analytics
+    </h1>
+    <a href="{{ url_for('expenses_list') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Expenses
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-filter"></i> Report Filters
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <form method="GET" action="{{ url_for('expense_reports') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                    <label for="reptile_id" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Reptile
+                    </label>
+                    <select name="reptile_id" 
+                            id="reptile_id"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="">All Reptiles</option>
+                        {% for reptile in reptiles %}
+                        <option value="{{ reptile.id }}" {% if selected_reptile == reptile.id %}selected{% endif %}>
+                            {{ reptile.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="year" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Year
+                    </label>
+                    <select name="year" 
+                            id="year"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        {% for y in range(2020, 2031) %}
+                        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="start_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Start Date
+                    </label>
+                    <input type="date" 
+                           name="start_date" 
+                           id="start_date" 
+                           value="{{ start_date or '' }}"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+                
+                <div>
+                    <label for="end_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        End Date
+                    </label>
+                    <input type="date" 
+                           name="end_date" 
+                           id="end_date" 
+                           value="{{ end_date or '' }}"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+            </div>
+            
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Generate Report
+                </button>
+                <a href="{{ url_for('expense_reports') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dbeafe;">
+            <i class="fas fa-receipt" style="color: #1e40af;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">{{ summary.count }}</div>
+            <div class="stat-label">Total Expenses</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dcfce7;">
+            <i class="fas fa-dollar-sign" style="color: #15803d;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">${{ "%.2f"|format(summary.total) }}</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7;">
+            <i class="fas fa-chart-line" style="color: #a16207;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">${{ "%.2f"|format(summary.average) }}</div>
+            <div class="stat-label">Average Expense</div>
+        </div>
+    </div>
+</div>
+
+<!-- Expenses by Category -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-chart-pie"></i> Expenses by Category
+        </h3>
+    </div>
+    <div style="padding: 2rem;">
+        {% if by_category %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                        <th style="padding: 1rem; text-align: left;">Category</th>
+                        <th style="padding: 1rem; text-align: right;">Count</th>
+                        <th style="padding: 1rem; text-align: right;">Total</th>
+                        <th style="padding: 1rem; text-align: right;">% of Total</th>
+                        <th style="padding: 1rem; text-align: left;">Visual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in by_category %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 1rem; font-weight: 500;">{{ cat.category }}</td>
+                        <td style="padding: 1rem; text-align: right;">{{ cat.count }}</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 500;">
+                            ${{ "%.2f"|format(cat.total) }}
+                        </td>
+                        <td style="padding: 1rem; text-align: right;">
+                            {{ "%.1f"|format((cat.total / summary.total * 100) if summary.total > 0 else 0) }}%
+                        </td>
+                        <td style="padding: 1rem;">
+                            <div style="background: var(--bg-secondary); border-radius: 4px; height: 20px; position: relative; overflow: hidden;">
+                                <div style="background: var(--primary-color); height: 100%; width: {{ (cat.total / summary.total * 100) if summary.total > 0 else 0 }}%; transition: width 0.3s;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-chart-pie" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>No expense data available for the selected period.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Monthly Expenses Chart -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-chart-line"></i> Monthly Expenses ({{ selected_year }})
+        </h3>
+    </div>
+    <div style="padding: 2rem;">
+        {% if monthly %}
+        <div style="overflow-x: auto;">
+            <div style="display: flex; align-items: flex-end; gap: 0.5rem; height: 300px; padding: 1rem;">
+                {% set max_amount = monthly|map(attribute='total')|max %}
+                {% for month_data in monthly %}
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <div style="font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);">
+                        ${{ "%.0f"|format(month_data.total) }}
+                    </div>
+                    <div style="width: 100%; background: var(--primary-color); border-radius: 4px 4px 0 0; transition: all 0.3s; cursor: pointer; height: {{ (month_data.total / max_amount * 250) if max_amount > 0 else 0 }}px;"
+                         title="{{ month_data.year_month }}: ${{ '%.2f'|format(month_data.total) }} ({{ month_data.count }} expenses)">
+                    </div>
+                    <div style="font-size: 0.75rem; font-weight: 500;">
+                        {{ month_data.month }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Monthly Summary -->
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                <div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Highest Month</div>
+                    <div style="font-weight: 600; margin-top: 0.25rem;">
+                        {% set highest = monthly|sort(attribute='total', reverse=true)|first %}
+                        {% if highest %}
+                            {{ highest.year_month }}: ${{ "%.2f"|format(highest.total) }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Lowest Month</div>
+                    <div style="font-weight: 600; margin-top: 0.25rem;">
+                        {% set lowest = monthly|sort(attribute='total')|first %}
+                        {% if lowest %}
+                            {{ lowest.year_month }}: ${{ "%.2f"|format(lowest.total) }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Monthly Average</div>
+                    <div style="font-weight: 600; margin-top: 0.25rem;">
+                        ${{ "%.2f"|format((monthly|map(attribute='total')|sum / monthly|length) if monthly|length > 0 else 0) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>No monthly data available for {{ selected_year }}.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-download"></i> Export Report
+        </h3>
+    </div>
+    <div style="padding: 2rem;">
+        <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+            Export your expense data for further analysis or record keeping.
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+            <a href="{{ url_for('expenses_list') }}?export=csv" class="btn btn-secondary">
+                <i class="fas fa-file-csv"></i> Export to CSV
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+@media print {
+    .page-header,
+    .card:last-child,
+    nav,
+    button {
+        display: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+@media (max-width: 768px) {
+    table {
+        font-size: 0.85rem;
+    }
+    
+    th, td {
+        padding: 0.5rem !important;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

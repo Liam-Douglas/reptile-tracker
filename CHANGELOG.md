@@ -6,6 +6,165 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [3.0.0] - 2025-12-10
+
+### 🎉 Major Release - Expense Tracking & Food Inventory Management
+
+#### 🆕 New Features
+
+**💰 Expense Tracking System**
+- Complete expense management with digital receipt uploads
+- Track expenses by category (12 pre-defined categories)
+- Link expenses to specific reptiles or mark as general
+- Upload receipts (PNG, JPG, PDF) with drag-and-drop interface
+- Filter expenses by reptile, category, and date range
+- Summary statistics (total spent, count, average)
+- Vendor and payment method tracking
+- Tags and notes support for organization
+- Recurring expense flagging
+- Edit and delete expenses with receipt management
+- Detailed expense view with receipt preview
+- Export expenses to CSV
+
+**📦 Food Inventory Management**
+- Track food stock levels with automatic deduction
+- Visual stock indicators (green: good, yellow: low, red: out)
+- Low stock alerts (configurable threshold)
+- Out of stock warnings
+- Auto-increment existing items when adding stock
+- Quick "+1" and "-1" adjustment buttons
+- Cost per unit tracking for expense analysis
+- Supplier and purchase date tracking
+- Expiry date monitoring for perishable items
+- Complete transaction audit trail
+- Transaction types: purchase, feeding, adjustment, waste
+- Auto-suggestions for food types and sizes
+- Manual quantity adjustments with notes
+- Stock value calculations
+- Transaction history with filtering
+
+**📊 Expense Reports & Analytics**
+- Interactive expense reports dashboard
+- Expenses by category with visual bar charts
+- Monthly expense trends with bar graphs
+- Summary statistics cards
+- Filter reports by reptile, date range, or year
+- Highest/lowest month identification
+- Monthly average calculations
+- Print-friendly report layouts
+- Export capabilities
+
+**🔗 System Integration**
+- Navigation menu updated with Expenses and Inventory links
+- Active state highlighting for new sections
+- Seamless integration with existing features
+- Ready for feeding log integration (auto-deduct inventory)
+
+#### 🗄️ Database Changes
+
+**New Tables**
+- `expenses` - Complete expense tracking with receipts
+- `food_inventory` - Food stock management
+- `inventory_transactions` - Complete audit trail
+
+**New Database Methods (20 total)**
+- Expense operations: add, get, update, delete, categories, summary, by_category, monthly
+- Inventory operations: add, get, update, deduct, transactions, low_stock, out_of_stock, delete
+
+#### 🎨 User Interface
+
+**New Templates (9 total)**
+- `expenses.html` - List view with filtering and summary stats
+- `add_expense.html` - Form with drag-and-drop receipt upload
+- `edit_expense.html` - Edit form with current receipt display
+- `expense_details.html` - Detailed view with receipt preview
+- `expense_reports.html` - Analytics dashboard with charts
+- `food_inventory.html` - Grid view with stock alerts
+- `add_inventory_item.html` - Stock addition form
+- `inventory_item_details.html` - Item details with transaction history
+- `inventory_transactions.html` - Complete transaction log
+
+**UI Enhancements**
+- Color-coded stock level indicators
+- Drag-and-drop file upload interface
+- Interactive charts and graphs
+- Responsive grid layouts
+- Mobile-optimized views
+- Print-friendly report layouts
+
+#### 🛠️ Technical Improvements
+
+**Backend**
+- 13 new Flask routes for expenses and inventory
+- Receipt file handling (images and PDFs)
+- File upload validation and security
+- Automatic file cleanup on deletion
+- Transaction logging for audit trails
+- Advanced filtering and search capabilities
+
+**Frontend**
+- Modern card-based layouts
+- Interactive JavaScript for file uploads
+- Real-time form validation
+- Responsive design patterns
+- Accessibility improvements
+
+#### 📚 Documentation
+
+**New Documentation Files**
+- `EXPENSE_AND_INVENTORY_FEATURE_SPEC.md` - Complete 398-line specification
+- Comprehensive feature documentation
+- Implementation roadmap
+- Testing checklist
+- Future enhancement ideas
+
+#### 🔄 Migration Notes
+
+- All new tables created automatically on first run
+- No manual migration required
+- Existing data preserved
+- Backward compatible with v2.0.0
+
+#### 💡 Usage Examples
+
+**Expense Tracking**
+```
+1. Navigate to "💰 Expenses" in menu
+2. Click "Add Expense"
+3. Fill in details and drag-drop receipt
+4. View in list with filters
+5. Generate reports for analysis
+```
+
+**Food Inventory**
+```
+1. Navigate to "📦 Food Inventory" in menu
+2. Click "Add Stock"
+3. Enter food type, size, and quantity
+4. System tracks usage and alerts on low stock
+5. View transaction history for audit
+```
+
+#### 🎯 Key Benefits
+
+- **Cost Tracking**: Know exactly how much you spend on reptile care
+- **Stock Management**: Never run out of food with automatic alerts
+- **Receipt Organization**: Digital receipts always accessible
+- **Audit Trail**: Complete history of all inventory changes
+- **Analytics**: Understand spending patterns and trends
+- **Integration Ready**: Prepared for automatic inventory deduction on feeding
+
+#### 📊 Statistics
+
+- **Lines of Code Added**: ~2,500+
+- **New Routes**: 13
+- **New Templates**: 9
+- **New Database Methods**: 20
+- **New Tables**: 3
+- **Documentation Pages**: 1 (398 lines)
+
+---
+
 
 ## [2.0.0] - 2025-12-10
 

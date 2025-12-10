@@ -31,6 +31,12 @@
             </a>
             <a href="{{ url_for('feeding_reminders') }}" class="nav-link">
                 <i class="fas fa-bell"></i> Feeding Reminders
+            <a href="{{ url_for('expenses_list') }}" class="nav-link {% if request.endpoint in ['expenses_list', 'add_expense', 'edit_expense', 'expense_details', 'expense_reports'] %}active{% endif %}">
+                <i class="fas fa-dollar-sign"></i> Expenses
+            </a>
+            <a href="{{ url_for('food_inventory') }}" class="nav-link {% if request.endpoint in ['food_inventory', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions'] %}active{% endif %}">
+                <i class="fas fa-box"></i> Food Inventory
+            </a>
             </a>
             <a href="{{ url_for('backup_data') }}" class="nav-link">
                 <i class="fas fa-download"></i> Backup Data

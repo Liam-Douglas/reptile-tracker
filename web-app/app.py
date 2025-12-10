@@ -635,6 +635,415 @@ def disable_feeding_reminder(reptile_id):
         flash(f'Error disabling reminder: {str(e)}', 'error')
     
     return redirect(url_for('reptile_details', reptile_id=reptile_id))
+
+# ==================== EXPENSE TRACKING ROUTES ====================
+
+@app.route('/expenses')
+def expenses_list():
+    """Display all expenses with filtering"""
+    db = get_db()
+    
+    # Get filter parameters
+    reptile_id = request.args.get('reptile_id', type=int)
+    category = request.args.get('category')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    # Get expenses with filters
+    expenses = db.get_expenses(
+        reptile_id=reptile_id,
+        category=category,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    # Get summary statistics
+    summary = db.get_expense_summary(
+        start_date=start_date,
+        end_date=end_date,
+        reptile_id=reptile_id
+    )
+    
+    # Get all reptiles for filter dropdown
+    reptiles = db.get_all_reptiles()
+    
+    # Get unique categories
+    categories = db.get_expense_categories()
+    
+    return render_template('expenses.html',
+                         expenses=expenses,
+                         summary=summary,
+                         reptiles=reptiles,
+                         categories=categories,
+                         selected_reptile=reptile_id,
+                         selected_category=category,
+                         start_date=start_date,
+                         end_date=end_date)
+
+@app.route('/expense/add', methods=['GET', 'POST'])
+def add_expense():
+    """Add new expense"""
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # Handle receipt upload
+            receipt_path = None
+            if 'receipt' in request.files:
+                file = request.files['receipt']
+                if file and file.filename:
+                    # Check file type
+                    allowed_extensions = {'png', 'jpg', 'jpeg', 'pdf'}
+                    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+                    
+                    if ext in allowed_extensions:
+                        filename = secure_filename(file.filename)
+                        # Add timestamp to filename
+                        name, extension = os.path.splitext(filename)
+                        filename = f"receipt_{int(datetime.now().timestamp())}_{name}{extension}"
+                        
+                        # Create receipts directory if it doesn't exist
+                        receipts_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'receipts')
+                        os.makedirs(receipts_dir, exist_ok=True)
+                        
+                        filepath = os.path.join(receipts_dir, filename)
+                        file.save(filepath)
+                        receipt_path = f"receipts/{filename}"
+            
+            # Get form data
+            reptile_id = request.form.get('reptile_id')
+            reptile_id = int(reptile_id) if reptile_id else None
+            
+            expense_id = db.add_expense(
+                expense_date=request.form.get('expense_date'),
+                category=request.form.get('category'),
+                amount=float(request.form.get('amount')),
+                reptile_id=reptile_id,
+                currency=request.form.get('currency', 'USD'),
+                vendor=request.form.get('vendor') or None,
+                description=request.form.get('description') or None,
+                receipt_path=receipt_path,
+                payment_method=request.form.get('payment_method') or None,
+                is_recurring=bool(request.form.get('is_recurring')),
+                tags=request.form.get('tags') or None,
+                notes=request.form.get('notes') or None
+            )
+            
+            flash('Expense added successfully!', 'success')
+            return redirect(url_for('expenses_list'))
+        except Exception as e:
+            flash(f'Error adding expense: {str(e)}', 'error')
+    
+    # Get all reptiles for dropdown
+    reptiles = db.get_all_reptiles()
+    
+    # Pre-defined categories
+    categories = [
+        'Food & Feeders',
+        'Supplements & Vitamins',
+        'Veterinary Care',
+        'Medications',
+        'Enclosure & Habitat',
+        'Heating & Lighting',
+        'Substrate & Bedding',
+        'Décor & Enrichment',
+        'Cleaning Supplies',
+        'Equipment & Tools',
+        'Breeding Supplies',
+        'Other'
+    ]
+    
+    return render_template('add_expense.html',
+                         reptiles=reptiles,
+                         categories=categories)
+
+@app.route('/expense/<int:expense_id>')
+def expense_details(expense_id):
+    """View expense details"""
+    db = get_db()
+    expense = db.get_expense(expense_id)
+    
+    if not expense:
+        flash('Expense not found', 'error')
+        return redirect(url_for('expenses_list'))
+    
+    return render_template('expense_details.html', expense=expense)
+
+@app.route('/expense/<int:expense_id>/edit', methods=['GET', 'POST'])
+def edit_expense(expense_id):
+    """Edit expense"""
+    db = get_db()
+    expense = db.get_expense(expense_id)
+    
+    if not expense:
+        flash('Expense not found', 'error')
+        return redirect(url_for('expenses_list'))
+    
+    if request.method == 'POST':
+        try:
+            # Handle receipt upload
+            receipt_path = expense['receipt_path']
+            if 'receipt' in request.files:
+                file = request.files['receipt']
+                if file and file.filename:
+                    allowed_extensions = {'png', 'jpg', 'jpeg', 'pdf'}
+                    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+                    
+                    if ext in allowed_extensions:
+                        # Delete old receipt if exists
+                        if receipt_path:
+                            old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], receipt_path)
+                            if os.path.exists(old_filepath):
+                                os.remove(old_filepath)
+                        
+                        filename = secure_filename(file.filename)
+                        name, extension = os.path.splitext(filename)
+                        filename = f"receipt_{int(datetime.now().timestamp())}_{name}{extension}"
+                        
+                        receipts_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'receipts')
+                        os.makedirs(receipts_dir, exist_ok=True)
+                        
+                        filepath = os.path.join(receipts_dir, filename)
+                        file.save(filepath)
+                        receipt_path = f"receipts/{filename}"
+            
+            # Update expense
+            reptile_id = request.form.get('reptile_id')
+            reptile_id = int(reptile_id) if reptile_id else None
+            
+            db.update_expense(
+                expense_id,
+                expense_date=request.form.get('expense_date'),
+                category=request.form.get('category'),
+                amount=float(request.form.get('amount')),
+                reptile_id=reptile_id,
+                currency=request.form.get('currency', 'USD'),
+                vendor=request.form.get('vendor') or None,
+                description=request.form.get('description') or None,
+                receipt_path=receipt_path,
+                payment_method=request.form.get('payment_method') or None,
+                is_recurring=bool(request.form.get('is_recurring')),
+                tags=request.form.get('tags') or None,
+                notes=request.form.get('notes') or None
+            )
+            
+            flash('Expense updated successfully!', 'success')
+            return redirect(url_for('expense_details', expense_id=expense_id))
+        except Exception as e:
+            flash(f'Error updating expense: {str(e)}', 'error')
+    
+    reptiles = db.get_all_reptiles()
+    categories = [
+        'Food & Feeders', 'Supplements & Vitamins', 'Veterinary Care',
+        'Medications', 'Enclosure & Habitat', 'Heating & Lighting',
+        'Substrate & Bedding', 'Décor & Enrichment', 'Cleaning Supplies',
+        'Equipment & Tools', 'Breeding Supplies', 'Other'
+    ]
+    
+    return render_template('edit_expense.html',
+                         expense=expense,
+                         reptiles=reptiles,
+                         categories=categories)
+
+@app.route('/expense/<int:expense_id>/delete', methods=['POST'])
+def delete_expense(expense_id):
+    """Delete expense"""
+    db = get_db()
+    
+    try:
+        # Get expense to delete receipt file
+        expense = db.get_expense(expense_id)
+        if expense and expense['receipt_path']:
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], expense['receipt_path'])
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        
+        db.delete_expense(expense_id)
+        flash('Expense deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting expense: {str(e)}', 'error')
+    
+    return redirect(url_for('expenses_list'))
+
+@app.route('/expenses/reports')
+def expense_reports():
+    """Expense analytics and reports"""
+    db = get_db()
+    
+    # Get date range from query params
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    reptile_id = request.args.get('reptile_id', type=int)
+    
+    # Get summary statistics
+    summary = db.get_expense_summary(start_date, end_date, reptile_id)
+    
+    # Get expenses by category
+    by_category = db.get_expenses_by_category(start_date, end_date, reptile_id)
+    
+    # Get monthly expenses
+    year = int(request.args.get('year', datetime.now().year))
+    monthly = db.get_monthly_expenses(year, reptile_id)
+    
+    # Get all reptiles for filter
+    reptiles = db.get_all_reptiles()
+    
+    return render_template('expense_reports.html',
+                         summary=summary,
+                         by_category=by_category,
+                         monthly=monthly,
+                         reptiles=reptiles,
+                         selected_reptile=reptile_id,
+                         selected_year=year,
+                         start_date=start_date,
+                         end_date=end_date)
+
+# ==================== FOOD INVENTORY ROUTES ====================
+
+@app.route('/inventory')
+def food_inventory():
+    """Display food inventory"""
+    db = get_db()
+    
+    # Get all inventory items
+    inventory = db.get_food_inventory(include_zero=True)
+    
+    # Get low stock items
+    low_stock = db.get_low_stock_items(threshold=5)
+    
+    # Get out of stock items
+    out_of_stock = db.get_out_of_stock_items()
+    
+    return render_template('food_inventory.html',
+                         inventory=inventory,
+                         low_stock=low_stock,
+                         out_of_stock=out_of_stock)
+
+@app.route('/inventory/add', methods=['GET', 'POST'])
+def add_inventory_item():
+    """Add or update food inventory"""
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            food_type = request.form.get('food_type')
+            food_size = request.form.get('food_size')
+            quantity = int(request.form.get('quantity'))
+            
+            # Check if item already exists
+            existing = db.get_food_item_by_type(food_type, food_size)
+            
+            if existing:
+                # Update existing item
+                db.update_food_quantity(
+                    existing['id'],
+                    quantity,
+                    transaction_type='purchase',
+                    notes=f'Added {quantity} items'
+                )
+                flash(f'Added {quantity} to existing stock', 'success')
+            else:
+                # Add new item
+                cost_per_unit = request.form.get('cost_per_unit')
+                cost_per_unit = float(cost_per_unit) if cost_per_unit else None
+                
+                db.add_food_item(
+                    food_type=food_type,
+                    food_size=food_size,
+                    quantity=quantity,
+                    unit=request.form.get('unit', 'items'),
+                    cost_per_unit=cost_per_unit,
+                    supplier=request.form.get('supplier') or None,
+                    purchase_date=request.form.get('purchase_date') or None,
+                    expiry_date=request.form.get('expiry_date') or None,
+                    notes=request.form.get('notes') or None
+                )
+                flash('Food item added to inventory!', 'success')
+            
+            return redirect(url_for('food_inventory'))
+        except Exception as e:
+            flash(f'Error adding inventory: {str(e)}', 'error')
+    
+    # Get existing food types for suggestions
+    existing_inventory = db.get_food_inventory(include_zero=True)
+    food_types = list(set([item['food_type'] for item in existing_inventory]))
+    food_sizes = list(set([item['food_size'] for item in existing_inventory]))
+    
+    return render_template('add_inventory_item.html',
+                         food_types=food_types,
+                         food_sizes=food_sizes)
+
+@app.route('/inventory/<int:inventory_id>')
+def inventory_item_details(inventory_id):
+    """View inventory item details"""
+    db = get_db()
+    
+    item = db.get_food_item(inventory_id)
+    if not item:
+        flash('Inventory item not found', 'error')
+        return redirect(url_for('food_inventory'))
+    
+    # Get transaction history
+    transactions = db.get_inventory_transactions(inventory_id, limit=50)
+    
+    return render_template('inventory_item_details.html',
+                         item=item,
+                         transactions=transactions)
+
+@app.route('/inventory/<int:inventory_id>/adjust', methods=['POST'])
+def adjust_inventory(inventory_id):
+    """Adjust inventory quantity"""
+    db = get_db()
+    
+    try:
+        quantity_change = int(request.form.get('quantity_change'))
+        notes = request.form.get('notes', 'Manual adjustment')
+        
+        db.update_food_quantity(
+            inventory_id,
+            quantity_change,
+            transaction_type='adjustment',
+            notes=notes
+        )
+        
+        flash('Inventory adjusted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error adjusting inventory: {str(e)}', 'error')
+    
+    return redirect(url_for('inventory_item_details', inventory_id=inventory_id))
+
+@app.route('/inventory/<int:inventory_id>/delete', methods=['POST'])
+def delete_inventory_item(inventory_id):
+    """Delete inventory item"""
+    db = get_db()
+    
+    try:
+        db.delete_food_item(inventory_id)
+        flash('Inventory item deleted!', 'success')
+    except Exception as e:
+        flash(f'Error deleting item: {str(e)}', 'error')
+    
+    return redirect(url_for('food_inventory'))
+
+@app.route('/inventory/transactions')
+def inventory_transactions():
+    """View all inventory transactions"""
+    db = get_db()
+    
+    # Get filter parameters
+    inventory_id = request.args.get('inventory_id', type=int)
+    limit = request.args.get('limit', 100, type=int)
+    
+    transactions = db.get_inventory_transactions(inventory_id, limit)
+    
+    # Get all inventory items for filter
+    inventory = db.get_food_inventory(include_zero=True)
+    
+    return render_template('inventory_transactions.html',
+                         transactions=transactions,
+                         inventory=inventory,
+                         selected_item=inventory_id)
+
 # ==================== DATA BACKUP & RESTORE ROUTES ====================
 
 @app.route('/backup')

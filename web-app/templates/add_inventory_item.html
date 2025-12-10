@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Add Food Stock{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-plus"></i> Add Food Stock
+    </h1>
+    <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Inventory
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Stock Details</h3>
+    </div>
+    <div style="padding: 2rem;">
+        <form method="POST" action="{{ url_for('add_inventory_item') }}">
+            <div style="display: grid; gap: 1.5rem;">
+                <!-- Food Type and Size Row -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="food_type" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Food Type <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" 
+                               name="food_type" 
+                               id="food_type" 
+                               required
+                               list="food-types"
+                               value="{{ request.form.get('food_type', '') }}"
+                               placeholder="e.g., Rat, Mouse, Cricket"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <datalist id="food-types">
+                            {% for type in food_types %}
+                            <option value="{{ type }}">
+                            {% endfor %}
+                        </datalist>
+                        <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                            Start typing to see suggestions
+                        </small>
+                    </div>
+                    
+                    <div>
+                        <label for="food_size" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Size <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" 
+                               name="food_size" 
+                               id="food_size" 
+                               required
+                               list="food-sizes"
+                               value="{{ request.form.get('food_size', '') }}"
+                               placeholder="e.g., Small, Medium, Large, Pinkie"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <datalist id="food-sizes">
+                            {% for size in food_sizes %}
+                            <option value="{{ size }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                </div>
+                
+                <!-- Quantity and Unit Row -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="quantity" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Quantity <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="number" 
+                               name="quantity" 
+                               id="quantity" 
+                               min="1" 
+                               required
+                               value="{{ request.form.get('quantity', '') }}"
+                               placeholder="How many?"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                    </div>
+                    
+                    <div>
+                        <label for="unit" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Unit
+                        </label>
+                        <select name="unit" 
+                                id="unit"
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                            <option value="items" selected>items</option>
+                            <option value="grams">grams</option>
+                            <option value="ounces">ounces</option>
+                            <option value="pounds">pounds</option>
+                            <option value="dozen">dozen</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Cost and Supplier Row -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="cost_per_unit" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Cost Per Unit
+                        </label>
+                        <input type="number" 
+                               name="cost_per_unit" 
+                               id="cost_per_unit" 
+                               step="0.01" 
+                               min="0"
+                               value="{{ request.form.get('cost_per_unit', '') }}"
+                               placeholder="0.00"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                            Optional: helps track expenses
+                        </small>
+                    </div>
+                    
+                    <div>
+                        <label for="supplier" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Supplier/Store
+                        </label>
+                        <input type="text" 
+                               name="supplier" 
+                               id="supplier"
+                               value="{{ request.form.get('supplier', '') }}"
+                               placeholder="e.g., PetSmart, Local Breeder"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                    </div>
+                </div>
+                
+                <!-- Purchase and Expiry Date Row -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="purchase_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Purchase Date
+                        </label>
+                        <input type="date" 
+                               name="purchase_date" 
+                               id="purchase_date"
+                               value="{{ request.form.get('purchase_date', '') }}"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                    </div>
+                    
+                    <div>
+                        <label for="expiry_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Expiry Date
+                        </label>
+                        <input type="date" 
+                               name="expiry_date" 
+                               id="expiry_date"
+                               value="{{ request.form.get('expiry_date', '') }}"
+                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                            Optional: for perishable items
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                <div>
+                    <label for="notes" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Notes
+                    </label>
+                    <textarea name="notes" 
+                              id="notes" 
+                              rows="3"
+                              placeholder="Additional notes about this purchase"
+                              style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); resize: vertical;">{{ request.form.get('notes', '') }}</textarea>
+                </div>
+                
+                <!-- Info Box -->
+                <div style="padding: 1rem; background: #dbeafe; border-left: 4px solid #3b82f6; border-radius: 4px;">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <i class="fas fa-info-circle" style="color: #1e40af; font-size: 1.25rem;"></i>
+                        <div>
+                            <strong style="color: #1e40af;">Note:</strong>
+                            <p style="margin: 0.25rem 0 0 0; color: #1e3a8a; font-size: 0.9rem;">
+                                If this food type and size already exists in your inventory, the quantity will be added to the existing stock.
+                                Otherwise, a new inventory item will be created.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Buttons -->
+                <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Add to Inventory
+                    </button>
+                    <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Set today's date as default for purchase date
+document.getElementById('purchase_date').valueAsDate = new Date();
+
+// Auto-calculate total cost
+const quantityInput = document.getElementById('quantity');
+const costInput = document.getElementById('cost_per_unit');
+
+function updateTotalCost() {
+    const quantity = parseFloat(quantityInput.value) || 0;
+    const cost = parseFloat(costInput.value) || 0;
+    const total = quantity * cost;
+    
+    if (total > 0) {
+        const unit = document.getElementById('unit').value;
+        console.log(`Total cost: $${total.toFixed(2)} for ${quantity} ${unit}`);
+    }
+}
+
+quantityInput.addEventListener('input', updateTotalCost);
+costInput.addEventListener('input', updateTotalCost);
+</script>
+
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

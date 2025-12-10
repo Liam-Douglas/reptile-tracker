@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Transactions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-history"></i> Inventory Transaction History
+    </h1>
+    <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Inventory
+    </a>
+</div>
+
+<!-- Filter Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-filter"></i> Filter
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <form method="GET" action="{{ url_for('inventory_transactions') }}">
+            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 1rem; align-items: end;">
+                <div>
+                    <label for="inventory_id" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Food Item
+                    </label>
+                    <select name="inventory_id" 
+                            id="inventory_id"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="">All Items</option>
+                        {% for item in inventory %}
+                        <option value="{{ item.id }}" {% if selected_item == item.id %}selected{% endif %}>
+                            {{ item.food_type }} - {{ item.food_size }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="limit" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Show Last
+                    </label>
+                    <select name="limit" 
+                            id="limit"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="50">50 transactions</option>
+                        <option value="100" selected>100 transactions</option>
+                        <option value="250">250 transactions</option>
+                        <option value="500">500 transactions</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Apply
+                    </button>
+                    <a href="{{ url_for('inventory_transactions') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Transactions ({{ transactions|length }})</h3>
+    </div>
+    
+    {% if transactions %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 1rem; text-align: left;">Date & Time</th>
+                    <th style="padding: 1rem; text-align: left;">Food Item</th>
+                    <th style="padding: 1rem; text-align: left;">Type</th>
+                    <th style="padding: 1rem; text-align: right;">Quantity Change</th>
+                    <th style="padding: 1rem; text-align: left;">Reference</th>
+                    <th style="padding: 1rem; text-align: left;">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transactions %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 500;">{{ trans.transaction_date }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                            {{ trans.created_at.split(' ')[1] if ' ' in trans.created_at else '' }}
+                        </div>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <a href="{{ url_for('inventory_item_details', inventory_id=trans.inventory_id) }}" 
+                           style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                            {{ trans.food_type }} - {{ trans.food_size }}
+                        </a>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <span style="padding: 0.25rem 0.75rem; background: {% if trans.transaction_type == 'purchase' %}#dcfce7{% elif trans.transaction_type == 'feeding' %}#dbeafe{% elif trans.transaction_type == 'adjustment' %}#fef3c7{% else %}#fee2e2{% endif %}; color: {% if trans.transaction_type == 'purchase' %}#15803d{% elif trans.transaction_type == 'feeding' %}#1e40af{% elif trans.transaction_type == 'adjustment' %}#92400e{% else %}#991b1b{% endif %}; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                            {{ trans.transaction_type|capitalize }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem; text-align: right;">
+                        <span style="font-weight: 600; font-size: 1.1rem; color: {% if trans.quantity > 0 %}#10b981{% else %}#ef4444{% endif %};">
+                            {% if trans.quantity > 0 %}+{% endif %}{{ trans.quantity }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if trans.reference_type and trans.reference_id %}
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                                {{ trans.reference_type }} #{{ trans.reference_id }}
+                            </span>
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; color: var(--text-secondary);">
+                        {{ trans.notes or '-' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Summary Footer -->
+    <div style="padding: 1.5rem; background: var(--bg-secondary); border-top: 2px solid var(--border-color);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Total Transactions
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold;">
+                    {{ transactions|length }}
+                </div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Total Added
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">
+                    +{{ transactions|selectattr('quantity', 'gt', 0)|map(attribute='quantity')|sum }}
+                </div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Total Removed
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">
+                    {{ transactions|selectattr('quantity', 'lt', 0)|map(attribute='quantity')|sum }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <i class="fas fa-history" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No transactions found.</p>
+        {% if selected_item %}
+        <p style="margin-top: 1rem;">
+            <a href="{{ url_for('inventory_transactions') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Clear Filter
+            </a>
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Transaction Types Legend -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-info-circle"></i> Transaction Types
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="padding: 0.25rem 0.75rem; background: #dcfce7; color: #15803d; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                    Purchase
+                </span>
+                <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                    Stock added from purchase
+                </span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="padding: 0.25rem 0.75rem; background: #dbeafe; color: #1e40af; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                    Feeding
+                </span>
+                <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                    Stock used for feeding
+                </span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="padding: 0.25rem 0.75rem; background: #fef3c7; color: #92400e; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                    Adjustment
+                </span>
+                <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                    Manual stock adjustment
+                </span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="padding: 0.25rem 0.75rem; background: #fee2e2; color: #991b1b; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                    Waste
+                </span>
+                <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                    Stock removed due to waste
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media (max-width: 768px) {
+    table {
+        font-size: 0.85rem;
+    }
+    
+    th, td {
+        padding: 0.5rem !important;
+    }
+    
+    div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}
