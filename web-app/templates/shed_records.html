@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Shed Records - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Shed Records</h2>
+    </div>
+    
+    {% if records %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Reptile</th>
+                        <th>Date</th>
+                        <th>Complete</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr onclick="window.location.href='{{ url_for('reptile_details', reptile_id=record.reptile_id) }}'" style="cursor: pointer;">
+                        <td><strong>{{ record.reptile_name }}</strong></td>
+                        <td>{{ record.date }}</td>
+                        <td>
+                            {% if record.complete %}
+                                <span class="badge badge-success">Complete</span>
+                            {% else %}
+                                <span class="badge badge-warning">Partial</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.notes if record.notes else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-sync"></i>
+            <h3>No Shed Records Yet</h3>
+            <p>Start tracking your reptiles' shed cycles!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block fab %}
+<a href="{{ url_for('add_shed') }}" class="fab" title="Add Shed Record">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{{ reptile.name }} - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <!-- Header with Image -->
+    <div class="detail-header">
+        {% if reptile.image_path %}
+            <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}" 
+                 alt="{{ reptile.name }}" 
+                 class="detail-image">
+        {% else %}
+            <div class="detail-image" style="display: flex; align-items: center; justify-content: center; font-size: 4rem;">
+                🦎
+            </div>
+        {% endif %}
+        <div class="detail-info">
+            <h2>{{ reptile.name }}</h2>
+            <p style="color: var(--text-secondary);">{{ reptile.species }}</p>
+            {% if reptile.morph %}
+                <p style="color: var(--text-secondary);">{{ reptile.morph }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="detail-grid">
+        {% if reptile.sex %}
+        <div class="detail-item">
+            <div class="detail-label">Sex</div>
+            <div class="detail-value">{{ reptile.sex }}</div>
+        </div>
+        {% endif %}
+        
+        {% if reptile.date_of_birth %}
+        <div class="detail-item">
+            <div class="detail-label">Date of Birth</div>
+            <div class="detail-value">{{ reptile.date_of_birth }}</div>
+        </div>
+        {% endif %}
+        
+        {% if reptile.acquisition_date %}
+        <div class="detail-item">
+            <div class="detail-label">Acquisition Date</div>
+            <div class="detail-value">{{ reptile.acquisition_date }}</div>
+        </div>
+        {% endif %}
+        
+        {% if reptile.weight_grams %}
+        <div class="detail-item">
+            <div class="detail-label">Weight</div>
+            <div class="detail-value">{{ reptile.weight_grams }}g</div>
+        </div>
+        {% endif %}
+        
+        {% if reptile.length_cm %}
+        <div class="detail-item">
+            <div class="detail-label">Length</div>
+            <div class="detail-value">{{ reptile.length_cm }}cm</div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if reptile.notes %}
+    <div style="margin-top: 1rem; padding: 1rem; background-color: var(--light); border-radius: 8px;">
+        <div class="detail-label">Notes</div>
+        <p style="margin-top: 0.5rem; white-space: pre-wrap;">{{ reptile.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="btn-group" style="margin-top: 1.5rem;">
+        <a href="{{ url_for('edit_reptile', reptile_id=reptile.id) }}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="btn btn-secondary">
+            <i class="fas fa-utensils"></i> Add Feeding
+        </a>
+        <a href="{{ url_for('add_shed') }}?reptile_id={{ reptile.id }}" class="btn btn-secondary">
+            <i class="fas fa-sync"></i> Add Shed
+        </a>
+        <form method="POST" action="{{ url_for('delete_reptile', reptile_id=reptile.id) }}" 
+              style="display: inline;" 
+              onsubmit="return confirm('Are you sure you want to delete {{ reptile.name }}? This will also delete all feeding logs and shed records.');">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Recent Feeding Logs -->
+<div class="card" style="margin-top: 1rem;">
+    <div class="card-header">
+        <h3 class="card-title">Recent Feeding Logs</h3>
+        <a href="{{ url_for('feeding_logs') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+            View All
+        </a>
+    </div>
+    
+    {% if feeding_logs %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Food</th>
+                        <th>Ate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in feeding_logs %}
+                    <tr>
+                        <td>{{ log.date }}</td>
+                        <td>{{ log.food_type }}{% if log.amount %} ({{ log.amount }}){% endif %}</td>
+                        <td>
+                            {% if log.ate %}
+                                <span class="badge badge-success">Yes</span>
+                            {% else %}
+                                <span class="badge badge-danger">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-utensils"></i>
+            <p>No feeding logs yet</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Shed Records -->
+<div class="card" style="margin-top: 1rem;">
+    <div class="card-header">
+        <h3 class="card-title">Recent Shed Records</h3>
+        <a href="{{ url_for('shed_records') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+            View All
+        </a>
+    </div>
+    
+    {% if shed_records %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Complete</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in shed_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>
+                            {% if record.complete %}
+                                <span class="badge badge-success">Yes</span>
+                            {% else %}
+                                <span class="badge badge-warning">Partial</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.notes if record.notes else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-sync"></i>
+            <p>No shed records yet</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

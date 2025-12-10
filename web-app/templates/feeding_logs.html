@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Feeding Logs - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Feeding Logs</h2>
+    </div>
+    
+    {% if logs %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Reptile</th>
+                        <th>Date</th>
+                        <th>Food</th>
+                        <th>Amount</th>
+                        <th>Ate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
+                        <td><strong>{{ log.reptile_name }}</strong></td>
+                        <td>{{ log.date }}</td>
+                        <td>{{ log.food_type }}</td>
+                        <td>{{ log.amount if log.amount else '-' }}</td>
+                        <td>
+                            {% if log.ate %}
+                                <span class="badge badge-success">Yes</span>
+                            {% else %}
+                                <span class="badge badge-danger">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-utensils"></i>
+            <h3>No Feeding Logs Yet</h3>
+            <p>Start tracking your reptiles' feeding schedule!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block fab %}
+<a href="{{ url_for('add_feeding') }}" class="fab" title="Add Feeding Log">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}

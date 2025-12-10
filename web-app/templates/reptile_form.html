@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Add' if mode == 'add' else 'Edit' }} Reptile - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">{{ 'Add New Reptile' if mode == 'add' else 'Edit ' + reptile.name }}</h2>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label class="form-label" for="name">Name *</label>
+            <input type="text" 
+                   id="name" 
+                   name="name" 
+                   class="form-input" 
+                   value="{{ reptile.name if reptile else '' }}" 
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="species">Species *</label>
+            <input type="text" 
+                   id="species" 
+                   name="species" 
+                   class="form-input" 
+                   value="{{ reptile.species if reptile else '' }}" 
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="morph">Morph</label>
+            <input type="text" 
+                   id="morph" 
+                   name="morph" 
+                   class="form-input" 
+                   value="{{ reptile.morph if reptile and reptile.morph else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="sex">Sex</label>
+            <select id="sex" name="sex" class="form-select">
+                <option value="">Select...</option>
+                <option value="Male" {% if reptile and reptile.sex == 'Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if reptile and reptile.sex == 'Female' %}selected{% endif %}>Female</option>
+                <option value="Unknown" {% if reptile and reptile.sex == 'Unknown' %}selected{% endif %}>Unknown</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="date_of_birth">Date of Birth</label>
+            <input type="date" 
+                   id="date_of_birth" 
+                   name="date_of_birth" 
+                   class="form-input" 
+                   value="{{ reptile.date_of_birth if reptile and reptile.date_of_birth else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="acquisition_date">Acquisition Date</label>
+            <input type="date" 
+                   id="acquisition_date" 
+                   name="acquisition_date" 
+                   class="form-input" 
+                   value="{{ reptile.acquisition_date if reptile and reptile.acquisition_date else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="weight_grams">Weight (grams)</label>
+            <input type="number" 
+                   id="weight_grams" 
+                   name="weight_grams" 
+                   class="form-input" 
+                   step="0.1"
+                   value="{{ reptile.weight_grams if reptile and reptile.weight_grams else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="length_cm">Length (cm)</label>
+            <input type="number" 
+                   id="length_cm" 
+                   name="length_cm" 
+                   class="form-input" 
+                   step="0.1"
+                   value="{{ reptile.length_cm if reptile and reptile.length_cm else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="notes">Notes</label>
+            <textarea id="notes" 
+                      name="notes" 
+                      class="form-textarea">{{ reptile.notes if reptile and reptile.notes else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="image">Photo</label>
+            {% if reptile and reptile.image_path %}
+                <div style="margin-bottom: 1rem;">
+                    <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}" 
+                         alt="{{ reptile.name }}" 
+                         style="max-width: 200px; border-radius: 8px;">
+                </div>
+            {% endif %}
+            <input type="file" 
+                   id="image" 
+                   name="image" 
+                   class="form-input form-file" 
+                   accept="image/*">
+            <small style="color: var(--text-secondary);">Supported formats: JPG, PNG, GIF (max 16MB)</small>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> {{ 'Add Reptile' if mode == 'add' else 'Update Reptile' }}
+            </button>
+            <a href="{{ url_for('index') if mode == 'add' else url_for('reptile_details', reptile_id=reptile.id) }}" 
+               class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

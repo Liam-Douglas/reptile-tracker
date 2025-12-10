@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_reptiles }}</div>
+        <div class="stat-label">Total Reptiles</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_feedings }}</div>
+        <div class="stat-label">Total Feedings</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_sheds }}</div>
+        <div class="stat-label">Total Sheds</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ "%.0f"|format(stats.feeding_success_rate) }}%</div>
+        <div class="stat-label">Success Rate</div>
+    </div>
+</div>
+
+<!-- Reptiles Grid -->
+{% if reptiles %}
+    <div class="reptile-grid">
+        {% for reptile in reptiles %}
+        <div class="reptile-card" onclick="window.location.href='{{ url_for('reptile_details', reptile_id=reptile.id) }}'">
+            {% if reptile.image_path %}
+                <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}" 
+                     alt="{{ reptile.name }}" 
+                     class="reptile-image">
+            {% else %}
+                <div class="reptile-image" style="display: flex; align-items: center; justify-content: center; font-size: 4rem;">
+                    🦎
+                </div>
+            {% endif %}
+            <div class="reptile-info">
+                <div class="reptile-name">{{ reptile.name }}</div>
+                <div class="reptile-species">{{ reptile.species }}</div>
+                {% if reptile.morph %}
+                    <div class="reptile-species">{{ reptile.morph }}</div>
+                {% endif %}
+                <div class="reptile-meta">
+                    {% if reptile.sex %}
+                        <span><i class="fas fa-venus-mars"></i> {{ reptile.sex }}</span>
+                    {% endif %}
+                    {% if reptile.weight_grams %}
+                        <span><i class="fas fa-weight"></i> {{ reptile.weight_grams }}g</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-dragon"></i>
+        <h3>No Reptiles Yet</h3>
+        <p>Add your first reptile to get started!</p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block fab %}
+<a href="{{ url_for('add_reptile') }}" class="fab" title="Add Reptile">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}
