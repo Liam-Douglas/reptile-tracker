@@ -556,39 +556,6 @@ class ReptileDatabase:
                 errors.append(f"Row {idx}: {str(e)}")
         
         return imported, errors
-
-
-# Utility functions for date handling
-def get_current_date() -> str:
-    """Get current date in YYYY-MM-DD format"""
-    return datetime.now().strftime('%Y-%m-%d')
-
-
-def calculate_age(date_of_birth: str) -> Optional[str]:
-    """Calculate age from date of birth"""
-    if not date_of_birth:
-        return None
-    
-    try:
-        dob = datetime.strptime(date_of_birth, '%Y-%m-%d')
-        today = datetime.now()
-        age_days = (today - dob).days
-        
-        if age_days < 30:
-            return f"{age_days} days"
-        elif age_days < 365:
-            months = age_days // 30
-            return f"{months} month{'s' if months != 1 else ''}"
-        else:
-            years = age_days // 365
-            months = (age_days % 365) // 30
-            if months > 0:
-                return f"{years} year{'s' if years != 1 else ''}, {months} month{'s' if months != 1 else ''}"
-            return f"{years} year{'s' if years != 1 else ''}"
-    except ValueError:
-        return None
-
-    # Made with Bob
     
     # ==================== WEIGHT HISTORY OPERATIONS ====================
     
@@ -839,3 +806,34 @@ def calculate_age(date_of_birth: str) -> Optional[str]:
             'dates': [row['measurement_date'] for row in data],
             'lengths': [row['length_cm'] for row in data]
         }
+
+
+# Utility functions for date handling
+def get_current_date() -> str:
+    """Get current date in YYYY-MM-DD format"""
+    return datetime.now().strftime('%Y-%m-%d')
+
+
+def calculate_age(date_of_birth: str) -> Optional[str]:
+    """Calculate age from date of birth"""
+    if not date_of_birth:
+        return None
+    
+    try:
+        dob = datetime.strptime(date_of_birth, '%Y-%m-%d')
+        today = datetime.now()
+        age_days = (today - dob).days
+        
+        if age_days < 30:
+            return f"{age_days} days"
+        elif age_days < 365:
+            months = age_days // 30
+            return f"{months} month{'s' if months != 1 else ''}"
+        else:
+            years = age_days // 365
+            months = (age_days % 365) // 30
+            if months > 0:
+                return f"{years} year{'s' if years != 1 else ''}, {months} month{'s' if months != 1 else ''}"
+            return f"{years} year{'s' if years != 1 else ''}"
+    except ValueError:
+        return None
