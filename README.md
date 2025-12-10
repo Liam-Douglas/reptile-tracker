@@ -9,6 +9,7 @@ A comprehensive desktop application for tracking reptile care, feeding schedules
 ## 📸 Features
 
 - **🦎 Multi-Reptile Management** - Track unlimited reptiles with detailed profiles
+- **📷 Photo Support** - Add photos to each reptile's profile
 - **🍖 Feeding Logs** - Record what you feed, when, and whether they ate
 - **🔄 Shed Tracking** - Monitor shed cycles and completeness
 - **📊 Statistics & Analytics** - View feeding success rates and health trends
@@ -21,6 +22,7 @@ A comprehensive desktop application for tracking reptile care, feeding schedules
 
 - Python 3.6 or higher
 - tkinter (usually comes with Python)
+- Pillow (for image support)
 
 ### Installation
 
@@ -30,7 +32,12 @@ git clone https://github.com/YOUR_USERNAME/reptile-tracker.git
 cd reptile-tracker
 ```
 
-2. Run the application:
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the application:
 ```bash
 python3 reptile_tracker.py
 ```

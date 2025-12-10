@@ -7,8 +7,15 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from datetime import datetime, timedelta
 import csv
+import os
+import shutil
 from reptile_tracker_db import ReptileDatabase, get_current_date, calculate_age
 from typing import Optional
+try:
+    from PIL import Image, ImageTk
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 
 class ReptileTrackerApp:
@@ -47,6 +54,93 @@ class ReptileTrackerApp:
         self.create_main_content_area()
         
         # Show dashboard by default
+    
+    # ==================== IMAGE HANDLING METHODS ====================
+    
+    def select_reptile_image(self, fields):
+        """Open file dialog to select an image for a reptile"""
+        if not PIL_AVAILABLE:
+            messagebox.showwarning(
+                "PIL Not Available",
+                "Image support requires Pillow library.\n\n"
+                "Install with: pip install Pillow"
+            )
+            return None
+        
+        file_path = filedialog.askopenfilename(
+            title="Select Reptile Image",
+            filetypes=[
+                ("Image files", "*.jpg *.jpeg *.png *.gif *.bmp"),
+                ("All files", "*.*")
+            ]
+        )
+        
+        if file_path:
+            fields['selected_image_path'] = file_path
+            # Update button text to show image selected
+            if 'image_button' in fields:
+                filename = os.path.basename(file_path)
+                fields['image_button'].config(text=f"✓ {filename[:20]}...")
+        
+        return file_path
+    
+    def save_reptile_image(self, source_path, reptile_id):
+        """Copy image to reptile_images folder with unique name"""
+        if not source_path or not os.path.exists(source_path):
+            return None
+        
+        try:
+            # Create reptile_images directory if it doesn't exist
+            images_dir = "reptile_images"
+            if not os.path.exists(images_dir):
+                os.makedirs(images_dir)
+            
+            # Get file extension
+            _, ext = os.path.splitext(source_path)
+            
+            # Create unique filename
+            filename = f"reptile_{reptile_id}{ext}"
+            dest_path = os.path.join(images_dir, filename)
+            
+            # Copy and resize image
+            if PIL_AVAILABLE:
+                img = Image.open(source_path)
+                # Resize if too large (max 800x800)
+                img.thumbnail((800, 800), Image.Resampling.LANCZOS)
+                img.save(dest_path, quality=85, optimize=True)
+            else:
+                # Just copy if PIL not available
+                shutil.copy2(source_path, dest_path)
+            
+            return dest_path
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save image: {str(e)}")
+            return None
+    
+    def load_reptile_image(self, image_path, size=(150, 150)):
+        """Load and resize image for display"""
+        if not PIL_AVAILABLE or not image_path or not os.path.exists(image_path):
+            return None
+        
+        try:
+            img = Image.open(image_path)
+            img.thumbnail(size, Image.Resampling.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            return None
+    
+    def create_placeholder_image(self, size=(150, 150)):
+        """Create a placeholder image when no photo is available"""
+        if not PIL_AVAILABLE:
+            return None
+        
+        try:
+            # Create a simple placeholder
+            img = Image.new('RGB', size, color=self.colors['bg_light'])
+            return ImageTk.PhotoImage(img)
+        except:
+            return None
         self.show_dashboard()
     
     def create_menu_bar(self):
@@ -245,6 +339,24 @@ class ReptileTrackerApp:
         
         # Configure grid weights
         parent.grid_columnconfigure(col, weight=1)
+        # Reptile image
+        if reptile.get('image_path') and os.path.exists(reptile['image_path']):
+            photo = self.load_reptile_image(reptile['image_path'], size=(100, 100))
+            if photo:
+                # Keep reference to prevent garbage collection
+                img_label = tk.Label(card, image=photo, bg=self.colors['bg_medium'])
+                img_label.image = photo  # Keep a reference!
+                img_label.pack(pady=(10, 5))
+        else:
+            # Show placeholder or emoji if no image
+            tk.Label(
+                card,
+                text="🦎",
+                font=('Arial', 40),
+                bg=self.colors['bg_medium'],
+                fg=self.colors['accent']
+            ).pack(pady=(10, 5))
+        
         
         # Reptile name
         name_label = tk.Label(
@@ -404,6 +516,17 @@ class ReptileTrackerApp:
         
         # Reptile information section
         info_frame = tk.Frame(content_frame, bg=self.colors['bg_medium'])
+        # Reptile image section
+        if reptile.get('image_path') and os.path.exists(reptile['image_path']):
+            image_frame = tk.Frame(content_frame, bg=self.colors['bg_medium'])
+            image_frame.pack(fill='x', padx=20, pady=10)
+            
+            photo = self.load_reptile_image(reptile['image_path'], size=(200, 200))
+            if photo:
+                img_label = tk.Label(image_frame, image=photo, bg=self.colors['bg_medium'])
+                img_label.image = photo  # Keep reference
+                img_label.pack(pady=15)
+        
         info_frame.pack(fill='x', padx=20, pady=10)
         
         tk.Label(
@@ -824,6 +947,35 @@ class ReptileTrackerApp:
         notes_text.pack(fill='x', pady=(5, 0))
         if reptile and reptile['notes']:
             notes_text.insert('1.0', reptile['notes'])
+        
+        # Image upload button
+        image_frame = tk.Frame(form_frame, bg=self.colors['bg_medium'])
+        image_frame.pack(fill='x', padx=20, pady=10)
+        
+        tk.Label(
+            image_frame,
+            text="Reptile Photo",
+            font=('Arial', 11),
+            bg=self.colors['bg_medium'],
+            fg=self.colors['text'],
+            anchor='w'
+        ).pack(anchor='w')
+        
+        image_button = tk.Button(
+            image_frame,
+            text="📷 Select Image",
+            command=lambda: self.select_reptile_image(fields),
+            bg=self.colors['accent'],
+            fg='white',
+            font=('Arial', 10),
+            bd=0,
+            padx=15,
+            pady=8,
+            cursor='hand2'
+        )
+        image_button.pack(anchor='w', pady=(5, 0))
+        fields['image_button'] = image_button
+        fields['selected_image_path'] = reptile.get('image_path') if reptile else None
         fields['notes'] = notes_text
         
         # Buttons
@@ -860,6 +1012,7 @@ class ReptileTrackerApp:
         """Save reptile data (add or update)"""
         # Get values from fields
         data = {}
+        selected_image = fields.get('selected_image_path')
         for field_name, widget in fields.items():
             if isinstance(widget, tk.Text):
                 value = widget.get('1.0', 'end-1c').strip()
@@ -890,12 +1043,18 @@ class ReptileTrackerApp:
         try:
             if mode == 'add':
                 reptile_id = self.db.add_reptile(**data)
-                messagebox.showinfo("Success", f"{data['name']} has been added!")
-                self.show_reptile_details(reptile_id)
             else:
                 self.db.update_reptile(reptile_id, **data)
-                messagebox.showinfo("Success", f"{data['name']} has been updated!")
-                self.show_reptile_details(reptile_id)
+            
+            # Handle image upload if a new image was selected
+            if selected_image:
+                image_path = self.save_reptile_image(selected_image, reptile_id)
+                if image_path:
+                    self.db.update_reptile(reptile_id, image_path=image_path)
+            
+            # Show success message and navigate to details
+            messagebox.showinfo("Success", f"{data['name']} has been saved!")
+            self.show_reptile_details(reptile_id)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save reptile: {str(e)}")
     

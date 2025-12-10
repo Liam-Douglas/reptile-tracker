@@ -7,8 +7,8 @@
 # csv - CSV handling (comes with Python)
 # datetime - Date/time handling (comes with Python)
 
-# No external dependencies required!
-# This application uses only Python standard library modules.
+# External dependencies
+Pillow>=9.0.0  # For image handling (reptile photos)
 
 # Optional: For development
 # pytest>=7.0.0  # For unit testing (if you want to add tests)

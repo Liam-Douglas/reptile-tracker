@@ -30,6 +30,10 @@ env/
 *.sqlite
 *.sqlite3
 
+# Reptile images (user photos - should not be committed)
+reptile_images/*
+!reptile_images/.gitkeep
+
 # IDE
 .vscode/
 .idea/
