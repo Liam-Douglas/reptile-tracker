@@ -169,6 +169,9 @@ class ReptileDatabase:
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE SET NULL
+            )
+        ''')
         
         # Food inventory table
         self.cursor.execute('''
@@ -203,10 +206,6 @@ class ReptileDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (inventory_id) REFERENCES food_inventory (id) ON DELETE CASCADE
             )
-        ''')
-                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE SET NULL
-            )
-        ''')
         ''')
         
         self.conn.commit()
