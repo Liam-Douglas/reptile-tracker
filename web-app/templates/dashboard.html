@@ -22,7 +22,7 @@
         <div class="stat-label">Total Sheds</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ "%.0f"|format(stats.feeding_success_rate) }}%</div>
+        <div class="stat-value">{{ "%.0f"|format(stats.feeding_success_rate) if stats.feeding_success_rate else "0" }}%</div>
         <div class="stat-label">Success Rate</div>
     </div>
 </div>
