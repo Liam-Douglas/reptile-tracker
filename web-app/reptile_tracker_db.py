@@ -96,6 +96,33 @@ class ReptileDatabase:
             )
         ''')
         
+        # Photos table (for photo gallery)
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS photos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER NOT NULL,
+                image_path TEXT NOT NULL,
+                caption TEXT,
+                is_primary BOOLEAN DEFAULT 0,
+                upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        # Feeding reminders table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS feeding_reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER NOT NULL,
+                feeding_interval_days INTEGER NOT NULL,
+                last_fed_date DATE,
+                next_feeding_date DATE,
+                is_active BOOLEAN DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+            )
+        ''')
+        
         self.conn.commit()
     
     # ==================== REPTILE OPERATIONS ====================
@@ -562,3 +589,199 @@ def calculate_age(date_of_birth: str) -> Optional[str]:
         return None
 
 # Made with Bob
+
+    
+    # ==================== WEIGHT HISTORY OPERATIONS ====================
+    
+    def add_weight_measurement(self, reptile_id: int, measurement_date: str, 
+                              weight_grams: float, notes: str = None) -> int:
+        """Add a weight measurement"""
+        self.cursor.execute('''
+            INSERT INTO weight_history (reptile_id, measurement_date, weight_grams, notes)
+            VALUES (?, ?, ?, ?)
+        ''', (reptile_id, measurement_date, weight_grams, notes))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_weight_history(self, reptile_id: int, limit: int = None) -> List[Dict]:
+        """Get weight history for a reptile"""
+        query = '''
+            SELECT * FROM weight_history 
+            WHERE reptile_id = ?
+            ORDER BY measurement_date DESC
+        '''
+        
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query, (reptile_id,))
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_weight_chart_data(self, reptile_id: int) -> Dict:
+        """Get weight data formatted for charts"""
+        self.cursor.execute('''
+            SELECT measurement_date, weight_grams 
+            FROM weight_history 
+            WHERE reptile_id = ?
+            ORDER BY measurement_date ASC
+        ''', (reptile_id,))
+        
+        data = self.cursor.fetchall()
+        return {
+            'dates': [row['measurement_date'] for row in data],
+            'weights': [row['weight_grams'] for row in data]
+        }
+    
+    # ==================== PHOTO GALLERY OPERATIONS ====================
+    
+    def add_photo(self, reptile_id: int, image_path: str, caption: str = None, 
+                  is_primary: bool = False) -> int:
+        """Add a photo to reptile's gallery"""
+        # If this is set as primary, unset other primary photos
+        if is_primary:
+            self.cursor.execute('''
+                UPDATE photos SET is_primary = 0 WHERE reptile_id = ?
+            ''', (reptile_id,))
+        
+        self.cursor.execute('''
+            INSERT INTO photos (reptile_id, image_path, caption, is_primary)
+            VALUES (?, ?, ?, ?)
+        ''', (reptile_id, image_path, caption, is_primary))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_photos(self, reptile_id: int) -> List[Dict]:
+        """Get all photos for a reptile"""
+        self.cursor.execute('''
+            SELECT * FROM photos 
+            WHERE reptile_id = ?
+            ORDER BY is_primary DESC, upload_date DESC
+        ''', (reptile_id,))
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_primary_photo(self, reptile_id: int) -> Optional[Dict]:
+        """Get the primary photo for a reptile"""
+        self.cursor.execute('''
+            SELECT * FROM photos 
+            WHERE reptile_id = ? AND is_primary = 1
+            LIMIT 1
+        ''', (reptile_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def set_primary_photo(self, photo_id: int, reptile_id: int) -> bool:
+        """Set a photo as primary"""
+        # Unset all primary photos for this reptile
+        self.cursor.execute('''
+            UPDATE photos SET is_primary = 0 WHERE reptile_id = ?
+        ''', (reptile_id,))
+        
+        # Set the new primary photo
+        self.cursor.execute('''
+            UPDATE photos SET is_primary = 1 WHERE id = ?
+        ''', (photo_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
+    def delete_photo(self, photo_id: int) -> bool:
+        """Delete a photo"""
+        self.cursor.execute('DELETE FROM photos WHERE id = ?', (photo_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
+    # ==================== FEEDING REMINDER OPERATIONS ====================
+    
+    def add_feeding_reminder(self, reptile_id: int, feeding_interval_days: int) -> int:
+        """Add or update feeding reminder for a reptile"""
+        # Check if reminder already exists
+        self.cursor.execute('''
+            SELECT id FROM feeding_reminders WHERE reptile_id = ?
+        ''', (reptile_id,))
+        existing = self.cursor.fetchone()
+        
+        if existing:
+            # Update existing reminder
+            self.cursor.execute('''
+                UPDATE feeding_reminders 
+                SET feeding_interval_days = ?, is_active = 1
+                WHERE reptile_id = ?
+            ''', (feeding_interval_days, reptile_id))
+            self.conn.commit()
+            return existing['id']
+        else:
+            # Create new reminder
+            self.cursor.execute('''
+                INSERT INTO feeding_reminders (reptile_id, feeding_interval_days)
+                VALUES (?, ?)
+            ''', (reptile_id, feeding_interval_days))
+            self.conn.commit()
+            return self.cursor.lastrowid
+    
+    def update_feeding_reminder_dates(self, reptile_id: int, last_fed_date: str):
+        """Update reminder dates after feeding"""
+        self.cursor.execute('''
+            SELECT feeding_interval_days FROM feeding_reminders 
+            WHERE reptile_id = ? AND is_active = 1
+        ''', (reptile_id,))
+        reminder = self.cursor.fetchone()
+        
+        if reminder:
+            from datetime import datetime, timedelta
+            last_fed = datetime.strptime(last_fed_date, '%Y-%m-%d')
+            next_feeding = last_fed + timedelta(days=reminder['feeding_interval_days'])
+            
+            self.cursor.execute('''
+                UPDATE feeding_reminders 
+                SET last_fed_date = ?, next_feeding_date = ?
+                WHERE reptile_id = ?
+            ''', (last_fed_date, next_feeding.strftime('%Y-%m-%d'), reptile_id))
+            self.conn.commit()
+    
+    def get_feeding_reminders(self, reptile_id: int = None) -> List[Dict]:
+        """Get feeding reminders"""
+        if reptile_id:
+            query = '''
+                SELECT fr.*, r.name as reptile_name
+                FROM feeding_reminders fr
+                JOIN reptiles r ON fr.reptile_id = r.id
+                WHERE fr.reptile_id = ? AND fr.is_active = 1
+            '''
+            self.cursor.execute(query, (reptile_id,))
+        else:
+            query = '''
+                SELECT fr.*, r.name as reptile_name
+                FROM feeding_reminders fr
+                JOIN reptiles r ON fr.reptile_id = r.id
+                WHERE fr.is_active = 1
+                ORDER BY fr.next_feeding_date ASC
+            '''
+            self.cursor.execute(query)
+        
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_overdue_feedings(self) -> List[Dict]:
+        """Get reptiles with overdue feedings"""
+        from datetime import datetime
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        self.cursor.execute('''
+            SELECT fr.*, r.name as reptile_name, r.species
+            FROM feeding_reminders fr
+            JOIN reptiles r ON fr.reptile_id = r.id
+            WHERE fr.is_active = 1 
+            AND fr.next_feeding_date IS NOT NULL
+            AND fr.next_feeding_date <= ?
+            ORDER BY fr.next_feeding_date ASC
+        ''', (today,))
+        
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def toggle_feeding_reminder(self, reptile_id: int, is_active: bool) -> bool:
+        """Enable or disable feeding reminder"""
+        self.cursor.execute('''
+            UPDATE feeding_reminders 
+            SET is_active = ?
+            WHERE reptile_id = ?
+        ''', (is_active, reptile_id))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
