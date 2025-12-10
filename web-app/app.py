@@ -194,8 +194,9 @@ def add_shed():
         try:
             data = {
                 'reptile_id': int(request.form.get('reptile_id')),
-                'date': request.form.get('date'),
+                'shed_date': request.form.get('date'),
                 'complete': request.form.get('complete') == 'yes',
+                'shed_length_cm': float(request.form.get('shed_length_cm')) if request.form.get('shed_length_cm') else None,
                 'notes': request.form.get('notes') or None
             }
             db.add_shed_record(**data)

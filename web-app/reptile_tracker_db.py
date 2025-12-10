@@ -76,6 +76,7 @@ class ReptileDatabase:
                 reptile_id INTEGER NOT NULL,
                 shed_date DATE NOT NULL,
                 complete BOOLEAN NOT NULL,
+                shed_length_cm REAL,
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
@@ -219,12 +220,12 @@ class ReptileDatabase:
     # ==================== SHED RECORD OPERATIONS ====================
     
     def add_shed_record(self, reptile_id: int, shed_date: str, complete: bool = True,
-                       notes: str = None) -> int:
+                       shed_length_cm: float | None = None, notes: str | None = None) -> int:
         """Add a shed record"""
         self.cursor.execute('''
-            INSERT INTO shed_records (reptile_id, shed_date, complete, notes)
-            VALUES (?, ?, ?, ?)
-        ''', (reptile_id, shed_date, complete, notes))
+            INSERT INTO shed_records (reptile_id, shed_date, complete, shed_length_cm, notes)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (reptile_id, shed_date, complete, shed_length_cm, notes))
         self.conn.commit()
         return self.cursor.lastrowid
     

@@ -40,6 +40,18 @@
         </div>
 
         <div class="form-group">
+            <label class="form-label" for="shed_length_cm">Shed Length (cm)</label>
+            <input type="number" 
+                   id="shed_length_cm" 
+                   name="shed_length_cm" 
+                   class="form-input" 
+                   step="0.1"
+                   placeholder="Optional - if measurable"
+                   value="{{ record.shed_length_cm if record and record.shed_length_cm else '' }}">
+            <small style="color: var(--text-secondary);">Measure the shed skin if possible</small>
+        </div>
+
+        <div class="form-group">
             <label class="form-label" for="notes">Notes</label>
             <textarea id="notes" 
                       name="notes" 
