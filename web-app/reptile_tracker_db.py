@@ -109,6 +109,19 @@ class ReptileDatabase:
             )
         ''')
         
+        # Length history table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS length_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER NOT NULL,
+                measurement_date DATE NOT NULL,
+                length_cm REAL NOT NULL,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+            )
+        ''')
+        
         # Feeding reminders table
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS feeding_reminders (
@@ -755,22 +768,9 @@ class ReptileDatabase:
     
     # ==================== LENGTH HISTORY OPERATIONS ====================
     
-    def add_length_measurement(self, reptile_id: int, measurement_date: str, 
+    def add_length_measurement(self, reptile_id: int, measurement_date: str,
                               length_cm: float, notes: str = None) -> int:
         """Add a length measurement"""
-        # Create length_history table if it doesn't exist
-        self.cursor.execute('''
-            CREATE TABLE IF NOT EXISTS length_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                reptile_id INTEGER NOT NULL,
-                measurement_date DATE NOT NULL,
-                length_cm REAL NOT NULL,
-                notes TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
-            )
-        ''')
-        
         self.cursor.execute('''
             INSERT INTO length_history (reptile_id, measurement_date, length_cm, notes)
             VALUES (?, ?, ?, ?)
