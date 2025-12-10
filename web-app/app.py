@@ -412,3 +412,143 @@ def weight_chart_data(reptile_id):
     db = get_db()
     data = db.get_weight_chart_data(reptile_id)
     return jsonify(data)
+
+
+# ==================== LENGTH TRACKING ROUTES ====================
+
+@app.route('/reptile/<int:reptile_id>/length')
+def length_tracking(reptile_id):
+    """Length tracking page with graphs"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('index'))
+    
+    length_history = db.get_length_history(reptile_id)
+    chart_data = db.get_length_chart_data(reptile_id)
+    
+    return render_template('length_tracking.html', 
+                         reptile=reptile,
+                         length_history=length_history,
+                         chart_data=chart_data)
+
+@app.route('/reptile/<int:reptile_id>/length/add', methods=['POST'])
+def add_length(reptile_id):
+    """Add length measurement"""
+    db = get_db()
+    try:
+        data = {
+            'reptile_id': reptile_id,
+            'measurement_date': request.form.get('measurement_date'),
+            'length_cm': float(request.form.get('length_cm')),
+            'notes': request.form.get('notes') or None
+        }
+        db.add_length_measurement(**data)
+        
+        # Also update the reptile's current length
+        db.update_reptile(reptile_id, length_cm=data['length_cm'])
+        
+        flash('Length measurement added successfully!', 'success')
+    except Exception as e:
+        flash(f'Error adding length: {str(e)}', 'error')
+    
+
+# ==================== PHOTO GALLERY ROUTES ====================
+
+@app.route('/reptile/<int:reptile_id>/photos')
+def photo_gallery(reptile_id):
+    """Display photo gallery for a reptile"""
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    photos = db.get_photos(reptile_id)
+    
+    return render_template('photo_gallery.html',
+                         reptile=reptile,
+                         photos=photos)
+
+@app.route('/reptile/<int:reptile_id>/photos/upload', methods=['POST'])
+def upload_photo(reptile_id):
+    """Upload a new photo for a reptile"""
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if 'photo' not in request.files:
+        flash('No photo file provided', 'error')
+        return redirect(url_for('photo_gallery', reptile_id=reptile_id))
+    
+    file = request.files['photo']
+    if file.filename == '':
+        flash('No photo selected', 'error')
+        return redirect(url_for('photo_gallery', reptile_id=reptile_id))
+    
+    if file and allowed_file(file.filename):
+        try:
+            # Create uploads directory if it doesn't exist
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            
+            # Generate unique filename
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{reptile_id}_{timestamp}_{filename}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            
+            # Save file
+            file.save(filepath)
+            
+            # Get caption from form
+            caption = request.form.get('caption', '')
+            is_primary = request.form.get('is_primary') == 'on'
+            
+            # Add to database
+            db.add_photo(reptile_id, filename, caption, is_primary)
+            
+            flash('Photo uploaded successfully!', 'success')
+        except Exception as e:
+            flash(f'Error uploading photo: {str(e)}', 'error')
+    else:
+        flash('Invalid file type. Allowed types: png, jpg, jpeg, gif', 'error')
+    
+    return redirect(url_for('photo_gallery', reptile_id=reptile_id))
+
+@app.route('/reptile/<int:reptile_id>/photos/<int:photo_id>/set-primary', methods=['POST'])
+def set_primary_photo(reptile_id, photo_id):
+    """Set a photo as the primary photo"""
+    try:
+        db.set_primary_photo(photo_id, reptile_id)
+        flash('Primary photo updated!', 'success')
+    except Exception as e:
+        flash(f'Error setting primary photo: {str(e)}', 'error')
+    
+    return redirect(url_for('photo_gallery', reptile_id=reptile_id))
+
+@app.route('/reptile/<int:reptile_id>/photos/<int:photo_id>/delete', methods=['POST'])
+def delete_photo(reptile_id, photo_id):
+    """Delete a photo"""
+    try:
+        # Get photo info before deleting
+        photos = db.get_photos(reptile_id)
+        photo = next((p for p in photos if p['id'] == photo_id), None)
+        
+        if photo:
+            # Delete from database
+            db.delete_photo(photo_id)
+            
+            # Delete file from filesystem
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], photo['image_path'])
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            
+            flash('Photo deleted successfully!', 'success')
+        else:
+            flash('Photo not found', 'error')
+    except Exception as e:
+        flash(f'Error deleting photo: {str(e)}', 'error')
+    
+    return redirect(url_for('photo_gallery', reptile_id=reptile_id))
+

@@ -77,6 +77,12 @@
         <a href="{{ url_for('weight_tracking', reptile_id=reptile.id) }}" class="btn btn-secondary">
             <i class="fas fa-chart-line"></i> Weight Tracking
         </a>
+        <a href="{{ url_for('length_tracking', reptile_id=reptile.id) }}" class="btn btn-secondary">
+            <i class="fas fa-ruler"></i> Length Tracking
+        <a href="{{ url_for('photo_gallery', reptile_id=reptile.id) }}" class="btn btn-secondary">
+            <i class="fas fa-images"></i> Photo Gallery
+        </a>
+        </a>
         <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="btn btn-secondary">
             <i class="fas fa-utensils"></i> Add Feeding
         </a>

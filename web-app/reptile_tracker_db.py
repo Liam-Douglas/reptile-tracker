@@ -785,3 +785,58 @@ def calculate_age(date_of_birth: str) -> Optional[str]:
         ''', (is_active, reptile_id))
         self.conn.commit()
         return self.cursor.rowcount > 0
+
+    
+    # ==================== LENGTH HISTORY OPERATIONS ====================
+    
+    def add_length_measurement(self, reptile_id: int, measurement_date: str, 
+                              length_cm: float, notes: str = None) -> int:
+        """Add a length measurement"""
+        # Create length_history table if it doesn't exist
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS length_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER NOT NULL,
+                measurement_date DATE NOT NULL,
+                length_cm REAL NOT NULL,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        self.cursor.execute('''
+            INSERT INTO length_history (reptile_id, measurement_date, length_cm, notes)
+            VALUES (?, ?, ?, ?)
+        ''', (reptile_id, measurement_date, length_cm, notes))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_length_history(self, reptile_id: int, limit: int = None) -> List[Dict]:
+        """Get length history for a reptile"""
+        query = '''
+            SELECT * FROM length_history 
+            WHERE reptile_id = ?
+            ORDER BY measurement_date DESC
+        '''
+        
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query, (reptile_id,))
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_length_chart_data(self, reptile_id: int) -> Dict:
+        """Get length data formatted for charts"""
+        self.cursor.execute('''
+            SELECT measurement_date, length_cm 
+            FROM length_history 
+            WHERE reptile_id = ?
+            ORDER BY measurement_date ASC
+        ''', (reptile_id,))
+        
+        data = self.cursor.fetchall()
+        return {
+            'dates': [row['measurement_date'] for row in data],
+            'lengths': [row['length_cm'] for row in data]
+        }

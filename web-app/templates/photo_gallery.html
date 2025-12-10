@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Photo Gallery - {{ reptile.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-images"></i> Photo Gallery - {{ reptile.name }}
+    </h1>
+    <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Details
+    </a>
+</div>
+
+<!-- Upload Photo Form -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Upload New Photo</h3>
+    </div>
+    
+    <form method="POST" action="{{ url_for('upload_photo', reptile_id=reptile.id) }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label class="form-label" for="photo">Photo *</label>
+            <input type="file" 
+                   id="photo" 
+                   name="photo" 
+                   class="form-input" 
+                   accept="image/png,image/jpeg,image/jpg,image/gif"
+                   required>
+            <small style="color: var(--text-secondary);">Allowed formats: PNG, JPG, JPEG, GIF (Max 16MB)</small>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="caption">Caption</label>
+            <input type="text" 
+                   id="caption" 
+                   name="caption" 
+                   class="form-input" 
+                   placeholder="e.g., After shed, Feeding time, New enclosure">
+        </div>
+
+        <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="is_primary" style="width: auto;">
+                <span>Set as primary photo</span>
+            </label>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload Photo
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Photo Gallery Grid -->
+{% if photos %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Photos ({{ photos|length }})</h3>
+    </div>
+    
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            {% for photo in photos %}
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-secondary);">
+                <!-- Photo Image -->
+                <div style="position: relative; padding-top: 75%; background: #000;">
+                    <img src="{{ url_for('uploaded_file', filename=photo.image_path) }}" 
+                         alt="{{ photo.caption or 'Reptile photo' }}"
+                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
+                    
+                    {% if photo.is_primary %}
+                    <div style="position: absolute; top: 0.5rem; left: 0.5rem; background: var(--primary-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                        <i class="fas fa-star"></i> Primary
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Photo Info -->
+                <div style="padding: 1rem;">
+                    {% if photo.caption %}
+                    <p style="margin: 0 0 0.5rem 0; font-weight: 500;">{{ photo.caption }}</p>
+                    {% endif %}
+                    
+                    <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--text-secondary);">
+                        <i class="fas fa-calendar"></i> {{ photo.upload_date }}
+                    </p>
+                    
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if not photo.is_primary %}
+                        <form method="POST" action="{{ url_for('set_primary_photo', reptile_id=reptile.id, photo_id=photo.id) }}" style="flex: 1;">
+                            <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 0.5rem; font-size: 0.85rem;">
+                                <i class="fas fa-star"></i> Set Primary
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <form method="POST" 
+                              action="{{ url_for('delete_photo', reptile_id=reptile.id, photo_id=photo.id) }}"
+                              onsubmit="return confirm('Are you sure you want to delete this photo?');"
+                              style="flex: 1;">
+                            <button type="submit" class="btn btn-danger" style="width: 100%; padding: 0.5rem; font-size: 0.85rem;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+        <p>No photos yet. Upload your first photo above!</p>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Responsive grid */
+@media (max-width: 768px) {
+    div[style*="grid-template-columns"] {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    }
+}
+
+/* Image hover effect */
+img {
+    transition: transform 0.3s ease;
+}
+
+img:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
