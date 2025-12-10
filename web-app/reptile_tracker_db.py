@@ -149,6 +149,7 @@ class ReptileDatabase:
                 notify_overdue_only BOOLEAN DEFAULT 0,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        ''')
         
         # Expenses table
         self.cursor.execute('''
