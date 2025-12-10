@@ -53,7 +53,11 @@ brew install python-tk
 
 ## 📖 Documentation
 
-For detailed documentation, see [REPTILE_TRACKER_README.md](REPTILE_TRACKER_README.md)
+- **[User Guide](REPTILE_TRACKER_README.md)** - Comprehensive documentation
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+- **[Changelog](CHANGELOG.md)** - Version history and release notes
+- **[Notification Setup](NOTIFICATION_SETUP.md)** - Email & SMS notification configuration
+- **[Data Persistence](web-app/DATA_PERSISTENCE.md)** - Database and storage configuration
 
 ### Quick Guide
 
