@@ -151,22 +151,28 @@ Before submitting a pull request:
 Here are some features that would be great additions:
 
 ### High Priority
-- Weight tracking graphs and visualizations
-- Photo gallery for each reptile
-- Feeding schedule reminders/notifications
-- Data backup and restore functionality
+- **Automated Notification Scheduler** - Set up APScheduler or cron jobs for automatic daily reminder emails/SMS
+- **Health Records & Vet Visits** - Track medical history, medications, and veterinary appointments
+- **Temperature & Humidity Logging** - Monitor and log enclosure conditions with graphs
+- **Breeding Records** - Track breeding attempts, egg laying, incubation, and genetics
 
 ### Medium Priority
-- Veterinary visit tracking
-- Temperature and humidity logging
-- Breeding records and genetics tracking
-- Multiple user profiles
+- **Expense Tracking** - Log costs for food, supplies, vet visits, and equipment
+- **Multiple Enclosures** - Manage and track multiple terrariums/enclosures
+- **Feeding Calculator** - Calculate appropriate prey size based on reptile weight/age
+- **Growth Rate Analysis** - Analyze and predict growth patterns with ML
+- **Medication Reminders** - Track medication schedules and dosages
+- **QR Code Labels** - Generate QR codes for enclosures that link to reptile profiles
 
 ### Low Priority
-- Mobile app companion
-- Cloud sync capability
-- Multi-language support
-- Dark/light theme toggle
+- **Mobile-Responsive PWA** - Progressive Web App for mobile devices
+- **Multi-User Support** - Family/team access with different permission levels
+- **Integration with Smart Devices** - Connect to smart thermostats, cameras, etc.
+- **Social Features** - Share reptile profiles, connect with other keepers
+- **Dark/Light Theme Toggle** - User preference for interface theme
+- **Multi-Language Support** - Internationalization for global users
+- **Voice Commands** - "Hey Reptile Tracker, when did I last feed my snake?"
+- **AI-Powered Insights** - Predictive analytics for health issues or feeding patterns
 
 ## Documentation
 
