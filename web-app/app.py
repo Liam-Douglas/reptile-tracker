@@ -9,8 +9,7 @@ import os
 import sys
 from datetime import datetime
 
-# Add parent directory to path to import database module
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Import database module from local directory
 from reptile_tracker_db import ReptileDatabase
 
 app = Flask(__name__)
