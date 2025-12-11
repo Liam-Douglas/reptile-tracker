@@ -44,6 +44,24 @@ def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.template_filter('format_date')
+def format_date_filter(date_string):
+    """Format date string to readable format like '15 September 2025'"""
+    if not date_string:
+        return ''
+    try:
+        # Try parsing different date formats
+        for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']:
+            try:
+                date_obj = datetime.strptime(str(date_string), fmt)
+                return date_obj.strftime('%d %B %Y')
+            except ValueError:
+                continue
+        # If no format matches, return original
+        return date_string
+    except Exception:
+        return date_string
+
 @app.route('/')
 def index():
     """Dashboard - show all reptiles"""

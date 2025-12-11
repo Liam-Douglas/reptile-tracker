@@ -78,7 +78,7 @@
     <div class="profile-stat-card stat-age">
         <div class="stat-icon"><i class="fas fa-birthday-cake"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ reptile.date_of_birth }}</div>
+            <div class="stat-value">{{ reptile.date_of_birth|format_date }}</div>
             <div class="stat-label">Date of Birth</div>
         </div>
     </div>
@@ -88,7 +88,7 @@
     <div class="profile-stat-card stat-acquired">
         <div class="stat-icon"><i class="fas fa-calendar-plus"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ reptile.acquisition_date }}</div>
+            <div class="stat-value">{{ reptile.acquisition_date|format_date }}</div>
             <div class="stat-label">Acquired</div>
         </div>
     </div>
@@ -157,7 +157,7 @@
             <div class="activity-list">
                 {% for log in feeding_logs %}
                 <div class="activity-item">
-                    <div class="activity-date">{{ log.date }}</div>
+                    <div class="activity-date">{{ log.date|format_date }}</div>
                     <div class="activity-content">
                         <div class="activity-title">{{ log.food_type }}{% if log.amount %} ({{ log.amount }}){% endif %}</div>
                         <div class="activity-badge">
@@ -189,7 +189,7 @@
             <div class="activity-list">
                 {% for record in shed_records %}
                 <div class="activity-item">
-                    <div class="activity-date">{{ record.date }}</div>
+                    <div class="activity-date">{{ record.date|format_date }}</div>
                     <div class="activity-content">
                         <div class="activity-title">Shed Record</div>
                         <div class="activity-badge">
