@@ -19,7 +19,7 @@
 
 <!-- Stock Alerts -->
 {% if out_of_stock %}
-<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #ef4444;">
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #ef4444;">
     <div class="card-header">
         <h3 class="card-title" style="color: #ef4444;">
             <i class="fas fa-exclamation-triangle"></i> Out of Stock ({{ out_of_stock|length }})
@@ -53,7 +53,7 @@
 {% endif %}
 
 {% if low_stock %}
-<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #f59e0b;">
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #f59e0b;">
     <div class="card-header">
         <h3 class="card-title" style="color: #f59e0b;">
             <i class="fas fa-exclamation-circle"></i> Low Stock Alert ({{ low_stock|length }})
@@ -87,7 +87,7 @@
 {% endif %}
 
 <!-- Inventory Forecast -->
-<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #3b82f6;">
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #3b82f6;">
     <div class="card-header">
         <h3 class="card-title">
             <i class="fas fa-chart-line"></i> Inventory Forecast & Reorder Suggestions
