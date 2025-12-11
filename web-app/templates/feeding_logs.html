@@ -8,6 +8,24 @@
         <h2 class="card-title">Feeding Logs</h2>
     </div>
     
+    <!-- Filter by Reptile -->
+    <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+        <form method="GET" action="{{ url_for('feeding_logs') }}" style="display: flex; gap: 1rem; align-items: center;">
+            <label for="reptile_filter" style="font-weight: 500;">Filter by Reptile:</label>
+            <select id="reptile_filter" name="reptile_id" class="form-select" style="max-width: 300px;" onchange="this.form.submit()">
+                <option value="">All Reptiles</option>
+                {% for reptile in reptiles %}
+                    <option value="{{ reptile.id }}" {% if selected_reptile_id == reptile.id %}selected{% endif %}>
+                        {{ reptile.name }} ({{ reptile.species }})
+                    </option>
+                {% endfor %}
+            </select>
+            {% if selected_reptile_id %}
+                <a href="{{ url_for('feeding_logs') }}" class="btn btn-secondary btn-sm">Clear Filter</a>
+            {% endif %}
+        </form>
+    </div>
+    
     {% if logs %}
         <div class="table-container">
             <table class="table">
@@ -16,7 +34,7 @@
                         <th>Reptile</th>
                         <th>Date</th>
                         <th>Food</th>
-                        <th>Amount</th>
+                        <th>Qty</th>
                         <th>Ate</th>
                         <th>Source</th>
                         <th>Actions</th>
@@ -29,13 +47,13 @@
                             <strong>{{ log.reptile_name }}</strong>
                         </td>
                         <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
-                            {{ log.date }}
+                            {{ log.feeding_date|format_date }}
                         </td>
                         <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
-                            {{ log.food_type }}
+                            {{ log.food_type }}{% if log.food_size %} - {{ log.food_size }}{% endif %}
                         </td>
                         <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
-                            {{ log.amount if log.amount else '-' }}
+                            {{ log.quantity if log.quantity else '1' }}
                         </td>
                         <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
                             {% if log.ate %}

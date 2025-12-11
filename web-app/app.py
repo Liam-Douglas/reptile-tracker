@@ -237,11 +237,17 @@ def delete_reptile(reptile_id):
 
 @app.route('/feeding')
 def feeding_logs():
-    """Show all feeding logs"""
+    """Show all feeding logs with optional reptile filter"""
     db = get_db()
-    logs = db.get_all_feeding_logs(limit=100)
+    reptile_id = request.args.get('reptile_id', type=int)
+    
+    if reptile_id:
+        logs = db.get_feeding_logs(reptile_id=reptile_id, limit=100)
+    else:
+        logs = db.get_all_feeding_logs(limit=100)
+    
     reptiles = db.get_all_reptiles()
-    return render_template('feeding_logs.html', logs=logs, reptiles=reptiles)
+    return render_template('feeding_logs.html', logs=logs, reptiles=reptiles, selected_reptile_id=reptile_id)
 
 @app.route('/feeding/add', methods=['GET', 'POST'])
 def add_feeding():
