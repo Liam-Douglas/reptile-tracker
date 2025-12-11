@@ -238,7 +238,6 @@ class ReptileDatabase:
                 FOREIGN KEY (receipt_id) REFERENCES purchase_receipts (id) ON DELETE CASCADE
             )
         ''')
-        ''')
         
         self.conn.commit()
     
