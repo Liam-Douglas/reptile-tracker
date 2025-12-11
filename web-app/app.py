@@ -73,6 +73,41 @@ def format_date_filter(date_string):
     except Exception:
         return date_string
 
+@app.template_filter('days_ago')
+def days_ago_filter(date_string):
+    """Calculate days ago from a date string"""
+    if not date_string:
+        return ''
+    try:
+        # Convert to string if not already
+        date_str = str(date_string).strip()
+        
+        # Try parsing different date formats
+        formats = [
+            '%Y-%m-%d %H:%M:%S',  # SQLite datetime format
+            '%Y-%m-%d',           # Standard date
+            '%d/%m/%Y',           # DD/MM/YYYY
+            '%m/%d/%Y'            # MM/DD/YYYY
+        ]
+        
+        for fmt in formats:
+            try:
+                date_obj = datetime.strptime(date_str, fmt)
+                days = (datetime.now() - date_obj).days
+                
+                if days == 0:
+                    return 'Today'
+                elif days == 1:
+                    return '1 day ago'
+                else:
+                    return f'{days} days ago'
+            except ValueError:
+                continue
+        
+        return ''
+    except Exception:
+        return ''
+
 @app.route('/')
 def index():
     """Dashboard - show all reptiles"""
