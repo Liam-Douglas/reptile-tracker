@@ -889,14 +889,15 @@ class ReptileDatabase:
         today = datetime.now().strftime('%Y-%m-%d')
         
         self.cursor.execute('''
-            SELECT fr.*, r.name as reptile_name, r.species
+            SELECT fr.*, r.name as reptile_name, r.species,
+                   julianday(?) - julianday(fr.next_feeding_date) as days_overdue
             FROM feeding_reminders fr
             JOIN reptiles r ON fr.reptile_id = r.id
             WHERE fr.is_active = 1
             AND fr.next_feeding_date IS NOT NULL
             AND fr.next_feeding_date <= ?
             ORDER BY fr.next_feeding_date ASC
-        ''', (today,))
+        ''', (today, today))
         
         return [dict(row) for row in self.cursor.fetchall()]
     
