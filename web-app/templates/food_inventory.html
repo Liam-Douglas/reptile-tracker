@@ -20,8 +20,8 @@
 <!-- Stock Alerts -->
 {% if out_of_stock %}
 <div class="card" style="margin-bottom: 2rem; border-left: 4px solid #ef4444;">
-    <div class="card-header" style="background: #fee2e2;">
-        <h3 class="card-title" style="color: #991b1b;">
+    <div class="card-header">
+        <h3 class="card-title" style="color: #ef4444;">
             <i class="fas fa-exclamation-triangle"></i> Out of Stock ({{ out_of_stock|length }})
         </h3>
     </div>
@@ -42,8 +42,8 @@
 
 {% if low_stock %}
 <div class="card" style="margin-bottom: 2rem; border-left: 4px solid #f59e0b;">
-    <div class="card-header" style="background: #fef3c7;">
-        <h3 class="card-title" style="color: #92400e;">
+    <div class="card-header">
+        <h3 class="card-title" style="color: #f59e0b;">
             <i class="fas fa-exclamation-circle"></i> Low Stock Alert ({{ low_stock|length }})
         </h3>
     </div>
@@ -69,12 +69,12 @@
 
 <!-- Inventory Forecast -->
 <div class="card" style="margin-bottom: 2rem; border-left: 4px solid #3b82f6;">
-    <div class="card-header" style="background: #dbeafe;">
-        <h3 class="card-title" style="color: #1e40af;">
+    <div class="card-header">
+        <h3 class="card-title">
             <i class="fas fa-chart-line"></i> Inventory Forecast & Reorder Suggestions
         </h3>
-        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #64748b;">
-            Based on last 30 days of consumption data
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">
+            (Based on last 30 days of consumption data)
         </p>
     </div>
     <div style="padding: 1.5rem;">
