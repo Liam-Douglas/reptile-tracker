@@ -3,39 +3,85 @@
 {% block title %}Dashboard - Reptile Tracker{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h2>Dashboard</h2>
+<!-- Modern Header with Gradient -->
+<div class="modern-header">
+    <div class="header-content">
+        <div>
+            <h1 class="header-title">
+                <i class="fas fa-home"></i> Dashboard
+            </h1>
+            <p class="header-subtitle">Welcome back! Here's your reptile overview</p>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('add_reptile') }}" class="btn-modern btn-primary">
+                <i class="fas fa-plus"></i> Add Reptile
+            </a>
+        </div>
+    </div>
 </div>
 
-<!-- Stats Section -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.total_reptiles }}</div>
-        <div class="stat-label">Total Reptiles</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.total_feedings }}</div>
-        <div class="stat-label">Total Feedings</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.total_sheds }}</div>
-        <div class="stat-label">Total Sheds</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">
-            {% if stats.total_feedings > 0 %}
-                {{ "%.0f"|format(stats.feeding_success_rate) }}%
-            {% else %}
-                <span style="font-size: 1.5rem; color: var(--text-secondary);">N/A</span>
-            {% endif %}
+<!-- Modern Stats Grid -->
+<div class="modern-stats-grid">
+    <div class="modern-stat-card stat-reptiles">
+        <div class="stat-icon">
+            <i class="fas fa-dragon"></i>
         </div>
-        <div class="stat-label">
-            Feeding Success Rate
-            {% if stats.total_feedings == 0 %}
-                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                    (No feedings logged yet)
-                </div>
-            {% endif %}
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.total_reptiles }}</div>
+            <div class="stat-label">Total Reptiles</div>
+        </div>
+        <div class="stat-trend">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+    </div>
+    
+    <div class="modern-stat-card stat-feedings">
+        <div class="stat-icon">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.total_feedings }}</div>
+            <div class="stat-label">Total Feedings</div>
+        </div>
+        <div class="stat-trend">
+            <i class="fas fa-chart-line"></i>
+        </div>
+    </div>
+    
+    <div class="modern-stat-card stat-sheds">
+        <div class="stat-icon">
+            <i class="fas fa-sync-alt"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.total_sheds }}</div>
+            <div class="stat-label">Shed Records</div>
+        </div>
+        <div class="stat-trend">
+            <i class="fas fa-history"></i>
+        </div>
+    </div>
+    
+    <div class="modern-stat-card stat-success">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">
+                {% if stats.total_feedings > 0 %}
+                    {{ "%.0f"|format(stats.feeding_success_rate) }}%
+                {% else %}
+                    <span style="font-size: 1.8rem; opacity: 0.6;">N/A</span>
+                {% endif %}
+            </div>
+            <div class="stat-label">
+                Success Rate
+                {% if stats.total_feedings == 0 %}
+                    <span class="stat-hint">No data yet</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="stat-trend">
+            <i class="fas fa-percentage"></i>
         </div>
     </div>
 </div>
@@ -158,6 +204,209 @@
                 View Full Guide
             </a>
         </div>
+
+<style>
+/* Modern Header */
+.modern-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.5rem 0 0 0;
+    font-size: 1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-modern {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-modern.btn-primary {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-modern.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Modern Stats Grid */
+.modern-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.modern-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+}
+
+.modern-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-reptiles {
+    --gradient-start: #667eea;
+    --gradient-end: #764ba2;
+}
+
+.stat-feedings {
+    --gradient-start: #f093fb;
+    --gradient-end: #f5576c;
+}
+
+.stat-sheds {
+    --gradient-start: #4facfe;
+    --gradient-end: #00f2fe;
+}
+
+.stat-success {
+    --gradient-start: #43e97b;
+    --gradient-end: #38f9d7;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+.stat-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-top: 0.25rem;
+}
+
+.stat-trend {
+    font-size: 1.25rem;
+    color: #cbd5e0;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .modern-stat-card {
+        background: var(--bg-secondary);
+    }
+    
+    .stat-value {
+        color: var(--text-primary);
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modern-header {
+        padding: 1.5rem;
+    }
+    
+    .header-title {
+        font-size: 1.5rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .modern-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+    }
+}
+</style>
     </div>
 </div>
 {% endblock %}
