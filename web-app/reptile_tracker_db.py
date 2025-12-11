@@ -19,6 +19,7 @@ class ReptileDatabase:
         self.cursor = None
         self.connect()
         self.create_tables()
+        self.migrate_database()
     
     def connect(self):
         """Establish database connection"""
@@ -213,6 +214,38 @@ class ReptileDatabase:
         
         self.conn.commit()
     
+    
+    def migrate_database(self):
+        """Run database migrations to add new columns to existing tables"""
+        try:
+            # Check if inventory_id column exists in feeding_logs
+            self.cursor.execute("PRAGMA table_info(feeding_logs)")
+            columns = [column[1] for column in self.cursor.fetchall()]
+            
+            # Add inventory_id column if it doesn't exist
+            if 'inventory_id' not in columns:
+                print("[MIGRATION] Adding inventory_id column to feeding_logs table...")
+                self.cursor.execute('''
+                    ALTER TABLE feeding_logs 
+                    ADD COLUMN inventory_id INTEGER 
+                    REFERENCES food_inventory(id) ON DELETE SET NULL
+                ''')
+                self.conn.commit()
+                print("[MIGRATION] inventory_id column added successfully")
+            
+            # Add auto_deducted column if it doesn't exist
+            if 'auto_deducted' not in columns:
+                print("[MIGRATION] Adding auto_deducted column to feeding_logs table...")
+                self.cursor.execute('''
+                    ALTER TABLE feeding_logs 
+                    ADD COLUMN auto_deducted BOOLEAN DEFAULT 0
+                ''')
+                self.conn.commit()
+                print("[MIGRATION] auto_deducted column added successfully")
+                
+        except Exception as e:
+            print(f"[MIGRATION ERROR] {str(e)}")
+            # Don't fail if migration has issues, just log it
     # ==================== REPTILE OPERATIONS ====================
     
     def add_reptile(self, name: str, species: str, morph: str = None, sex: str = None,
