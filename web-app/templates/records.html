@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Records - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-clipboard-list"></i> Records
+    </h1>
+    <p style="margin: 0.5rem 0 0 0; font-size: 1rem; color: var(--text-secondary);">
+        Track and manage your reptile feeding and shedding records
+    </p>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ stats.total_feedings }}</div>
+            <div class="stat-text">Total Feedings</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <i class="fas fa-sync-alt"></i>
+        </div>
+        <div>
+            <div class="stat-number">{{ stats.total_sheds }}</div>
+            <div class="stat-text">Total Sheds</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <i class="fas fa-percentage"></i>
+        </div>
+        <div>
+            <div class="stat-number">
+                {% if stats.total_feedings > 0 %}
+                    {{ "%.0f"|format(stats.feeding_success_rate) }}%
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <div class="stat-text">Success Rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- Records Management -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-top: 2rem;">
+    
+    <!-- Feeding Logs Card -->
+    <div class="record-card">
+        <div class="record-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="record-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div>
+                <h3>Feeding Logs</h3>
+                <p>Track what and when your reptiles eat</p>
+            </div>
+        </div>
+        <div class="record-body">
+            <div class="record-stats">
+                <div class="record-stat-item">
+                    <i class="fas fa-list"></i>
+                    <span>{{ stats.total_feedings }} total logs</span>
+                </div>
+                <div class="record-stat-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>
+                        {% if stats.total_feedings > 0 %}
+                            {{ "%.0f"|format(stats.feeding_success_rate) }}% success rate
+                        {% else %}
+                            No data yet
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="record-actions">
+                <a href="{{ url_for('feeding_logs') }}" class="btn btn-secondary" style="flex: 1;">
+                    <i class="fas fa-list"></i> View All
+                </a>
+                <a href="{{ url_for('add_feeding') }}" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-plus"></i> Add Log
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Shed Records Card -->
+    <div class="record-card">
+        <div class="record-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="record-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <div>
+                <h3>Shed Records</h3>
+                <p>Monitor shedding cycles and health</p>
+            </div>
+        </div>
+        <div class="record-body">
+            <div class="record-stats">
+                <div class="record-stat-item">
+                    <i class="fas fa-list"></i>
+                    <span>{{ stats.total_sheds }} total records</span>
+                </div>
+                <div class="record-stat-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Track shedding patterns</span>
+                </div>
+            </div>
+            <div class="record-actions">
+                <a href="{{ url_for('shed_records') }}" class="btn btn-secondary" style="flex: 1;">
+                    <i class="fas fa-list"></i> View All
+                </a>
+                <a href="{{ url_for('add_shed') }}" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-plus"></i> Add Record
+                </a>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Recent Activity -->
+{% if recent_feedings or recent_sheds %}
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-history"></i> Recent Activity
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; gap: 1rem;">
+            {% for log in recent_feedings[:5] %}
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #fef3c7; color: #92400e;">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="activity-content">
+                    <strong>{{ log.reptile_name }}</strong> - Feeding
+                    <span class="activity-meta">{{ log.date }} • {{ log.food_type }}</span>
+                </div>
+                <span class="badge badge-{{ 'success' if log.ate else 'danger' }}">
+                    {{ 'Ate' if log.ate else 'Refused' }}
+                </span>
+            </div>
+            {% endfor %}
+            {% for record in recent_sheds[:5] %}
+            <div class="activity-item">
+                <div class="activity-icon" style="background: #dbeafe; color: #1e40af;">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="activity-content">
+                    <strong>{{ record.reptile_name }}</strong> - Shed
+                    <span class="activity-meta">{{ record.shed_date }}</span>
+                </div>
+                <span class="badge badge-{{ 'success' if record.complete else 'warning' }}">
+                    {{ 'Complete' if record.complete else 'Incomplete' }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 2px solid var(--border-color);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.record-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.record-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.record-header {
+    padding: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.record-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.record-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.record-header p {
+    margin: 0.25rem 0 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.record-body {
+    padding: 2rem;
+}
+
+.record-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.record-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.record-stat-item i {
+    color: var(--primary-color);
+    width: 20px;
+}
+
+.record-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.activity-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .record-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

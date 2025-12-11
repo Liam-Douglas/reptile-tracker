@@ -159,26 +159,23 @@
             <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
                 <i class="fas fa-home"></i> Dashboard
             </a>
-            <a href="{{ url_for('feeding_logs') }}" class="nav-link {% if request.endpoint == 'feeding_logs' %}active{% endif %}">
-                <i class="fas fa-utensils"></i> Feeding Logs
-            </a>
-            <a href="{{ url_for('shed_records') }}" class="nav-link {% if request.endpoint == 'shed_records' %}active{% endif %}">
-                <i class="fas fa-sync"></i> Shed Records
+            <a href="{{ url_for('records_page') }}" class="nav-link {% if request.endpoint in ['records_page', 'feeding_logs', 'shed_records', 'add_feeding'] %}active{% endif %}">
+                <i class="fas fa-clipboard-list"></i> Records
             </a>
             <a href="{{ url_for('feeding_reminders') }}" class="nav-link {% if request.endpoint == 'feeding_reminders' %}active{% endif %}">
-                <i class="fas fa-bell"></i> Feeding Reminders
+                <i class="fas fa-bell"></i> Reminders
             </a>
             <a href="{{ url_for('expenses_list') }}" class="nav-link {% if request.endpoint in ['expenses_list', 'add_expense', 'edit_expense', 'expense_details', 'expense_reports'] %}active{% endif %}">
                 <i class="fas fa-dollar-sign"></i> Expenses
             </a>
             <a href="{{ url_for('food_inventory') }}" class="nav-link {% if request.endpoint in ['food_inventory', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions'] %}active{% endif %}">
-                <i class="fas fa-box"></i> Food Inventory
+                <i class="fas fa-box"></i> Inventory
             </a>
             <a href="{{ url_for('settings_page') }}" class="nav-link {% if request.endpoint in ['settings_page', 'import_page', 'backup_data', 'restore_data'] %}active{% endif %}">
                 <i class="fas fa-cog"></i> Settings
             </a>
             <a href="{{ url_for('help_page') }}" class="nav-link {% if request.endpoint == 'help_page' %}active{% endif %}">
-                <i class="fas fa-question-circle"></i> Help & Guide
+                <i class="fas fa-question-circle"></i> Help
             </a>
         </div>
     </nav>

@@ -382,6 +382,23 @@ def upload_import():
         return redirect(url_for('import_page'))
 
 # ==================== HELP & GUIDE SYSTEM ====================
+@app.route('/records')
+def records_page():
+    """Records hub page with feeding and shed records"""
+    db = get_db()
+    
+    # Get stats
+    stats = db.get_dashboard_stats()
+    
+    # Get recent activity
+    recent_feedings = db.get_all_feeding_logs(limit=5)
+    recent_sheds = db.get_shed_records(limit=5)
+    
+    return render_template('records.html', 
+                         stats=stats,
+                         recent_feedings=recent_feedings,
+                         recent_sheds=recent_sheds)
+
 @app.route('/settings')
 def settings_page():
     """Settings page with data management options"""
