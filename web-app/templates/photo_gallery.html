@@ -3,51 +3,78 @@
 {% block title %}Photo Gallery - {{ reptile.name }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">
-        <i class="fas fa-images"></i> Photo Gallery - {{ reptile.name }}
-    </h1>
-    <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back to Details
+<!-- Modern Page Header -->
+<div class="modern-page-header">
+    <div class="header-content">
+        <div class="header-icon">
+            <i class="fas fa-images"></i>
+        </div>
+        <div class="header-text">
+            <h1 class="header-title">Photo Gallery</h1>
+            <p class="header-subtitle">{{ reptile.name }} - {{ reptile.species }}{% if reptile.morph %} ({{ reptile.morph }}){% endif %}</p>
+        </div>
+    </div>
+    <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to Profile
     </a>
 </div>
 
-<!-- Upload Photo Form -->
-<div class="card" style="margin-bottom: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">Upload New Photo</h3>
+<!-- Upload Photo Card -->
+<div class="modern-card upload-card">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-cloud-upload-alt"></i> Upload New Photo
+        </h3>
     </div>
     
-    <form method="POST" action="{{ url_for('upload_photo', reptile_id=reptile.id) }}" enctype="multipart/form-data">
-        <div class="form-group">
-            <label class="form-label" for="photo">Photo *</label>
-            <input type="file" 
-                   id="photo" 
-                   name="photo" 
-                   class="form-input" 
-                   accept="image/png,image/jpeg,image/jpg,image/gif"
-                   required>
-            <small style="color: var(--text-secondary);">Allowed formats: PNG, JPG, JPEG, GIF (Max 16MB)</small>
+    <form method="POST" action="{{ url_for('upload_photo', reptile_id=reptile.id) }}" enctype="multipart/form-data" class="modern-form">
+        <div class="form-row">
+            <div class="form-group-modern" style="grid-column: 1 / -1;">
+                <label class="form-label-modern" for="photo">
+                    <i class="fas fa-image"></i> Photo *
+                </label>
+                <div class="file-input-wrapper">
+                    <input type="file" 
+                           id="photo" 
+                           name="photo" 
+                           class="file-input-modern" 
+                           accept="image/png,image/jpeg,image/jpg,image/gif"
+                           required
+                           onchange="updateFileName(this)">
+                    <label for="photo" class="file-input-label">
+                        <i class="fas fa-upload"></i>
+                        <span id="file-name">Choose a photo...</span>
+                    </label>
+                </div>
+                <small class="form-hint">Allowed formats: PNG, JPG, JPEG, GIF (Max 16MB)</small>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="caption">Caption</label>
-            <input type="text" 
-                   id="caption" 
-                   name="caption" 
-                   class="form-input" 
-                   placeholder="e.g., After shed, Feeding time, New enclosure">
+        <div class="form-row">
+            <div class="form-group-modern">
+                <label class="form-label-modern" for="caption">
+                    <i class="fas fa-comment"></i> Caption
+                </label>
+                <input type="text" 
+                       id="caption" 
+                       name="caption" 
+                       class="form-input-modern" 
+                       placeholder="e.g., After shed, Feeding time, New enclosure">
+            </div>
+
+            <div class="form-group-modern">
+                <label class="form-label-modern">
+                    <i class="fas fa-star"></i> Primary Photo
+                </label>
+                <label class="checkbox-modern">
+                    <input type="checkbox" name="is_primary">
+                    <span class="checkbox-label">Set as primary photo</span>
+                </label>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                <input type="checkbox" name="is_primary" style="width: auto;">
-                <span>Set as primary photo</span>
-            </label>
-        </div>
-
-        <div class="btn-group">
-            <button type="submit" class="btn btn-primary">
+        <div class="form-actions">
+            <button type="submit" class="btn-primary-modern">
                 <i class="fas fa-upload"></i> Upload Photo
             </button>
         </div>
@@ -56,87 +83,602 @@
 
 <!-- Photo Gallery Grid -->
 {% if photos %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Photos ({{ photos|length }})</h3>
+<div class="modern-card gallery-card">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-th"></i> Photo Gallery
+        </h3>
+        <span class="record-count">{{ photos|length }} photos</span>
     </div>
     
-    <div style="padding: 2rem;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
-            {% for photo in photos %}
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-secondary);">
-                <!-- Photo Image -->
-                <div style="position: relative; padding-top: 75%; background: #000;">
-                    <img src="{{ url_for('uploaded_file', filename=photo.image_path) }}" 
-                         alt="{{ photo.caption or 'Reptile photo' }}"
-                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                    
-                    {% if photo.is_primary %}
-                    <div style="position: absolute; top: 0.5rem; left: 0.5rem; background: var(--primary-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
-                        <i class="fas fa-star"></i> Primary
-                    </div>
-                    {% endif %}
-                </div>
+    <div class="gallery-grid">
+        {% for photo in photos %}
+        <div class="gallery-item">
+            <!-- Photo Container -->
+            <div class="gallery-image-container">
+                <img src="{{ url_for('uploaded_file', filename=photo.image_path) }}" 
+                     alt="{{ photo.caption or 'Reptile photo' }}"
+                     class="gallery-image"
+                     onclick="openLightbox('{{ url_for('uploaded_file', filename=photo.image_path) }}', '{{ photo.caption or '' }}')">
                 
-                <!-- Photo Info -->
-                <div style="padding: 1rem;">
-                    {% if photo.caption %}
-                    <p style="margin: 0 0 0.5rem 0; font-weight: 500;">{{ photo.caption }}</p>
-                    {% endif %}
-                    
-                    <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--text-secondary);">
-                        <i class="fas fa-calendar"></i> {{ photo.upload_date }}
-                    </p>
-                    
-                    <!-- Action Buttons -->
-                    <div style="display: flex; gap: 0.5rem;">
-                        {% if not photo.is_primary %}
-                        <form method="POST" action="{{ url_for('set_primary_photo', reptile_id=reptile.id, photo_id=photo.id) }}" style="flex: 1;">
-                            <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 0.5rem; font-size: 0.85rem;">
-                                <i class="fas fa-star"></i> Set Primary
-                            </button>
-                        </form>
-                        {% endif %}
-                        
-                        <form method="POST" 
-                              action="{{ url_for('delete_photo', reptile_id=reptile.id, photo_id=photo.id) }}"
-                              onsubmit="return confirm('Are you sure you want to delete this photo?');"
-                              style="flex: 1;">
-                            <button type="submit" class="btn btn-danger" style="width: 100%; padding: 0.5rem; font-size: 0.85rem;">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
-                    </div>
+                {% if photo.is_primary %}
+                <div class="primary-badge">
+                    <i class="fas fa-star"></i> Primary
+                </div>
+                {% endif %}
+                
+                <div class="gallery-overlay">
+                    <i class="fas fa-search-plus"></i>
+                    <span>View Full Size</span>
                 </div>
             </div>
-            {% endfor %}
+            
+            <!-- Photo Info -->
+            <div class="gallery-info">
+                {% if photo.caption %}
+                <div class="gallery-caption">{{ photo.caption }}</div>
+                {% endif %}
+                
+                <div class="gallery-date">
+                    <i class="fas fa-calendar"></i> {{ photo.upload_date }}
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="gallery-actions">
+                    {% if not photo.is_primary %}
+                    <form method="POST" action="{{ url_for('set_primary_photo', reptile_id=reptile.id, photo_id=photo.id) }}" style="flex: 1;">
+                        <button type="submit" class="btn-gallery btn-set-primary">
+                            <i class="fas fa-star"></i> Set Primary
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <form method="POST" 
+                          action="{{ url_for('delete_photo', reptile_id=reptile.id, photo_id=photo.id) }}"
+                          onsubmit="return confirm('Are you sure you want to delete this photo?');"
+                          style="flex: 1;">
+                        <button type="submit" class="btn-gallery btn-delete">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
+        {% endfor %}
     </div>
 </div>
 {% else %}
-<div class="card">
-    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-        <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-        <p>No photos yet. Upload your first photo above!</p>
+<div class="modern-card">
+    <div class="empty-state-modern">
+        <div class="empty-icon">
+            <i class="fas fa-images"></i>
+        </div>
+        <p class="empty-text">No photos yet</p>
+        <p class="empty-subtext">Upload your first photo above to start building your gallery!</p>
     </div>
 </div>
 {% endif %}
 
-<style>
-/* Responsive grid */
-@media (max-width: 768px) {
-    div[style*="grid-template-columns"] {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
-    }
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-img">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<script>
+function updateFileName(input) {
+    const fileName = input.files[0]?.name || 'Choose a photo...';
+    document.getElementById('file-name').textContent = fileName;
 }
 
-/* Image hover effect */
-img {
+function openLightbox(src, caption) {
+    document.getElementById('lightbox').style.display = 'flex';
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox-caption').textContent = caption;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close lightbox on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    }
+});
+</script>
+
+<style>
+/* Modern Page Header */
+.modern-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    box-shadow: 0 8px 20px rgba(48, 207, 208, 0.3);
+}
+
+.header-text {
+    flex: 1;
+}
+
+.header-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.header-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.btn-back {
+    background: white;
+    color: #30cfd0;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 2px solid #30cfd0;
+}
+
+.btn-back:hover {
+    background: #30cfd0;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(48, 207, 208, 0.3);
+}
+
+/* Modern Card */
+.modern-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.card-header-modern {
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title-modern {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-title-modern i {
+    color: #30cfd0;
+}
+
+.record-count {
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Modern Form */
+.modern-form {
+    padding: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group-modern {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label-modern {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-label-modern i {
+    color: #30cfd0;
+}
+
+.form-input-modern {
+    padding: 0.875rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-input-modern:focus {
+    outline: none;
+    border-color: #30cfd0;
+    box-shadow: 0 0 0 3px rgba(48, 207, 208, 0.1);
+}
+
+.form-hint {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* File Input */
+.file-input-wrapper {
+    position: relative;
+}
+
+.file-input-modern {
+    display: none;
+}
+
+.file-input-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(48, 207, 208, 0.3);
+}
+
+.file-input-label:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(48, 207, 208, 0.4);
+}
+
+.file-input-label i {
+    font-size: 1.2rem;
+}
+
+/* Checkbox */
+.checkbox-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkbox-modern:hover {
+    background: #f3f4f6;
+}
+
+.checkbox-modern input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(48, 207, 208, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(48, 207, 208, 0.4);
+}
+
+/* Gallery Grid */
+.gallery-grid {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.gallery-item {
+    background: #f9fafb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Gallery Image */
+.gallery-image-container {
+    position: relative;
+    padding-top: 75%;
+    background: #000;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.gallery-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     transition: transform 0.3s ease;
 }
 
-img:hover {
+.gallery-item:hover .gallery-image {
     transform: scale(1.05);
+}
+
+.primary-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(48, 207, 208, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: white;
+    font-weight: 600;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.gallery-overlay i {
+    font-size: 2rem;
+}
+
+/* Gallery Info */
+.gallery-info {
+    padding: 1.5rem;
+}
+
+.gallery-caption {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.gallery-date {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gallery-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-gallery {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-set-primary {
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    color: white;
+}
+
+.btn-set-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(48, 207, 208, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: white;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #30cfd0, #330867);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    margin: 0 auto 1.5rem;
+    opacity: 0.8;
+}
+
+.empty-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-subtext {
+    font-size: 1rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Lightbox */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 2rem;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 2rem;
+    right: 3rem;
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.lightbox-close:hover {
+    color: #30cfd0;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-caption {
+    color: white;
+    font-size: 1.2rem;
+    margin-top: 1.5rem;
+    text-align: center;
+    max-width: 600px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .modern-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .lightbox-close {
+        top: 1rem;
+        right: 1.5rem;
+        font-size: 2.5rem;
+    }
 }
 </style>
 {% endblock %}
