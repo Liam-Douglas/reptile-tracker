@@ -128,32 +128,66 @@
 {% endif %}
 
 
-<!-- Reptiles Grid -->
+<!-- Reptiles Section Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-primary);">
+        <i class="fas fa-dragon"></i> My Reptiles
+    </h2>
+    <span style="color: var(--text-secondary);">{{ reptiles|length }} total</span>
+</div>
+
+<!-- Modern Reptiles Grid -->
 {% if reptiles %}
-    <div class="reptile-grid">
+    <div class="modern-reptile-grid">
         {% for reptile in reptiles %}
-        <div class="reptile-card" onclick="window.location.href='{{ url_for('reptile_details', reptile_id=reptile.id) }}'">
-            {% if reptile.image_path %}
-                <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}" 
-                     alt="{{ reptile.name }}" 
-                     class="reptile-image">
-            {% else %}
-                <div class="reptile-image" style="display: flex; align-items: center; justify-content: center; font-size: 4rem;">
-                    🦎
-                </div>
-            {% endif %}
-            <div class="reptile-info">
-                <div class="reptile-name">{{ reptile.name }}</div>
-                <div class="reptile-species">{{ reptile.species }}</div>
-                {% if reptile.morph %}
-                    <div class="reptile-species">{{ reptile.morph }}</div>
+        <div class="modern-reptile-card" onclick="window.location.href='{{ url_for('reptile_details', reptile_id=reptile.id) }}'">
+            <div class="reptile-image-container">
+                {% if reptile.image_path %}
+                    <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}"
+                         alt="{{ reptile.name }}"
+                         class="modern-reptile-image">
+                {% else %}
+                    <div class="modern-reptile-image reptile-placeholder">
+                        <i class="fas fa-dragon"></i>
+                    </div>
                 {% endif %}
-                <div class="reptile-meta">
+                <div class="reptile-overlay">
+                    <i class="fas fa-eye"></i> View Details
+                </div>
+            </div>
+            <div class="modern-reptile-info">
+                <div class="reptile-header">
+                    <h3 class="modern-reptile-name">{{ reptile.name }}</h3>
                     {% if reptile.sex %}
-                        <span><i class="fas fa-venus-mars"></i> {{ reptile.sex }}</span>
+                        <span class="sex-badge sex-{{ reptile.sex|lower }}">
+                            <i class="fas fa-{{ 'mars' if reptile.sex == 'Male' else 'venus' if reptile.sex == 'Female' else 'genderless' }}"></i>
+                        </span>
                     {% endif %}
+                </div>
+                <div class="modern-reptile-species">{{ reptile.species }}</div>
+                {% if reptile.morph %}
+                    <div class="reptile-morph">
+                        <i class="fas fa-palette"></i> {{ reptile.morph }}
+                    </div>
+                {% endif %}
+                <div class="reptile-stats">
                     {% if reptile.weight_grams %}
-                        <span><i class="fas fa-weight"></i> {{ reptile.weight_grams }}g</span>
+                        <div class="stat-item">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span>{{ reptile.weight_grams }}g</span>
+                        </div>
+                    {% endif %}
+                    {% if reptile.length_cm %}
+                        <div class="stat-item">
+                            <i class="fas fa-ruler"></i>
+                            <span>{{ reptile.length_cm }}cm</span>
+                        </div>
+                    {% endif %}
+                    {% if reptile.date_of_birth %}
+                        <div class="stat-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span>{{ reptile.date_of_birth }}</span>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -383,6 +417,176 @@
     }
 }
 
+
+/* Modern Reptile Cards */
+.modern-reptile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.modern-reptile-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.modern-reptile-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.reptile-image-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.modern-reptile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.modern-reptile-card:hover .modern-reptile-image {
+    transform: scale(1.1);
+}
+
+.reptile-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: rgba(255, 255, 255, 0.8);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.reptile-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modern-reptile-card:hover .reptile-overlay {
+    opacity: 1;
+}
+
+.modern-reptile-info {
+    padding: 1.5rem;
+}
+
+.reptile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.modern-reptile-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+}
+
+.sex-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.sex-male {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.sex-female {
+    background: #fce7f3;
+    color: #be185d;
+}
+
+.sex-unknown {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.modern-reptile-species {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+.reptile-morph {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.reptile-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-item i {
+    color: var(--primary-color);
+    width: 16px;
+}
+
+@media (max-width: 768px) {
+    .modern-reptile-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .reptile-image-container {
+        height: 200px;
+    }
+}
 /* Responsive */
 @media (max-width: 768px) {
     .modern-header {
