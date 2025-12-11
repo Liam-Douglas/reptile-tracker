@@ -3,148 +3,186 @@
 {% block title %}Weight Tracking - {{ reptile.name }} - Reptile Tracker{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h2>📊 Weight Tracking - {{ reptile.name }}</h2>
-    <p>{{ reptile.species }}{% if reptile.morph %} - {{ reptile.morph }}{% endif %}</p>
+<!-- Modern Page Header -->
+<div class="modern-page-header">
+    <div class="header-content">
+        <div class="header-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="header-text">
+            <h1 class="header-title">Weight Tracking</h1>
+            <p class="header-subtitle">{{ reptile.name }} - {{ reptile.species }}{% if reptile.morph %} ({{ reptile.morph }}){% endif %}</p>
+        </div>
+    </div>
+    <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to Profile
+    </a>
 </div>
 
-<!-- Current Weight Card -->
-<div class="card" style="margin-bottom: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">Current Weight</h3>
+<!-- Current Weight Hero Card -->
+<div class="hero-stat-card weight-hero">
+    <div class="hero-icon">
+        <i class="fas fa-weight"></i>
     </div>
-    <div style="padding: 2rem; text-align: center;">
-        <div style="font-size: 3rem; font-weight: bold; color: var(--primary-color);">
+    <div class="hero-content">
+        <div class="hero-label">Current Weight</div>
+        <div class="hero-value">
             {% if reptile.weight_grams %}
-                {{ reptile.weight_grams }}g
+                {{ reptile.weight_grams }}<span class="hero-unit">g</span>
             {% else %}
-                No data
+                <span style="font-size: 1.5rem; opacity: 0.6;">No data</span>
             {% endif %}
         </div>
         {% if weight_history|length > 1 %}
             {% set latest = weight_history[0] %}
             {% set previous = weight_history[1] %}
             {% set change = latest.weight_grams - previous.weight_grams %}
-            <div style="margin-top: 1rem; font-size: 1.2rem;">
+            <div class="hero-change">
                 {% if change > 0 %}
-                    <span style="color: #10b981;">↑ +{{ "%.1f"|format(change) }}g</span>
+                    <span class="change-positive">
+                        <i class="fas fa-arrow-up"></i> +{{ "%.1f"|format(change) }}g
+                    </span>
                 {% elif change < 0 %}
-                    <span style="color: #ef4444;">↓ {{ "%.1f"|format(change) }}g</span>
+                    <span class="change-negative">
+                        <i class="fas fa-arrow-down"></i> {{ "%.1f"|format(change) }}g
+                    </span>
                 {% else %}
-                    <span style="color: var(--text-secondary);">No change</span>
+                    <span class="change-neutral">
+                        <i class="fas fa-minus"></i> No change
+                    </span>
                 {% endif %}
-                <span style="color: var(--text-secondary); font-size: 0.9rem;">since last measurement</span>
+                <span class="change-label">since last measurement</span>
             </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Weight Chart -->
-<div class="card" style="margin-bottom: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">Weight History Chart</h3>
+<!-- Weight Chart Card -->
+<div class="modern-card chart-card">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-chart-area"></i> Weight History Chart
+        </h3>
     </div>
-    <div style="padding: 2rem;">
+    <div class="card-body-modern">
         {% if chart_data.dates|length > 0 %}
             <canvas id="weightChart" style="max-height: 400px;"></canvas>
         {% else %}
-            <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                <p>No weight data yet. Add your first measurement below!</p>
+            <div class="empty-state-modern">
+                <div class="empty-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <p class="empty-text">No weight data yet</p>
+                <p class="empty-subtext">Add your first measurement below to start tracking!</p>
             </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Add Weight Measurement -->
-<div class="card" style="margin-bottom: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">Add Weight Measurement</h3>
+<!-- Add Measurement Card -->
+<div class="modern-card form-card">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-plus-circle"></i> Add Weight Measurement
+        </h3>
     </div>
     
-    <form method="POST" action="{{ url_for('add_weight', reptile_id=reptile.id) }}">
-        <div class="form-group">
-            <label class="form-label" for="measurement_date">Date *</label>
-            <input type="date" 
-                   id="measurement_date" 
-                   name="measurement_date" 
-                   class="form-input" 
-                   required>
+    <form method="POST" action="{{ url_for('add_weight', reptile_id=reptile.id) }}" class="modern-form">
+        <div class="form-row">
+            <div class="form-group-modern">
+                <label class="form-label-modern" for="measurement_date">
+                    <i class="fas fa-calendar"></i> Date *
+                </label>
+                <input type="date" 
+                       id="measurement_date" 
+                       name="measurement_date" 
+                       class="form-input-modern" 
+                       required>
+            </div>
+
+            <div class="form-group-modern">
+                <label class="form-label-modern" for="weight_grams">
+                    <i class="fas fa-weight"></i> Weight (grams) *
+                </label>
+                <input type="number" 
+                       id="weight_grams" 
+                       name="weight_grams" 
+                       class="form-input-modern" 
+                       step="0.1"
+                       placeholder="e.g., 250.5"
+                       required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="weight_grams">Weight (grams) *</label>
-            <input type="number" 
-                   id="weight_grams" 
-                   name="weight_grams" 
-                   class="form-input" 
-                   step="0.1"
-                   placeholder="e.g., 250.5"
-                   required>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="notes">Notes</label>
+        <div class="form-group-modern">
+            <label class="form-label-modern" for="notes">
+                <i class="fas fa-sticky-note"></i> Notes
+            </label>
             <textarea id="notes" 
                       name="notes" 
-                      class="form-textarea" 
-                      placeholder="Any observations..."></textarea>
+                      class="form-textarea-modern" 
+                      rows="3"
+                      placeholder="Any observations or notes about this measurement..."></textarea>
         </div>
 
-        <div class="btn-group">
-            <button type="submit" class="btn btn-primary">
+        <div class="form-actions">
+            <button type="submit" class="btn-primary-modern">
                 <i class="fas fa-plus"></i> Add Measurement
             </button>
-            <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Details
-            </a>
         </div>
     </form>
 </div>
 
-<!-- Weight History Table -->
+<!-- Measurement History -->
 {% if weight_history %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Measurement History</h3>
+<div class="modern-card history-card">
+    <div class="card-header-modern">
+        <h3 class="card-title-modern">
+            <i class="fas fa-history"></i> Measurement History
+        </h3>
+        <span class="record-count">{{ weight_history|length }} records</span>
     </div>
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
-                    <th style="padding: 1rem; text-align: left;">Date</th>
-                    <th style="padding: 1rem; text-align: left;">Weight</th>
-                    <th style="padding: 1rem; text-align: left;">Change</th>
-                    <th style="padding: 1rem; text-align: left;">Notes</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for measurement in weight_history %}
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: 1rem;">{{ measurement.measurement_date }}</td>
-                    <td style="padding: 1rem; font-weight: bold;">{{ measurement.weight_grams }}g</td>
-                    <td style="padding: 1rem;">
-                        {% if loop.index < weight_history|length %}
-                            {% set prev = weight_history[loop.index] %}
-                            {% set change = measurement.weight_grams - prev.weight_grams %}
-                            {% if change > 0 %}
-                                <span style="color: #10b981;">+{{ "%.1f"|format(change) }}g</span>
-                            {% elif change < 0 %}
-                                <span style="color: #ef4444;">{{ "%.1f"|format(change) }}g</span>
-                            {% else %}
-                                <span style="color: var(--text-secondary);">0g</span>
-                            {% endif %}
+    <div class="history-list">
+        {% for measurement in weight_history %}
+        <div class="history-item">
+            <div class="history-date">
+                <i class="fas fa-calendar-day"></i>
+                {{ measurement.measurement_date }}
+            </div>
+            <div class="history-main">
+                <div class="history-value">{{ measurement.weight_grams }}g</div>
+                <div class="history-change">
+                    {% if loop.index < weight_history|length %}
+                        {% set prev = weight_history[loop.index] %}
+                        {% set change = measurement.weight_grams - prev.weight_grams %}
+                        {% if change > 0 %}
+                            <span class="badge-change badge-positive">
+                                <i class="fas fa-arrow-up"></i> +{{ "%.1f"|format(change) }}g
+                            </span>
+                        {% elif change < 0 %}
+                            <span class="badge-change badge-negative">
+                                <i class="fas fa-arrow-down"></i> {{ "%.1f"|format(change) }}g
+                            </span>
                         {% else %}
-                            <span style="color: var(--text-secondary);">-</span>
+                            <span class="badge-change badge-neutral">
+                                <i class="fas fa-minus"></i> 0g
+                            </span>
                         {% endif %}
-                    </td>
-                    <td style="padding: 1rem; color: var(--text-secondary);">
-                        {{ measurement.notes if measurement.notes else '-' }}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% else %}
+                        <span class="badge-change badge-first">
+                            <i class="fas fa-flag"></i> First record
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if measurement.notes %}
+            <div class="history-notes">
+                <i class="fas fa-comment"></i>
+                {{ measurement.notes }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endif %}
@@ -169,16 +207,18 @@
             datasets: [{
                 label: 'Weight (grams)',
                 data: weights,
-                borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#667eea',
                 pointBorderColor: '#fff',
-                pointBorderWidth: 2
+                pointBorderWidth: 3,
+                pointHoverBackgroundColor: '#764ba2',
+                pointHoverBorderColor: '#fff'
             }]
         },
         options: {
@@ -189,15 +229,18 @@
                     display: false
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    padding: 16,
                     titleFont: {
-                        size: 14
+                        size: 14,
+                        weight: '600'
                     },
                     bodyFont: {
-                        size: 16,
+                        size: 18,
                         weight: 'bold'
                     },
+                    borderColor: '#667eea',
+                    borderWidth: 2,
                     callbacks: {
                         label: function(context) {
                             return context.parsed.y + 'g';
@@ -211,13 +254,26 @@
                     ticks: {
                         callback: function(value) {
                             return value + 'g';
-                        }
+                        },
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        color: '#6b7280'
                     },
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
                     }
                 },
                 x: {
+                    ticks: {
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        color: '#6b7280'
+                    },
                     grid: {
                         display: false
                     }
@@ -228,4 +284,425 @@
 </script>
 {% endif %}
 
+<style>
+/* Modern Page Header */
+.modern-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.header-text {
+    flex: 1;
+}
+
+.header-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.header-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.btn-back {
+    background: white;
+    color: #667eea;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 2px solid #667eea;
+}
+
+.btn-back:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Hero Stat Card */
+.hero-stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    color: white;
+}
+
+.hero-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.hero-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.hero-value {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+}
+
+.hero-unit {
+    font-size: 2.5rem;
+    opacity: 0.8;
+    margin-left: 0.25rem;
+}
+
+.hero-change {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.change-positive {
+    color: #10b981;
+    font-weight: 700;
+    background: rgba(16, 185, 129, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+}
+
+.change-negative {
+    color: #ef4444;
+    font-weight: 700;
+    background: rgba(239, 68, 68, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+}
+
+.change-neutral {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+}
+
+.change-label {
+    opacity: 0.8;
+    font-size: 0.95rem;
+}
+
+/* Modern Card */
+.modern-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.card-header-modern {
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title-modern {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-title-modern i {
+    color: #667eea;
+}
+
+.record-count {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.card-body-modern {
+    padding: 2rem;
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    margin: 0 auto 1.5rem;
+    opacity: 0.8;
+}
+
+.empty-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-subtext {
+    font-size: 1rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Modern Form */
+.modern-form {
+    padding: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group-modern {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label-modern {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-label-modern i {
+    color: #667eea;
+}
+
+.form-input-modern,
+.form-textarea-modern {
+    padding: 0.875rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-input-modern:focus,
+.form-textarea-modern:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-textarea-modern {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* History List */
+.history-list {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.history-item {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.history-item:hover {
+    background: #f3f4f6;
+    transform: translateX(4px);
+}
+
+.history-date {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.history-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.history-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.badge-change {
+    padding: 0.4rem 0.875rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.badge-positive {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-negative {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-neutral {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.badge-first {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.history-notes {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #4b5563;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.history-notes i {
+    color: #667eea;
+    margin-top: 0.2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hero-value {
+        font-size: 3rem;
+    }
+    
+    .hero-change {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .modern-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 {% endblock %}
