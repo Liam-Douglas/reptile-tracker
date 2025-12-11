@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Receipt{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 1.5rem;">
+    <h1 class="page-title">
+        <i class="fas fa-camera"></i> Scan Receipt
+    </h1>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('add_purchase_receipt') }}" class="btn btn-secondary">
+            <i class="fas fa-keyboard"></i> Manual Entry
+        </a>
+        <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> View Receipts
+        </a>
+        <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Upload Receipt Image</h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">
+            Take a photo or upload an image of your receipt for automatic scanning
+        </p>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" style="padding: 2rem;">
+        <!-- Info Box -->
+        <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 1rem; margin-bottom: 2rem; border-radius: 4px;">
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <i class="fas fa-info-circle" style="color: #3b82f6; font-size: 1.5rem; margin-top: 0.25rem;"></i>
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #1e40af;">Tips for Best Results</h4>
+                    <ul style="margin: 0; padding-left: 1.25rem; color: #1e3a8a;">
+                        <li>Ensure good lighting - avoid shadows</li>
+                        <li>Keep the receipt flat and straight</li>
+                        <li>Make sure all text is clearly visible</li>
+                        <li>Supported formats: JPG, PNG, PDF</li>
+                        <li>You'll be able to review and edit the extracted data</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- File Upload -->
+        <div style="margin-bottom: 2rem;">
+            <label for="receipt_image" style="display: block; margin-bottom: 1rem; font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-image"></i> Receipt Image <span style="color: #ef4444;">*</span>
+            </label>
+            
+            <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 2rem; text-align: center; background: var(--bg-secondary);">
+                <input type="file" 
+                       id="receipt_image" 
+                       name="receipt_image" 
+                       accept="image/*,.pdf"
+                       required
+                       onchange="previewImage(this)"
+                       style="display: none;">
+                
+                <label for="receipt_image" style="cursor: pointer; display: block;">
+                    <div id="upload-placeholder">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                            <strong>Click to upload</strong> or drag and drop
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            JPG, PNG or PDF (MAX. 10MB)
+                        </p>
+                    </div>
+                    
+                    <div id="image-preview" style="display: none;">
+                        <img id="preview-img" src="" alt="Receipt preview" style="max-width: 100%; max-height: 400px; border-radius: 4px; margin-bottom: 1rem;">
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                            <span id="filename"></span>
+                        </p>
+                        <button type="button" onclick="clearImage()" class="btn btn-secondary" style="margin-top: 0.5rem;">
+                            <i class="fas fa-times"></i> Change Image
+                        </button>
+                    </div>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Camera Capture (Mobile) -->
+        <div style="margin-bottom: 2rem; text-align: center;">
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                <i class="fas fa-mobile-alt"></i> On mobile? Use your camera:
+            </p>
+            <label for="receipt_image" class="btn btn-secondary" style="display: inline-block;">
+                <i class="fas fa-camera"></i> Take Photo
+            </label>
+        </div>
+        
+        <!-- Submit Button -->
+        <div style="display: flex; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+                <i class="fas fa-magic"></i> Scan Receipt
+            </button>
+            <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- How It Works -->
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-header">
+        <h3 class="card-title">How It Works</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-upload" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">1. Upload</h4>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                    Take a photo or upload your receipt image
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-search" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">2. Scan</h4>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                    OCR technology extracts text and identifies items
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-edit" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">3. Review</h4>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                    Verify and edit the extracted data
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-save" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">4. Save</h4>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                    Items are automatically added to inventory
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const file = input.files[0];
+        
+        reader.onload = function(e) {
+            document.getElementById('upload-placeholder').style.display = 'none';
+            document.getElementById('image-preview').style.display = 'block';
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('filename').textContent = file.name;
+        }
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearImage() {
+    document.getElementById('receipt_image').value = '';
+    document.getElementById('upload-placeholder').style.display = 'block';
+    document.getElementById('image-preview').style.display = 'none';
+}
+
+// Drag and drop support
+const dropZone = document.querySelector('label[for="receipt_image"]');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+        dropZone.style.borderColor = 'var(--primary-color)';
+        dropZone.style.background = 'var(--bg-primary)';
+    }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+        dropZone.style.borderColor = 'var(--border-color)';
+        dropZone.style.background = 'var(--bg-secondary)';
+    }, false);
+});
+
+dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    document.getElementById('receipt_image').files = files;
+    previewImage(document.getElementById('receipt_image'));
+}, false);
+</script>
+
+<style>
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .page-header > div {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+</style>
+{% endblock %}

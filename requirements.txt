@@ -8,7 +8,14 @@
 # datetime - Date/time handling (comes with Python)
 
 # External dependencies
-Pillow>=9.0.0  # For image handling (reptile photos)
+Pillow>=9.0.0  # For image handling (reptile photos and receipt scanning)
+pytesseract>=0.3.10  # For OCR text extraction from receipt images
+
+# Note: Tesseract OCR must be installed on the system
+# Installation instructions:
+# - Ubuntu/Debian: sudo apt-get install tesseract-ocr
+# - macOS: brew install tesseract
+# - Windows: Download installer from https://github.com/UB-Mannheim/tesseract/wiki
 
 # Optional: For development
 # pytest>=7.0.0  # For unit testing (if you want to add tests)

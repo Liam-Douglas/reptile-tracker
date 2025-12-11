@@ -3,7 +3,7 @@ Reptile Tracker Web Application
 Flask-based web interface for tracking reptile care
 """
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file, make_response
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file, make_response, session
 from werkzeug.utils import secure_filename
 import os
 import sys
@@ -1194,6 +1194,138 @@ def inventory_transactions():
                          selected_item=inventory_id)
 
 # ==================== PURCHASE RECEIPT ROUTES ====================
+
+@app.route('/inventory/receipt/scan', methods=['GET', 'POST'])
+def scan_receipt():
+    """Scan a receipt image using OCR"""
+    from receipt_ocr import ReceiptOCR
+    import os
+    
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # Check if file was uploaded
+            if 'receipt_image' not in request.files:
+                flash('No file uploaded', 'error')
+                return redirect(url_for('scan_receipt'))
+            
+            file = request.files['receipt_image']
+            
+            if file.filename == '':
+                flash('No file selected', 'error')
+                return redirect(url_for('scan_receipt'))
+            
+            if file:
+                # Save uploaded file
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"receipt_{timestamp}_{filename}"
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'receipts', filename)
+                
+                # Create receipts directory if it doesn't exist
+                os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                
+                file.save(filepath)
+                
+                # Process with OCR
+                ocr = ReceiptOCR()
+                result = ocr.process_receipt_image(filepath)
+                
+                if not result.get('success'):
+                    flash(f"Error processing receipt: {result.get('error', 'Unknown error')}", 'error')
+                    return redirect(url_for('scan_receipt'))
+                
+                # Store parsed data in session for review
+                session['scanned_receipt'] = {
+                    'image_path': filename,
+                    'supplier': result.get('supplier'),
+                    'date': result.get('date'),
+                    'total': result.get('total'),
+                    'items': result.get('items', []),
+                    'raw_text': result.get('raw_text')
+                }
+                
+                flash(f'Receipt scanned! Found {len(result.get("items", []))} items. Please review and edit before saving.', 'success')
+                return redirect(url_for('review_scanned_receipt'))
+                
+        except Exception as e:
+            flash(f'Error scanning receipt: {str(e)}', 'error')
+            import traceback
+            print(traceback.format_exc())
+    
+    return render_template('scan_receipt.html')
+
+@app.route('/inventory/receipt/review', methods=['GET', 'POST'])
+def review_scanned_receipt():
+    """Review and edit scanned receipt data before saving"""
+    db = get_db()
+    
+    # Get scanned data from session
+    scanned_data = session.get('scanned_receipt')
+    if not scanned_data:
+        flash('No scanned receipt data found', 'error')
+        return redirect(url_for('scan_receipt'))
+    
+    if request.method == 'POST':
+        try:
+            # Get edited receipt data
+            receipt_date = request.form.get('receipt_date')
+            supplier = request.form.get('supplier') or None
+            payment_method = request.form.get('payment_method') or None
+            notes = request.form.get('notes') or None
+            
+            # Get items from form
+            items = []
+            item_count = int(request.form.get('item_count', 0))
+            
+            for i in range(item_count):
+                food_type = request.form.get(f'food_type_{i}')
+                food_size = request.form.get(f'food_size_{i}')
+                quantity = request.form.get(f'quantity_{i}')
+                cost_per_unit = request.form.get(f'cost_per_unit_{i}')
+                
+                if food_type and food_size and quantity:
+                    items.append({
+                        'food_type': food_type,
+                        'food_size': food_size,
+                        'quantity': int(quantity),
+                        'cost_per_unit': float(cost_per_unit) if cost_per_unit else 0
+                    })
+            
+            if not items:
+                flash('Please add at least one item to the receipt', 'error')
+                return redirect(url_for('review_scanned_receipt'))
+            
+            # Add receipt with image path and OCR text
+            receipt_id = db.add_purchase_receipt(
+                receipt_date=receipt_date,
+                items=items,
+                supplier=supplier,
+                payment_method=payment_method,
+                notes=notes,
+                image_path=scanned_data.get('image_path'),
+                ocr_text=scanned_data.get('raw_text')
+            )
+            
+            # Clear session data
+            session.pop('scanned_receipt', None)
+            
+            flash(f'Receipt saved successfully! {len(items)} items added to inventory.', 'success')
+            return redirect(url_for('view_purchase_receipt', receipt_id=receipt_id))
+            
+        except Exception as e:
+            flash(f'Error saving receipt: {str(e)}', 'error')
+    
+    # Get existing food types and sizes for suggestions
+    existing_inventory = db.get_food_inventory(include_zero=True)
+    food_types = sorted(list(set([item['food_type'] for item in existing_inventory])))
+    food_sizes = sorted(list(set([item['food_size'] for item in existing_inventory])))
+    
+    return render_template('review_scanned_receipt.html',
+                         scanned_data=scanned_data,
+                         food_types=food_types,
+                         food_sizes=food_sizes)
 
 @app.route('/inventory/receipt/add', methods=['GET', 'POST'])
 def add_purchase_receipt():

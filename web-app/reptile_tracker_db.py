@@ -221,6 +221,8 @@ class ReptileDatabase:
                 total_cost REAL,
                 payment_method TEXT,
                 notes TEXT,
+                image_path TEXT,
+                ocr_text TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
@@ -1530,9 +1532,10 @@ class ReptileDatabase:
     
     # ==================== PURCHASE RECEIPT OPERATIONS ====================
     
-    def add_purchase_receipt(self, receipt_date: str, items: List[Dict], 
-                            supplier: str = None, payment_method: str = None, 
-                            notes: str = None) -> int:
+    def add_purchase_receipt(self, receipt_date: str, items: List[Dict],
+                            supplier: str = None, payment_method: str = None,
+                            notes: str = None, image_path: str = None,
+                            ocr_text: str = None) -> int:
         """
         Add a purchase receipt with multiple items and update inventory
         
@@ -1546,9 +1549,9 @@ class ReptileDatabase:
         
         # Insert receipt
         self.cursor.execute('''
-            INSERT INTO purchase_receipts (receipt_date, supplier, total_cost, payment_method, notes)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (receipt_date, supplier, total_cost, payment_method, notes))
+            INSERT INTO purchase_receipts (receipt_date, supplier, total_cost, payment_method, notes, image_path, ocr_text)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (receipt_date, supplier, total_cost, payment_method, notes, image_path, ocr_text))
         self.conn.commit()
         receipt_id = self.cursor.lastrowid
         

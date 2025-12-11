@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Review Scanned Receipt{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 1.5rem;">
+    <h1 class="page-title">
+        <i class="fas fa-check-circle"></i> Review Scanned Receipt
+    </h1>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('scan_receipt') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Scan Another
+        </a>
+    </div>
+</div>
+
+<!-- Alert -->
+<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 1.5rem;"></i>
+        <div>
+            <strong style="color: #92400e;">Please Review Carefully</strong>
+            <p style="margin: 0.25rem 0 0 0; color: #78350f;">
+                OCR scanning may not be 100% accurate. Please verify all information before saving.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Receipt Details</h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">
+            Edit any incorrect information below
+        </p>
+    </div>
+    
+    <form method="POST" id="receiptForm">
+        <div style="padding: 1.5rem;">
+            <!-- Receipt Info -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border-color);">
+                <div>
+                    <label for="receipt_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Purchase Date <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="date" 
+                           id="receipt_date" 
+                           name="receipt_date" 
+                           class="form-input" 
+                           required
+                           value="{{ scanned_data.date if scanned_data.date else '' }}"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+                
+                <div>
+                    <label for="supplier" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Supplier/Store
+                    </label>
+                    <input type="text" 
+                           id="supplier" 
+                           name="supplier" 
+                           class="form-input"
+                           value="{{ scanned_data.supplier if scanned_data.supplier else '' }}"
+                           placeholder="e.g., PetSmart, Local Breeder"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+                
+                <div>
+                    <label for="payment_method" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Payment Method
+                    </label>
+                    <select id="payment_method" 
+                            name="payment_method" 
+                            class="form-select"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="">Select...</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Items Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="margin: 0; font-size: 1.1rem;">
+                        <i class="fas fa-shopping-cart"></i> Items
+                        {% if scanned_data.items %}
+                        <span style="color: var(--text-secondary); font-weight: normal; font-size: 0.875rem;">
+                            ({{ scanned_data.items|length }} found by OCR)
+                        </span>
+                        {% endif %}
+                    </h4>
+                    <button type="button" onclick="addItem()" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+                </div>
+                
+                <div id="items-container">
+                    <!-- Pre-populate with scanned items -->
+                    {% if scanned_data.items %}
+                        {% for item in scanned_data.items %}
+                        <div class="receipt-item" id="item-{{ loop.index0 }}" style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                                    Food Type <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="food_type_{{ loop.index0 }}" 
+                                       list="food-types-{{ loop.index0 }}"
+                                       required
+                                       value="{{ item.food_type }}"
+                                       placeholder="e.g., Rat, Mouse"
+                                       onchange="updateTotal()"
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                                <datalist id="food-types-{{ loop.index0 }}">
+                                    {% for type in food_types %}
+                                    <option value="{{ type }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                                    Size <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="food_size_{{ loop.index0 }}" 
+                                       list="food-sizes-{{ loop.index0 }}"
+                                       required
+                                       value="{{ item.food_size }}"
+                                       placeholder="e.g., Large"
+                                       onchange="updateTotal()"
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                                <datalist id="food-sizes-{{ loop.index0 }}">
+                                    {% for size in food_sizes %}
+                                    <option value="{{ size }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                                    Quantity <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="quantity_{{ loop.index0 }}" 
+                                       min="1" 
+                                       value="{{ item.quantity }}"
+                                       required
+                                       onchange="updateTotal()"
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                                    Cost Each
+                                </label>
+                                <input type="number" 
+                                       name="cost_per_unit_{{ loop.index0 }}" 
+                                       min="0" 
+                                       step="0.01"
+                                       value="{{ '%.2f'|format(item.cost_per_unit) if item.cost_per_unit else '' }}"
+                                       placeholder="0.00"
+                                       onchange="updateTotal()"
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                            </div>
+                            
+                            <div>
+                                <button type="button" 
+                                        onclick="removeItem({{ loop.index0 }})" 
+                                        class="btn btn-danger"
+                                        style="padding: 0.75rem 1rem; white-space: nowrap;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <input type="hidden" id="item_count" name="item_count" value="{{ scanned_data.items|length if scanned_data.items else 0 }}">
+            </div>
+            
+            <!-- Total Display -->
+            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.1rem; font-weight: 600;">Total Cost:</span>
+                    <span id="total-cost" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                        ${{ '%.2f'|format(scanned_data.total) if scanned_data.total else '0.00' }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Notes -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="notes" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                    Notes
+                </label>
+                <textarea id="notes" 
+                          name="notes" 
+                          rows="3"
+                          placeholder="Additional notes about this purchase..."
+                          style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); resize: vertical;"></textarea>
+            </div>
+            
+            <!-- Raw OCR Text (Collapsible) -->
+            {% if scanned_data.raw_text %}
+            <details style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 4px;">
+                <summary style="cursor: pointer; font-weight: 600; margin-bottom: 0.5rem;">
+                    <i class="fas fa-file-alt"></i> View Raw OCR Text
+                </summary>
+                <pre style="margin-top: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: 4px; overflow-x: auto; font-size: 0.875rem; white-space: pre-wrap;">{{ scanned_data.raw_text }}</pre>
+            </details>
+            {% endif %}
+            
+            <!-- Submit Buttons -->
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Save Receipt & Add to Inventory
+                </button>
+                <a href="{{ url_for('scan_receipt') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+let itemIndex = {{ scanned_data.items|length if scanned_data.items else 0 }};
+const foodTypes = {{ food_types|tojson }};
+const foodSizes = {{ food_sizes|tojson }};
+
+// Set today's date as default if not provided
+if (!document.getElementById('receipt_date').value) {
+    document.getElementById('receipt_date').valueAsDate = new Date();
+}
+
+// Calculate initial total
+window.addEventListener('DOMContentLoaded', () => {
+    updateTotal();
+});
+
+function addItem() {
+    const container = document.getElementById('items-container');
+    const index = itemIndex++;
+    
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'receipt-item';
+    itemDiv.id = `item-${index}`;
+    itemDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Food Type <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" 
+                       name="food_type_${index}" 
+                       list="food-types-${index}"
+                       required
+                       placeholder="e.g., Rat, Mouse"
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                <datalist id="food-types-${index}">
+                    ${foodTypes.map(type => `<option value="${type}">`).join('')}
+                </datalist>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Size <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" 
+                       name="food_size_${index}" 
+                       list="food-sizes-${index}"
+                       required
+                       placeholder="e.g., Large"
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                <datalist id="food-sizes-${index}">
+                    ${foodSizes.map(size => `<option value="${size}">`).join('')}
+                </datalist>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Quantity <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="number" 
+                       name="quantity_${index}" 
+                       min="1" 
+                       value="1"
+                       required
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Cost Each
+                </label>
+                <input type="number" 
+                       name="cost_per_unit_${index}" 
+                       min="0" 
+                       step="0.01"
+                       placeholder="0.00"
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+            </div>
+            
+            <div>
+                <button type="button" 
+                        onclick="removeItem(${index})" 
+                        class="btn btn-danger"
+                        style="padding: 0.75rem 1rem; white-space: nowrap;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(itemDiv);
+    document.getElementById('item_count').value = itemIndex;
+}
+
+function removeItem(index) {
+    const itemDiv = document.getElementById(`item-${index}`);
+    if (itemDiv) {
+        itemDiv.remove();
+        updateTotal();
+    }
+}
+
+function updateTotal() {
+    let total = 0;
+    const items = document.querySelectorAll('.receipt-item');
+    
+    items.forEach((item, index) => {
+        const quantity = parseFloat(item.querySelector(`input[name^="quantity_"]`)?.value) || 0;
+        const cost = parseFloat(item.querySelector(`input[name^="cost_per_unit_"]`)?.value) || 0;
+        total += quantity * cost;
+    });
+    
+    document.getElementById('total-cost').textContent = `$${total.toFixed(2)}`;
+}
+
+// Validate form before submission
+document.getElementById('receiptForm').addEventListener('submit', function(e) {
+    const items = document.querySelectorAll('.receipt-item');
+    if (items.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one item to the receipt');
+        return false;
+    }
+});
+</script>
+
+<style>
+@media (max-width: 768px) {
+    .receipt-item > div {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

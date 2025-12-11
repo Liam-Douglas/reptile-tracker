@@ -7,7 +7,7 @@
     <h1 class="page-title">
         <i class="fas fa-box"></i> Food Inventory
     </h1>
-    <div style="display: flex; gap: 1rem;">
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
         <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
             <i class="fas fa-receipt"></i> Receipts
         </a>
@@ -17,8 +17,11 @@
         <a href="{{ url_for('add_inventory_item') }}" class="btn btn-secondary">
             <i class="fas fa-plus"></i> Add Stock
         </a>
-        <a href="{{ url_for('add_purchase_receipt') }}" class="btn btn-primary">
-            <i class="fas fa-shopping-cart"></i> Add Receipt
+        <a href="{{ url_for('scan_receipt') }}" class="btn btn-primary">
+            <i class="fas fa-camera"></i> Scan Receipt
+        </a>
+        <a href="{{ url_for('add_purchase_receipt') }}" class="btn btn-secondary">
+            <i class="fas fa-keyboard"></i> Manual Entry
         </a>
     </div>
 </div>
