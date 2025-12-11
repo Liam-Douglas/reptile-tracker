@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.0] - 2025-12-11
 
-### 🎉 Smart Inventory Management Update
+### 🎉 Smart Inventory Management & Dashboard Enhancements
 
 #### 🆕 New Features
 
@@ -46,18 +46,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reorder recommendations with suggested quantities
 - Quick restock buttons for items needing reorder
 
+**📅 Upcoming Feedings Dashboard Widget**
+- New "Upcoming Feedings" section on dashboard
+- Shows next 7 days of scheduled feedings
+- Blue-themed card with modern design
+- Displays reptile name, feeding date, and countdown
+- "Feed Now" quick action button for each reptile
+- Shows up to 5 upcoming feedings with "view more" link
+- Positioned between overdue feedings and reptile cards
+
+**📆 Enhanced Date Formatting**
+- Improved date display throughout the application
+- Dates now show as "4 January 2022" instead of "2022-01-04 00:00:00"
+- Enhanced `format_date` filter handles multiple formats:
+  - SQLite datetime format (`YYYY-MM-DD HH:MM:SS`)
+  - Standard date format (`YYYY-MM-DD`)
+  - DD/MM/YYYY and MM/DD/YYYY formats
+- Applied to dashboard reptile cards and all date displays
+
 #### 🔧 Technical Improvements
 - Added `inventory_id` and `auto_deducted` columns to `feeding_logs` table
 - Enhanced `add_feeding_log()` method with inventory integration
 - New `get_inventory_forecast()` method for consumption analysis
+- New `get_upcoming_feedings()` method for dashboard widget
 - JavaScript functions for dynamic form toggling and stock validation
 - Improved feeding logs display with source tracking
+- Database migration system for seamless upgrades
 
 #### 📝 Database Changes
 - `feeding_logs` table now includes:
   - `inventory_id` (foreign key to food_inventory)
   - `auto_deducted` (boolean flag)
 - Foreign key relationship with ON DELETE SET NULL
+- Automatic migration on startup adds missing columns
+- `migrate_database()` method ensures backward compatibility
+
+#### 🐛 Bug Fixes
+- Fixed date formatting showing timestamps on dashboard
+- Fixed import template error for databases without inventory columns
+- Added database migration for seamless v3.0.0 to v3.1.0 upgrade
 
 ---
 ---
@@ -485,31 +512,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## Upcoming Features
+## Future Ideas & Enhancements
 
-### Planned for v2.1.0
+### 🎯 High Priority (Next Release)
 - [ ] Automated notification scheduler (APScheduler/cron)
 - [ ] Health records & veterinary visit tracking
 - [ ] Temperature & humidity logging with graphs
 - [ ] Breeding records and genetics tracking
-
-### Planned for v2.2.0
-- [ ] Expense tracking for food, supplies, vet visits
-- [ ] Multiple enclosure management
-- [ ] Feeding calculator (prey size recommendations)
-- [ ] Growth rate analysis with ML predictions
 - [ ] Medication reminders and tracking
-- [ ] QR code labels for enclosures
 
-### Under Consideration
-- [ ] Mobile-responsive PWA
-- [ ] Multi-user support with permissions
-- [ ] Smart device integration (thermostats, cameras)
-- [ ] Social features (share profiles, connect with keepers)
-- [ ] Dark/light theme toggle
-- [ ] Multi-language support
+### 🔮 Medium Priority (Future Releases)
+- [ ] Multiple enclosure management with environmental tracking
+- [ ] Feeding calculator (prey size recommendations based on weight)
+- [ ] Growth rate analysis with ML predictions
+- [ ] QR code labels for enclosures
+- [ ] Mobile-responsive PWA (Progressive Web App)
+- [ ] Dark/light theme toggle with user preferences
+- [ ] Export data to PDF reports
+- [ ] Calendar view for all scheduled activities
+- [ ] Batch operations (update multiple reptiles at once)
+
+### 💡 Under Consideration (Long-term)
+- [ ] Multi-user support with role-based permissions
+- [ ] Smart device integration (thermostats, cameras, humidity sensors)
+- [ ] Social features (share profiles, connect with other keepers)
+- [ ] Multi-language support (i18n)
 - [ ] Voice commands integration
-- [ ] AI-powered health insights
+- [ ] AI-powered health insights and anomaly detection
+- [ ] Mobile app (React Native or Flutter)
+- [ ] Integration with veterinary clinic systems
+- [ ] Marketplace for supplies and equipment
+- [ ] Community forum and knowledge base
+
+### 🐛 Bug Fixes Only Mode
+**Current Status**: Feature development paused, focusing on stability and bug fixes only.
+
+If you encounter any bugs or issues, please report them via GitHub Issues.
 
 ---
 
