@@ -1193,6 +1193,96 @@ def inventory_transactions():
                          inventory=inventory,
                          selected_item=inventory_id)
 
+# ==================== PURCHASE RECEIPT ROUTES ====================
+
+@app.route('/inventory/receipt/add', methods=['GET', 'POST'])
+def add_purchase_receipt():
+    """Add a purchase receipt with multiple items"""
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # Get receipt data
+            receipt_date = request.form.get('receipt_date')
+            supplier = request.form.get('supplier') or None
+            payment_method = request.form.get('payment_method') or None
+            notes = request.form.get('notes') or None
+            
+            # Get items from form (dynamic fields)
+            items = []
+            item_count = int(request.form.get('item_count', 0))
+            
+            for i in range(item_count):
+                food_type = request.form.get(f'food_type_{i}')
+                food_size = request.form.get(f'food_size_{i}')
+                quantity = request.form.get(f'quantity_{i}')
+                cost_per_unit = request.form.get(f'cost_per_unit_{i}')
+                
+                if food_type and food_size and quantity:
+                    items.append({
+                        'food_type': food_type,
+                        'food_size': food_size,
+                        'quantity': int(quantity),
+                        'cost_per_unit': float(cost_per_unit) if cost_per_unit else 0
+                    })
+            
+            if not items:
+                flash('Please add at least one item to the receipt', 'error')
+                return redirect(url_for('add_purchase_receipt'))
+            
+            # Add receipt and update inventory
+            receipt_id = db.add_purchase_receipt(
+                receipt_date=receipt_date,
+                items=items,
+                supplier=supplier,
+                payment_method=payment_method,
+                notes=notes
+            )
+            
+            flash(f'Receipt added successfully! {len(items)} items added to inventory.', 'success')
+            return redirect(url_for('view_purchase_receipt', receipt_id=receipt_id))
+            
+        except Exception as e:
+            flash(f'Error adding receipt: {str(e)}', 'error')
+    
+    # Get existing food types and sizes for suggestions
+    existing_inventory = db.get_food_inventory(include_zero=True)
+    food_types = sorted(list(set([item['food_type'] for item in existing_inventory])))
+    food_sizes = sorted(list(set([item['food_size'] for item in existing_inventory])))
+    
+    return render_template('add_purchase_receipt.html',
+                         food_types=food_types,
+                         food_sizes=food_sizes)
+
+@app.route('/inventory/receipts')
+def purchase_receipts():
+    """View all purchase receipts"""
+    db = get_db()
+    receipts = db.get_purchase_receipts(limit=100)
+    return render_template('purchase_receipts.html', receipts=receipts)
+
+@app.route('/inventory/receipt/<int:receipt_id>')
+def view_purchase_receipt(receipt_id):
+    """View a single purchase receipt"""
+    db = get_db()
+    receipt = db.get_purchase_receipt(receipt_id)
+    
+    if not receipt:
+        flash('Receipt not found', 'error')
+        return redirect(url_for('purchase_receipts'))
+    
+    return render_template('view_purchase_receipt.html', receipt=receipt)
+
+@app.route('/inventory/receipt/<int:receipt_id>/delete', methods=['POST'])
+def delete_purchase_receipt(receipt_id):
+    """Delete a purchase receipt"""
+    db = get_db()
+    if db.delete_purchase_receipt(receipt_id):
+        flash('Receipt deleted successfully', 'success')
+    else:
+        flash('Error deleting receipt', 'error')
+    return redirect(url_for('purchase_receipts'))
+
 # ==================== DATA BACKUP & RESTORE ROUTES ====================
 
 @app.route('/backup')

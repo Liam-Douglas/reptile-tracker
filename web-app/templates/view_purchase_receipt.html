@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt #{{ receipt.id }}{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 1.5rem;">
+    <h1 class="page-title">
+        <i class="fas fa-receipt"></i> Receipt #{{ receipt.id }}
+    </h1>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> All Receipts
+        </a>
+        <form method="POST" 
+              action="{{ url_for('delete_purchase_receipt', receipt_id=receipt.id) }}" 
+              style="display: inline;"
+              onsubmit="return confirm('Are you sure you want to delete this receipt? This will NOT remove items from inventory.');">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Receipt Header -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+        <h3 class="card-title">Receipt Information</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Purchase Date
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600;">
+                    {{ receipt.receipt_date|format_date }}
+                </div>
+            </div>
+            
+            {% if receipt.supplier %}
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Supplier
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600;">
+                    <i class="fas fa-store" style="color: var(--text-secondary); margin-right: 0.25rem;"></i>
+                    {{ receipt.supplier }}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if receipt.payment_method %}
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Payment Method
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600;">
+                    <i class="fas fa-credit-card" style="color: var(--text-secondary); margin-right: 0.25rem;"></i>
+                    {{ receipt.payment_method }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                    Total Cost
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                    ${{ "%.2f"|format(receipt.total_cost) }}
+                </div>
+            </div>
+        </div>
+        
+        {% if receipt.notes %}
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                Notes
+            </div>
+            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; white-space: pre-wrap;">
+                {{ receipt.notes }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Items List -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Items Purchased</h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">
+            {{ items|length }} item{{ 's' if items|length != 1 else '' }} added to inventory
+        </p>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">Food Type</th>
+                    <th style="text-align: left;">Size</th>
+                    <th style="text-align: center;">Quantity</th>
+                    <th style="text-align: right;">Cost Each</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.food_type }}</strong>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;">
+                            {{ item.food_size }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <strong>{{ item.quantity }}</strong>
+                    </td>
+                    <td style="text-align: right;">
+                        {% if item.cost_per_unit %}
+                            ${{ "%.2f"|format(item.cost_per_unit) }}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        {% if item.total_cost %}
+                            <strong>${{ "%.2f"|format(item.total_cost) }}</strong>
+                        {% else %}
+                            <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid var(--border-color); font-weight: bold;">
+                    <td colspan="4" style="text-align: right; padding: 1rem;">
+                        <strong>Total:</strong>
+                    </td>
+                    <td style="text-align: right; padding: 1rem;">
+                        <strong style="font-size: 1.2rem; color: var(--primary-color);">
+                            ${{ "%.2f"|format(receipt.total_cost) }}
+                        </strong>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Metadata -->
+<div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; font-size: 0.875rem; color: var(--text-secondary);">
+    <i class="fas fa-info-circle"></i>
+    Receipt created on {{ receipt.created_at|format_datetime }}
+</div>
+
+<style>
+.data-table tfoot td {
+    background: var(--bg-secondary);
+}
+
+@media (max-width: 768px) {
+    .data-table {
+        font-size: 0.875rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

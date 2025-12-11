@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Add Purchase Receipt{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 1.5rem;">
+    <h1 class="page-title">
+        <i class="fas fa-receipt"></i> Add Purchase Receipt
+    </h1>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> View Receipts
+        </a>
+        <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Receipt Details</h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">
+            Add multiple food items from a single shopping trip
+        </p>
+    </div>
+    
+    <form method="POST" id="receiptForm">
+        <div style="padding: 1.5rem;">
+            <!-- Receipt Info -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border-color);">
+                <div>
+                    <label for="receipt_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Purchase Date <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="date" 
+                           id="receipt_date" 
+                           name="receipt_date" 
+                           class="form-input" 
+                           required
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+                
+                <div>
+                    <label for="supplier" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Supplier/Store
+                    </label>
+                    <input type="text" 
+                           id="supplier" 
+                           name="supplier" 
+                           class="form-input"
+                           placeholder="e.g., PetSmart, Local Breeder"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                </div>
+                
+                <div>
+                    <label for="payment_method" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Payment Method
+                    </label>
+                    <select id="payment_method" 
+                            name="payment_method" 
+                            class="form-select"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        <option value="">Select...</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Items Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="margin: 0; font-size: 1.1rem;">
+                        <i class="fas fa-shopping-cart"></i> Items
+                    </h4>
+                    <button type="button" onclick="addItem()" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+                </div>
+                
+                <div id="items-container">
+                    <!-- Items will be added here dynamically -->
+                </div>
+                
+                <input type="hidden" id="item_count" name="item_count" value="0">
+            </div>
+            
+            <!-- Total Display -->
+            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.1rem; font-weight: 600;">Total Cost:</span>
+                    <span id="total-cost" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">$0.00</span>
+                </div>
+            </div>
+            
+            <!-- Notes -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="notes" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                    Notes
+                </label>
+                <textarea id="notes" 
+                          name="notes" 
+                          rows="3"
+                          placeholder="Additional notes about this purchase..."
+                          style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); resize: vertical;"></textarea>
+            </div>
+            
+            <!-- Submit Buttons -->
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Save Receipt & Add to Inventory
+                </button>
+                <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+let itemIndex = 0;
+const foodTypes = {{ food_types|tojson }};
+const foodSizes = {{ food_sizes|tojson }};
+
+// Set today's date as default
+document.getElementById('receipt_date').valueAsDate = new Date();
+
+// Add first item on page load
+window.addEventListener('DOMContentLoaded', () => {
+    addItem();
+});
+
+function addItem() {
+    const container = document.getElementById('items-container');
+    const index = itemIndex++;
+    
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'receipt-item';
+    itemDiv.id = `item-${index}`;
+    itemDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Food Type <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" 
+                       name="food_type_${index}" 
+                       list="food-types-${index}"
+                       required
+                       placeholder="e.g., Rat, Mouse"
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                <datalist id="food-types-${index}">
+                    ${foodTypes.map(type => `<option value="${type}">`).join('')}
+                </datalist>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Size <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" 
+                       name="food_size_${index}" 
+                       list="food-sizes-${index}"
+                       required
+                       placeholder="e.g., Large"
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                <datalist id="food-sizes-${index}">
+                    ${foodSizes.map(size => `<option value="${size}">`).join('')}
+                </datalist>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Quantity <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="number" 
+                       name="quantity_${index}" 
+                       min="1" 
+                       value="1"
+                       required
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Cost Each
+                </label>
+                <input type="number" 
+                       name="cost_per_unit_${index}" 
+                       min="0" 
+                       step="0.01"
+                       placeholder="0.00"
+                       onchange="updateTotal()"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+            </div>
+            
+            <div>
+                <button type="button" 
+                        onclick="removeItem(${index})" 
+                        class="btn btn-danger"
+                        style="padding: 0.75rem 1rem; white-space: nowrap;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(itemDiv);
+    document.getElementById('item_count').value = itemIndex;
+}
+
+function removeItem(index) {
+    const itemDiv = document.getElementById(`item-${index}`);
+    if (itemDiv) {
+        itemDiv.remove();
+        updateTotal();
+    }
+}
+
+function updateTotal() {
+    let total = 0;
+    const items = document.querySelectorAll('.receipt-item');
+    
+    items.forEach((item, index) => {
+        const quantity = parseFloat(item.querySelector(`input[name^="quantity_"]`)?.value) || 0;
+        const cost = parseFloat(item.querySelector(`input[name^="cost_per_unit_"]`)?.value) || 0;
+        total += quantity * cost;
+    });
+    
+    document.getElementById('total-cost').textContent = `$${total.toFixed(2)}`;
+}
+
+// Validate form before submission
+document.getElementById('receiptForm').addEventListener('submit', function(e) {
+    const items = document.querySelectorAll('.receipt-item');
+    if (items.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one item to the receipt');
+        return false;
+    }
+});
+</script>
+
+<style>
+@media (max-width: 768px) {
+    .receipt-item > div {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

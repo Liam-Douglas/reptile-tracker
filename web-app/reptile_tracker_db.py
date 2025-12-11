@@ -210,6 +210,34 @@ class ReptileDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (inventory_id) REFERENCES food_inventory (id) ON DELETE CASCADE
             )
+        
+        # Purchase receipts table (for bulk inventory additions)
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS purchase_receipts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                receipt_date DATE NOT NULL,
+                supplier TEXT,
+                total_cost REAL,
+                payment_method TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Receipt items table (line items for each receipt)
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS receipt_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                receipt_id INTEGER NOT NULL,
+                food_type TEXT NOT NULL,
+                food_size TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                cost_per_unit REAL,
+                total_cost REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (receipt_id) REFERENCES purchase_receipts (id) ON DELETE CASCADE
+            )
+        ''')
         ''')
         
         self.conn.commit()
@@ -1499,6 +1527,103 @@ class ReptileDatabase:
         self.cursor.execute('DELETE FROM food_inventory WHERE id = ?', (inventory_id,))
         self.conn.commit()
         return self.cursor.rowcount > 0
+    
+    # ==================== PURCHASE RECEIPT OPERATIONS ====================
+    
+    def add_purchase_receipt(self, receipt_date: str, items: List[Dict], 
+                            supplier: str = None, payment_method: str = None, 
+                            notes: str = None) -> int:
+        """
+        Add a purchase receipt with multiple items and update inventory
+        
+        items format: [
+            {'food_type': 'Rat', 'food_size': 'Large', 'quantity': 10, 'cost_per_unit': 5.00},
+            ...
+        ]
+        """
+        # Calculate total cost
+        total_cost = sum(item['quantity'] * item.get('cost_per_unit', 0) for item in items)
+        
+        # Insert receipt
+        self.cursor.execute('''
+            INSERT INTO purchase_receipts (receipt_date, supplier, total_cost, payment_method, notes)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (receipt_date, supplier, total_cost, payment_method, notes))
+        self.conn.commit()
+        receipt_id = self.cursor.lastrowid
+        
+        # Insert receipt items and update inventory
+        for item in items:
+            food_type = item['food_type']
+            food_size = item['food_size']
+            quantity = item['quantity']
+            cost_per_unit = item.get('cost_per_unit', 0)
+            item_total = quantity * cost_per_unit
+            
+            # Insert receipt item
+            self.cursor.execute('''
+                INSERT INTO receipt_items (receipt_id, food_type, food_size, quantity, cost_per_unit, total_cost)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (receipt_id, food_type, food_size, quantity, cost_per_unit, item_total))
+            
+            # Add to inventory (this will auto-increment if exists)
+            self.add_food_item(
+                food_type=food_type,
+                food_size=food_size,
+                quantity=quantity,
+                cost_per_unit=cost_per_unit,
+                supplier=supplier,
+                purchase_date=receipt_date
+            )
+        
+        self.conn.commit()
+        return receipt_id
+    
+    def get_purchase_receipt(self, receipt_id: int) -> Optional[Dict]:
+        """Get a single purchase receipt with its items"""
+        # Get receipt
+        self.cursor.execute('SELECT * FROM purchase_receipts WHERE id = ?', (receipt_id,))
+        receipt_row = self.cursor.fetchone()
+        if not receipt_row:
+            return None
+        
+        receipt = dict(receipt_row)
+        
+        # Get receipt items
+        self.cursor.execute('''
+            SELECT * FROM receipt_items WHERE receipt_id = ? ORDER BY id
+        ''', (receipt_id,))
+        receipt['items'] = [dict(row) for row in self.cursor.fetchall()]
+        
+        return receipt
+    
+    def get_purchase_receipts(self, limit: int = None) -> List[Dict]:
+        """Get all purchase receipts"""
+        query = 'SELECT * FROM purchase_receipts ORDER BY receipt_date DESC, id DESC'
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query)
+        receipts = [dict(row) for row in self.cursor.fetchall()]
+        
+        # Get item count for each receipt
+        for receipt in receipts:
+            self.cursor.execute('''
+                SELECT COUNT(*) as item_count, SUM(quantity) as total_items
+                FROM receipt_items WHERE receipt_id = ?
+            ''', (receipt['id'],))
+            counts = self.cursor.fetchone()
+            receipt['item_count'] = counts['item_count']
+            receipt['total_items'] = counts['total_items']
+        
+        return receipts
+    
+    def delete_purchase_receipt(self, receipt_id: int) -> bool:
+        """Delete a purchase receipt (items will be cascade deleted)"""
+        self.cursor.execute('DELETE FROM purchase_receipts WHERE id = ?', (receipt_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
     
     def get_monthly_expenses(self, year: int = None, reptile_id: int = None) -> List[Dict]:
         """Get expense totals by month"""
