@@ -828,21 +828,37 @@ class ReptileDatabase:
     def update_feeding_reminder_dates(self, reptile_id: int, last_fed_date: str):
         """Update reminder dates after feeding"""
         self.cursor.execute('''
-            SELECT feeding_interval_days FROM feeding_reminders 
+            SELECT feeding_interval_days FROM feeding_reminders
             WHERE reptile_id = ? AND is_active = 1
         ''', (reptile_id,))
         reminder = self.cursor.fetchone()
         
         if reminder:
             from datetime import datetime, timedelta
-            last_fed = datetime.strptime(last_fed_date, '%Y-%m-%d')
+            
+            # Try parsing with different date formats
+            last_fed = None
+            for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']:
+                try:
+                    last_fed = datetime.strptime(last_fed_date, fmt)
+                    break
+                except ValueError:
+                    continue
+            
+            if not last_fed:
+                # If parsing fails, use current date
+                last_fed = datetime.now()
+            
             next_feeding = last_fed + timedelta(days=reminder['feeding_interval_days'])
             
+            # Store only the date part (no time)
+            last_fed_date_only = last_fed.strftime('%Y-%m-%d')
+            
             self.cursor.execute('''
-                UPDATE feeding_reminders 
+                UPDATE feeding_reminders
                 SET last_fed_date = ?, next_feeding_date = ?
                 WHERE reptile_id = ?
-            ''', (last_fed_date, next_feeding.strftime('%Y-%m-%d'), reptile_id))
+            ''', (last_fed_date_only, next_feeding.strftime('%Y-%m-%d'), reptile_id))
             self.conn.commit()
     
     def get_feeding_reminders(self, reptile_id: int = None) -> List[Dict]:
