@@ -5,6 +5,61 @@ All notable changes to the Reptile Tracker project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [3.1.0] - 2025-12-11
+
+### 🎉 Smart Inventory Management Update
+
+#### 🆕 New Features
+
+**🔄 Auto-Deduct Inventory on Feeding**
+- Automatically deduct food from inventory when logging feedings
+- Toggle between inventory selection and manual entry
+- Dropdown shows available inventory items with current quantities
+- Real-time stock checking warns when quantity exceeds available stock
+- Auto-populates food type and size from selected inventory item
+- Creates transaction log entry for audit trail
+- Flash message confirms when inventory is automatically deducted
+- Feeding logs now show source (Inventory vs Manual) with badges
+- Only deducts when reptile actually ate the food
+
+**📊 Inventory Forecasting & Predictions**
+- Intelligent consumption rate calculations based on feeding history
+- Analyzes last 30 days of auto-deducted inventory data
+- Calculates average consumption per day for each food type
+- Predicts days remaining until stock runs out
+- Estimates depletion date for proactive reordering
+- Color-coded status indicators:
+  - 🔴 Critical: ≤7 days remaining
+  - 🟡 Low: ≤14 days remaining
+  - 🟢 Good: >14 days remaining
+  - ⚪ Unknown: Insufficient data
+- Smart reorder suggestions:
+  - Recommends reordering at 14-day threshold
+  - Suggests 30-day supply quantities
+  - Minimum order quantity of 10 units
+- Comprehensive forecast display showing:
+  - Consumption rate per day
+  - Days remaining until depletion
+  - Estimated depletion date
+  - Number of feedings tracked
+  - Reorder recommendations with suggested quantities
+- Quick restock buttons for items needing reorder
+
+#### 🔧 Technical Improvements
+- Added `inventory_id` and `auto_deducted` columns to `feeding_logs` table
+- Enhanced `add_feeding_log()` method with inventory integration
+- New `get_inventory_forecast()` method for consumption analysis
+- JavaScript functions for dynamic form toggling and stock validation
+- Improved feeding logs display with source tracking
+
+#### 📝 Database Changes
+- `feeding_logs` table now includes:
+  - `inventory_id` (foreign key to food_inventory)
+  - `auto_deducted` (boolean flag)
+- Foreign key relationship with ON DELETE SET NULL
+
+---
 ---
 ## [3.0.0] - 2025-12-10
 
