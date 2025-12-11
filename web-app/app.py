@@ -183,6 +183,10 @@ def add_feeding():
     db = get_db()
     if request.method == 'POST':
         try:
+            # Get inventory_id if using inventory
+            use_inventory = request.form.get('use_inventory') == 'yes'
+            inventory_id = int(request.form.get('inventory_id')) if use_inventory and request.form.get('inventory_id') else None
+            
             data = {
                 'reptile_id': int(request.form.get('reptile_id')),
                 'feeding_date': request.form.get('date'),
@@ -190,20 +194,27 @@ def add_feeding():
                 'food_size': request.form.get('food_size') or None,
                 'quantity': int(request.form.get('quantity', 1)),
                 'ate': request.form.get('ate') == 'yes',
-                'notes': request.form.get('notes') or None
+                'notes': request.form.get('notes') or None,
+                'inventory_id': inventory_id,
+                'auto_deduct': True  # Always auto-deduct when inventory_id is provided
             }
             db.add_feeding_log(**data)
             
             # Update feeding reminder dates if reminder exists
             db.update_feeding_reminder_dates(data['reptile_id'], data['feeding_date'])
             
-            flash('Feeding log added successfully!', 'success')
+            if inventory_id and data['ate']:
+                flash('Feeding log added and inventory automatically deducted!', 'success')
+            else:
+                flash('Feeding log added successfully!', 'success')
             return redirect(url_for('feeding_logs'))
         except Exception as e:
             flash(f'Error adding feeding log: {str(e)}', 'error')
     
     reptiles = db.get_all_reptiles()
-    return render_template('feeding_form.html', reptiles=reptiles, log=None)
+    # Get available inventory items for selection
+    inventory_items = db.get_food_inventory(include_zero=False)
+    return render_template('feeding_form.html', reptiles=reptiles, log=None, inventory_items=inventory_items)
 
 @app.route('/shed')
 def shed_records():

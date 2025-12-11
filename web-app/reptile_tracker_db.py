@@ -64,8 +64,11 @@ class ReptileDatabase:
                 quantity INTEGER DEFAULT 1,
                 ate BOOLEAN NOT NULL,
                 notes TEXT,
+                inventory_id INTEGER,
+                auto_deducted BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE,
+                FOREIGN KEY (inventory_id) REFERENCES food_inventory (id) ON DELETE SET NULL
             )
         ''')
         
@@ -267,13 +270,34 @@ class ReptileDatabase:
     
     def add_feeding_log(self, reptile_id: int, feeding_date: str, food_type: str,
                        food_size: str = None, quantity: int = 1, ate: bool = True,
-                       notes: str = None) -> int:
-        """Add a feeding log entry"""
+                       notes: str = None, inventory_id: int = None, auto_deduct: bool = True) -> int:
+        """Add a feeding log entry and optionally deduct from inventory"""
+        
+        # If inventory_id is provided and reptile ate, deduct from inventory
+        if inventory_id and ate and auto_deduct:
+            try:
+                # Deduct from inventory
+                success = self.deduct_food_item(inventory_id, quantity,
+                                               reference_type='feeding',
+                                               notes=f'Fed to reptile (Feeding Log)')
+                if not success:
+                    # If deduction failed (insufficient stock), log warning but continue
+                    print(f"Warning: Could not deduct {quantity} items from inventory {inventory_id}")
+                    auto_deducted = False
+                else:
+                    auto_deducted = True
+            except Exception as e:
+                print(f"Error deducting inventory: {str(e)}")
+                auto_deducted = False
+        else:
+            auto_deducted = False
+        
+        # Insert feeding log
         self.cursor.execute('''
-            INSERT INTO feeding_logs (reptile_id, feeding_date, food_type, 
-                                     food_size, quantity, ate, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (reptile_id, feeding_date, food_type, food_size, quantity, ate, notes))
+            INSERT INTO feeding_logs (reptile_id, feeding_date, food_type,
+                                     food_size, quantity, ate, notes, inventory_id, auto_deducted)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (reptile_id, feeding_date, food_type, food_size, quantity, ate, notes, inventory_id, auto_deducted))
         self.conn.commit()
         return self.cursor.lastrowid
     

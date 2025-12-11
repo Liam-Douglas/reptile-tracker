@@ -32,24 +32,63 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="food_type">Food Type *</label>
-            <input type="text" 
-                   id="food_type" 
-                   name="food_type" 
-                   class="form-input" 
-                   placeholder="e.g., Mouse, Cricket, Dubia Roach"
-                   value="{{ log.food_type if log else '' }}" 
-                   required>
+            <label class="form-label" for="use_inventory">Use Food from Inventory?</label>
+            <select id="use_inventory" name="use_inventory" class="form-select" onchange="toggleInventorySelection()">
+                <option value="no">No - Enter manually</option>
+                <option value="yes">Yes - Select from inventory</option>
+            </select>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="amount">Amount</label>
-            <input type="text" 
-                   id="amount" 
-                   name="amount" 
-                   class="form-input" 
-                   placeholder="e.g., 1 adult, 10 crickets"
-                   value="{{ log.amount if log and log.amount else '' }}">
+        <div id="inventory-selection" style="display: none;">
+            <div class="form-group">
+                <label class="form-label" for="inventory_id">Select Food Item *</label>
+                <select id="inventory_id" name="inventory_id" class="form-select">
+                    <option value="">Select from inventory...</option>
+                    {% for item in inventory_items %}
+                        <option value="{{ item.id }}"
+                                data-food-type="{{ item.food_type }}"
+                                data-food-size="{{ item.food_size }}"
+                                data-quantity="{{ item.quantity }}">
+                            {{ item.food_type }} - {{ item.food_size }} ({{ item.quantity }} available)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="quantity">Quantity *</label>
+                <input type="number"
+                       id="quantity"
+                       name="quantity"
+                       class="form-input"
+                       min="1"
+                       value="1">
+                <small class="form-help" id="stock-warning" style="color: #ef4444; display: none;">
+                    ⚠️ Not enough stock available
+                </small>
+            </div>
+        </div>
+
+        <div id="manual-entry" style="display: block;">
+            <div class="form-group">
+                <label class="form-label" for="food_type">Food Type *</label>
+                <input type="text"
+                       id="food_type"
+                       name="food_type"
+                       class="form-input"
+                       placeholder="e.g., Mouse, Cricket, Dubia Roach"
+                       value="{{ log.food_type if log else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="food_size">Food Size</label>
+                <input type="text"
+                       id="food_size"
+                       name="food_size"
+                       class="form-input"
+                       placeholder="e.g., Large, Medium, Small"
+                       value="{{ log.food_size if log and log.food_size else '' }}">
+            </div>
         </div>
 
         <div class="form-group">
@@ -82,5 +121,67 @@
 <script>
     // Set today's date as default
     document.getElementById('date').valueAsDate = new Date();
+
+    // Toggle between inventory selection and manual entry
+    function toggleInventorySelection() {
+        const useInventory = document.getElementById('use_inventory').value;
+        const inventorySection = document.getElementById('inventory-selection');
+        const manualSection = document.getElementById('manual-entry');
+        const inventorySelect = document.getElementById('inventory_id');
+        const foodTypeInput = document.getElementById('food_type');
+        const foodSizeInput = document.getElementById('food_size');
+        
+        if (useInventory === 'yes') {
+            inventorySection.style.display = 'block';
+            manualSection.style.display = 'none';
+            inventorySelect.required = true;
+            foodTypeInput.required = false;
+        } else {
+            inventorySection.style.display = 'none';
+            manualSection.style.display = 'block';
+            inventorySelect.required = false;
+            foodTypeInput.required = true;
+        }
+    }
+
+    // Update food type and size when inventory item is selected
+    document.getElementById('inventory_id').addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        if (selected.value) {
+            const foodType = selected.getAttribute('data-food-type');
+            const foodSize = selected.getAttribute('data-food-size');
+            const availableQty = parseInt(selected.getAttribute('data-quantity'));
+            
+            // Update hidden fields for form submission
+            document.getElementById('food_type').value = foodType;
+            document.getElementById('food_size').value = foodSize || '';
+            
+            // Check quantity against available stock
+            checkStock();
+        }
+    });
+
+    // Check if requested quantity exceeds available stock
+    function checkStock() {
+        const inventorySelect = document.getElementById('inventory_id');
+        const quantityInput = document.getElementById('quantity');
+        const stockWarning = document.getElementById('stock-warning');
+        const selected = inventorySelect.options[inventorySelect.selectedIndex];
+        
+        if (selected.value) {
+            const availableQty = parseInt(selected.getAttribute('data-quantity'));
+            const requestedQty = parseInt(quantityInput.value) || 1;
+            
+            if (requestedQty > availableQty) {
+                stockWarning.style.display = 'block';
+                stockWarning.textContent = `⚠️ Only ${availableQty} available in stock`;
+            } else {
+                stockWarning.style.display = 'none';
+            }
+        }
+    }
+
+    // Add event listener for quantity changes
+    document.getElementById('quantity').addEventListener('input', checkStock);
 </script>
 {% endblock %}
