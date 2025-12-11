@@ -382,6 +382,11 @@ def upload_import():
         return redirect(url_for('import_page'))
 
 # ==================== HELP & GUIDE SYSTEM ====================
+@app.route('/settings')
+def settings_page():
+    """Settings page with data management options"""
+    return render_template('settings.html')
+
 
 @app.route('/help')
 def help_page():

@@ -165,22 +165,17 @@
             <a href="{{ url_for('shed_records') }}" class="nav-link {% if request.endpoint == 'shed_records' %}active{% endif %}">
                 <i class="fas fa-sync"></i> Shed Records
             </a>
-            <a href="{{ url_for('import_page') }}" class="nav-link {% if request.endpoint == 'import_page' %}active{% endif %}">
-                <i class="fas fa-file-import"></i> Import Data
-            </a>
-            <a href="{{ url_for('feeding_reminders') }}" class="nav-link">
+            <a href="{{ url_for('feeding_reminders') }}" class="nav-link {% if request.endpoint == 'feeding_reminders' %}active{% endif %}">
                 <i class="fas fa-bell"></i> Feeding Reminders
+            </a>
             <a href="{{ url_for('expenses_list') }}" class="nav-link {% if request.endpoint in ['expenses_list', 'add_expense', 'edit_expense', 'expense_details', 'expense_reports'] %}active{% endif %}">
                 <i class="fas fa-dollar-sign"></i> Expenses
             </a>
             <a href="{{ url_for('food_inventory') }}" class="nav-link {% if request.endpoint in ['food_inventory', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions'] %}active{% endif %}">
                 <i class="fas fa-box"></i> Food Inventory
             </a>
-            <a href="{{ url_for('backup_data') }}" class="nav-link">
-                <i class="fas fa-download"></i> Backup Data
-            </a>
-            <a href="{{ url_for('restore_data') }}" class="nav-link">
-                <i class="fas fa-upload"></i> Restore Data
+            <a href="{{ url_for('settings_page') }}" class="nav-link {% if request.endpoint in ['settings_page', 'import_page', 'backup_data', 'restore_data'] %}active{% endif %}">
+                <i class="fas fa-cog"></i> Settings
             </a>
             <a href="{{ url_for('help_page') }}" class="nav-link {% if request.endpoint == 'help_page' %}active{% endif %}">
                 <i class="fas fa-question-circle"></i> Help & Guide

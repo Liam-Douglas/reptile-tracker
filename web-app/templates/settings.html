@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-cog"></i> Settings
+    </h1>
+</div>
+
+<!-- Data Management Section -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-database"></i> Data Management
+        </h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
+            Import, backup, and restore your reptile data
+        </p>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            
+            <!-- Import Data Card -->
+            <div class="settings-card">
+                <div class="settings-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-file-import"></i>
+                </div>
+                <h4>Import Data</h4>
+                <p>Import reptile data, feeding logs, and shed records from CSV files</p>
+                <a href="{{ url_for('import_page') }}" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-file-import"></i> Import Data
+                </a>
+            </div>
+            
+            <!-- Backup Data Card -->
+            <div class="settings-card">
+                <div class="settings-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-download"></i>
+                </div>
+                <h4>Backup Data</h4>
+                <p>Download a complete backup of your database for safekeeping</p>
+                <a href="{{ url_for('backup_data') }}" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-download"></i> Backup Data
+                </a>
+            </div>
+            
+            <!-- Restore Data Card -->
+            <div class="settings-card">
+                <div class="settings-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="fas fa-upload"></i>
+                </div>
+                <h4>Restore Data</h4>
+                <p>Restore your data from a previous backup file</p>
+                <a href="{{ url_for('restore_data') }}" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-upload"></i> Restore Data
+                </a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Application Info Section -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-info-circle"></i> Application Information
+        </h3>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; gap: 1rem;">
+            <div class="info-row">
+                <span class="info-label">Version</span>
+                <span class="info-value">3.1.0</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Last Updated</span>
+                <span class="info-value">December 2025</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Database</span>
+                <span class="info-value">SQLite</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Documentation</span>
+                <span class="info-value">
+                    <a href="{{ url_for('help_page') }}" style="color: var(--primary-color);">
+                        View Help & Guide <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.settings-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.settings-card h4 {
+    font-size: 1.25rem;
+    margin: 0 0 0.75rem 0;
+    color: var(--text-primary);
+}
+
+.settings-card p {
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem 0;
+    line-height: 1.5;
+    min-height: 3rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.info-value {
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .settings-card {
+        padding: 1.5rem;
+    }
+    
+    .settings-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
