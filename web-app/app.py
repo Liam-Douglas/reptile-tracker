@@ -253,12 +253,18 @@ def add_feeding():
             use_inventory = request.form.get('use_inventory') == 'yes'
             inventory_id = int(request.form.get('inventory_id')) if use_inventory and request.form.get('inventory_id') else None
             
+            # Get quantity - use inventory_quantity if using inventory, otherwise use quantity field
+            if use_inventory and request.form.get('inventory_quantity'):
+                quantity = int(request.form.get('inventory_quantity'))
+            else:
+                quantity = int(request.form.get('quantity', 1))
+            
             data = {
                 'reptile_id': int(request.form.get('reptile_id')),
                 'feeding_date': request.form.get('date'),
                 'food_type': request.form.get('food_type'),
                 'food_size': request.form.get('food_size') or None,
-                'quantity': int(request.form.get('quantity', 1)),
+                'quantity': quantity,
                 'ate': request.form.get('ate') == 'yes',
                 'notes': request.form.get('notes') or None,
                 'inventory_id': inventory_id,
@@ -280,7 +286,22 @@ def add_feeding():
     reptiles = db.get_all_reptiles()
     # Get available inventory items for selection
     inventory_items = db.get_food_inventory(include_zero=False)
-    return render_template('feeding_form.html', reptiles=reptiles, log=None, inventory_items=inventory_items)
+    # Get distinct food types and sizes for dropdowns
+    food_types = db.get_distinct_food_types()
+    food_sizes = db.get_distinct_food_sizes()
+    return render_template('feeding_form.html', reptiles=reptiles, log=None,
+                         inventory_items=inventory_items, food_types=food_types,
+                         food_sizes=food_sizes)
+
+@app.route('/feeding/<int:log_id>/delete', methods=['POST'])
+def delete_feeding(log_id):
+    """Delete feeding log"""
+    db = get_db()
+    if db.delete_feeding_log(log_id):
+        flash('Feeding log deleted successfully!', 'success')
+    else:
+        flash('Error deleting feeding log', 'error')
+    return redirect(url_for('feeding_logs'))
 
 @app.route('/shed')
 def shed_records():

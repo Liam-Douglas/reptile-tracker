@@ -306,33 +306,41 @@ class ReptileDatabase:
                        notes: str = None, inventory_id: int = None, auto_deduct: bool = True) -> int:
         """Add a feeding log entry and optionally deduct from inventory"""
         
-        # If inventory_id is provided and reptile ate, deduct from inventory
-        if inventory_id and ate and auto_deduct:
-            try:
-                # Deduct from inventory
-                success = self.deduct_food_item(inventory_id, quantity,
-                                               reference_type='feeding',
-                                               notes=f'Fed to reptile (Feeding Log)')
-                if not success:
-                    # If deduction failed (insufficient stock), log warning but continue
-                    print(f"Warning: Could not deduct {quantity} items from inventory {inventory_id}")
-                    auto_deducted = False
-                else:
-                    auto_deducted = True
-            except Exception as e:
-                print(f"Error deducting inventory: {str(e)}")
-                auto_deducted = False
-        else:
-            auto_deducted = False
-        
-        # Insert feeding log
+        # Insert feeding log first to get the ID
         self.cursor.execute('''
             INSERT INTO feeding_logs (reptile_id, feeding_date, food_type,
                                      food_size, quantity, ate, notes, inventory_id, auto_deducted)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (reptile_id, feeding_date, food_type, food_size, quantity, ate, notes, inventory_id, auto_deducted))
+        ''', (reptile_id, feeding_date, food_type, food_size, quantity, ate, notes, inventory_id, False))
         self.conn.commit()
-        return self.cursor.lastrowid
+        feeding_log_id = self.cursor.lastrowid
+        
+        # If inventory_id is provided and reptile ate, deduct from inventory
+        auto_deducted = False
+        if inventory_id and ate and auto_deduct:
+            try:
+                # Deduct from inventory using update_food_quantity
+                success = self.update_food_quantity(
+                    inventory_id,
+                    -quantity,  # Negative to subtract
+                    transaction_type='feeding',
+                    reference_id=feeding_log_id,
+                    reference_type='feeding_log',
+                    notes=f'Fed to reptile (Feeding Log #{feeding_log_id})'
+                )
+                if success:
+                    auto_deducted = True
+                    # Update the feeding log to mark as auto_deducted
+                    self.cursor.execute('''
+                        UPDATE feeding_logs SET auto_deducted = ? WHERE id = ?
+                    ''', (True, feeding_log_id))
+                    self.conn.commit()
+                else:
+                    print(f"Warning: Could not deduct {quantity} items from inventory {inventory_id}")
+            except Exception as e:
+                print(f"Error deducting inventory: {str(e)}")
+        
+        return feeding_log_id
     
     def get_feeding_logs(self, reptile_id: int = None, start_date: str = None,
                         end_date: str = None, limit: int = None) -> List[Dict]:
@@ -400,6 +408,52 @@ class ReptileDatabase:
         
         self.cursor.execute(query)
         return [dict(row) for row in self.cursor.fetchall()]
+    def get_distinct_food_types(self) -> List[str]:
+        """Get list of unique food types from inventory and feeding logs"""
+        # Get from inventory
+        self.cursor.execute('SELECT DISTINCT food_type FROM food_inventory ORDER BY food_type')
+        inventory_types = [row['food_type'] for row in self.cursor.fetchall()]
+        
+        # Get from feeding logs
+        self.cursor.execute('SELECT DISTINCT food_type FROM feeding_logs WHERE food_type IS NOT NULL ORDER BY food_type')
+        log_types = [row['food_type'] for row in self.cursor.fetchall()]
+        
+        # Combine and remove duplicates, maintaining order
+        all_types = []
+        seen = set()
+        for food_type in inventory_types + log_types:
+            if food_type and food_type not in seen:
+                all_types.append(food_type)
+                seen.add(food_type)
+        
+        return all_types
+    
+    def get_distinct_food_sizes(self) -> List[str]:
+        """Get list of unique food sizes from inventory and feeding logs"""
+        # Get from inventory
+        self.cursor.execute('SELECT DISTINCT food_size FROM food_inventory WHERE food_size IS NOT NULL ORDER BY food_size')
+        inventory_sizes = [row['food_size'] for row in self.cursor.fetchall()]
+        
+        # Get from feeding logs
+        self.cursor.execute('SELECT DISTINCT food_size FROM feeding_logs WHERE food_size IS NOT NULL ORDER BY food_size')
+        log_sizes = [row['food_size'] for row in self.cursor.fetchall()]
+        
+        # Combine and remove duplicates, maintaining order
+        all_sizes = []
+        seen = set()
+        for food_size in inventory_sizes + log_sizes:
+            if food_size and food_size not in seen:
+                all_sizes.append(food_size)
+                seen.add(food_size)
+        
+        return all_sizes
+    
+    def delete_feeding_log(self, log_id: int) -> bool:
+        """Delete a feeding log entry"""
+        self.cursor.execute('DELETE FROM feeding_logs WHERE id = ?', (log_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
     
     # ==================== SHED RECORD OPERATIONS ====================
     

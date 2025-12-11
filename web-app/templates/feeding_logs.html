@@ -19,23 +19,32 @@
                         <th>Amount</th>
                         <th>Ate</th>
                         <th>Source</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for log in logs %}
-                    <tr onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
-                        <td><strong>{{ log.reptile_name }}</strong></td>
-                        <td>{{ log.date }}</td>
-                        <td>{{ log.food_type }}</td>
-                        <td>{{ log.amount if log.amount else '-' }}</td>
-                        <td>
+                    <tr>
+                        <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
+                            <strong>{{ log.reptile_name }}</strong>
+                        </td>
+                        <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
+                            {{ log.date }}
+                        </td>
+                        <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
+                            {{ log.food_type }}
+                        </td>
+                        <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
+                            {{ log.amount if log.amount else '-' }}
+                        </td>
+                        <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
                             {% if log.ate %}
                                 <span class="badge badge-success">Yes</span>
                             {% else %}
                                 <span class="badge badge-danger">No</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td onclick="window.location.href='{{ url_for('reptile_details', reptile_id=log.reptile_id) }}'" style="cursor: pointer;">
                             {% if log.auto_deducted %}
                                 <span class="badge badge-info" title="Automatically deducted from inventory">
                                     <i class="fas fa-box"></i> Inventory
@@ -43,6 +52,13 @@
                             {% else %}
                                 <span class="badge badge-secondary">Manual</span>
                             {% endif %}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_feeding', log_id=log.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this feeding log?');">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete feeding log">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}
