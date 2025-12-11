@@ -156,12 +156,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### 📊 Statistics
 
-- **Lines of Code Added**: ~2,500+
+- **Lines of Code Added**: ~3,800+
 - **New Routes**: 13
 - **New Templates**: 9
 - **New Database Methods**: 20
 - **New Tables**: 3
 - **Documentation Pages**: 1 (398 lines)
+
+#### 🐛 Deployment Fixes
+
+**Syntax Error Resolution (4 commits)**
+1. **Fix #1** (Commit `7e31f5f`): Added missing closing `''')` for `notification_settings` table
+   - Issue: Unclosed SQL statement in table creation
+   - Impact: Python syntax error preventing deployment
+
+2. **Fix #2** (Commit `6f398d5`): Properly closed `expenses` table SQL statement
+   - Issue: Missing closing parenthesis and `FOREIGN KEY` constraint
+   - Removed orphaned closing statements from previous edits
+   - Impact: IndentationError at line 155
+
+3. **Fix #3** (Commit `6112042`): Completed `get_expenses_by_category` function
+   - Issue: Incomplete function with unclosed SQL query
+   - Added parameter handling, query execution, and return statement
+   - Impact: IndentationError at line 1063
+
+4. **Fix #4** (Commit `7b08ef9`): Removed orphaned triple-quote and duplicate code
+   - Issue: Orphaned `'''` at line 1242 with 20 lines of duplicate code inside
+   - Duplicate code from `get_expenses_by_category` trapped in string literal
+   - Impact: IndentationError at line 1268, preventing Python from parsing file
+
+**Lessons Learned**
+- Always close multi-line SQL statements properly
+- Verify function completeness before committing
+- Watch for orphaned string literals that can trap code
+- Test Python syntax locally before deploying
 
 ---
 

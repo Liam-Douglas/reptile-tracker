@@ -5,6 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Reptile Tracker{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Tutorial Overlay Styles */
+        .tutorial-overlay {
+            display: none;
+            opacity: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .tutorial-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .tutorial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .tutorial-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .tutorial-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .tutorial-close:hover {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .tutorial-body {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .tutorial-body h3 {
+            color: #2c3e50;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .tutorial-body ul, .tutorial-body ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tutorial-body li {
+            margin-bottom: 0.5rem;
+        }
+
+        .tutorial-footer {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tutorial-footer .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .tutorial-footer .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .tutorial-footer .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .tutorial-footer .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .tutorial-footer .btn-secondary:hover {
+            background: #bdc3c7;
+        }
+
+        .tutorial-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .tutorial-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .tutorial-header h2 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -38,11 +177,17 @@
                 <i class="fas fa-box"></i> Food Inventory
             </a>
             </a>
+            <a href="{{ url_for('notification_settings') }}" class="nav-link">
+                <i class="fas fa-cog"></i> Notification Settings
+            </a>
             <a href="{{ url_for('backup_data') }}" class="nav-link">
                 <i class="fas fa-download"></i> Backup Data
             </a>
             <a href="{{ url_for('restore_data') }}" class="nav-link">
                 <i class="fas fa-upload"></i> Restore Data
+            </a>
+            <a href="{{ url_for('help_page') }}" class="nav-link {% if request.endpoint == 'help_page' %}active{% endif %}">
+                <i class="fas fa-question-circle"></i> Help & Guide
             </a>
         </div>
     </nav>
@@ -94,6 +239,51 @@
                 setTimeout(() => flash.remove(), 300);
             });
         }, 5000);
+
+        // Tutorial Overlay System
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        function dismissTutorial(tutorialId) {
+            // Hide the tutorial
+            const tutorial = document.getElementById(tutorialId);
+            if (tutorial) {
+                tutorial.style.opacity = '0';
+                setTimeout(() => tutorial.remove(), 300);
+            }
+
+            // Save dismissal to cookie via API
+            fetch('/api/dismiss-tutorial', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tutorial_id: tutorialId })
+            });
+        }
+
+        // Show tutorial if not dismissed
+        function showTutorialIfNeeded(tutorialId) {
+            if (!getCookie(`tutorial_dismissed_${tutorialId}`)) {
+                const tutorial = document.getElementById(tutorialId);
+                if (tutorial) {
+                    tutorial.style.display = 'block';
+                    setTimeout(() => tutorial.style.opacity = '1', 100);
+                }
+            }
+        }
+
+        // Initialize tutorials on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for page-specific tutorials
+            const pageTutorials = document.querySelectorAll('[data-tutorial]');
+            pageTutorials.forEach(tutorial => {
+                showTutorialIfNeeded(tutorial.id);
+            });
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

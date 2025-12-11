@@ -370,6 +370,22 @@ def upload_import():
         flash(f'Error processing file: {str(e)}', 'error')
         return redirect(url_for('import_page'))
 
+# ==================== HELP & GUIDE SYSTEM ====================
+
+@app.route('/help')
+def help_page():
+    """Interactive help and guide system"""
+    return render_template('help.html')
+
+@app.route('/api/dismiss-tutorial', methods=['POST'])
+def dismiss_tutorial():
+    """API endpoint to dismiss tutorial overlay"""
+    tutorial_id = request.json.get('tutorial_id')
+    # Store in cookie that tutorial has been dismissed
+    response = make_response(jsonify({'success': True}))
+    response.set_cookie(f'tutorial_dismissed_{tutorial_id}', 'true', max_age=365*24*60*60)  # 1 year
+    return response
+
 
 if __name__ == '__main__':
     # Create upload folder if it doesn't exist

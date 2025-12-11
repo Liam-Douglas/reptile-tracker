@@ -108,6 +108,45 @@
         <p>Add your first reptile to get started!</p>
     </div>
 {% endif %}
+
+<!-- Welcome Tutorial Overlay -->
+<div id="welcome-tutorial" class="tutorial-overlay" data-tutorial>
+    <div class="tutorial-content">
+        <div class="tutorial-header">
+            <h2>👋 Welcome to Reptile Tracker!</h2>
+            <button class="tutorial-close" onclick="dismissTutorial('welcome-tutorial')">&times;</button>
+        </div>
+        <div class="tutorial-icon">🦎</div>
+        <div class="tutorial-body">
+            <p>Welcome to your reptile management system! Here's a quick overview to get you started:</p>
+            
+            <h3>🚀 Quick Start</h3>
+            <ol>
+                <li><strong>Add a Reptile:</strong> Click the + button to add your first reptile</li>
+                <li><strong>Track Feedings:</strong> Log what and when your reptiles eat</li>
+                <li><strong>Manage Inventory:</strong> Keep track of your food stock</li>
+                <li><strong>Monitor Expenses:</strong> Track all your reptile-related costs</li>
+            </ol>
+            
+            <h3>📚 New Features in v3.0.0</h3>
+            <ul>
+                <li><strong>💰 Expense Tracking:</strong> Upload receipts and track spending by category</li>
+                <li><strong>📦 Food Inventory:</strong> Manage stock with automatic alerts</li>
+                <li><strong>📊 Reports & Analytics:</strong> View spending trends and patterns</li>
+            </ul>
+            
+            <p><strong>Need help?</strong> Click "Help & Guide" in the menu for detailed instructions!</p>
+        </div>
+        <div class="tutorial-footer">
+            <button class="btn btn-secondary" onclick="dismissTutorial('welcome-tutorial')">
+                Don't show again
+            </button>
+            <a href="{{ url_for('help_page') }}" class="btn btn-primary">
+                View Full Guide
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block fab %}

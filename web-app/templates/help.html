@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Guide - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>📖 Help & User Guide</h1>
+        <p class="subtitle">Learn how to use all features of Reptile Tracker</p>
+    </div>
+
+    <!-- Quick Start Guide -->
+    <div class="help-section">
+        <h2>🚀 Quick Start</h2>
+        <div class="help-cards">
+            <div class="help-card">
+                <div class="help-icon">🦎</div>
+                <h3>1. Add a Reptile</h3>
+                <p>Start by adding your first reptile with basic information like name and species.</p>
+                <a href="{{ url_for('add_reptile') }}" class="btn btn-primary btn-sm">Add Reptile</a>
+            </div>
+            <div class="help-card">
+                <div class="help-icon">🍖</div>
+                <h3>2. Log Feedings</h3>
+                <p>Track what and when your reptiles eat to monitor their health and appetite.</p>
+            </div>
+            <div class="help-card">
+                <div class="help-icon">📦</div>
+                <h3>3. Manage Inventory</h3>
+                <p>Keep track of your food stock to never run out of supplies.</p>
+                <a href="{{ url_for('food_inventory') }}" class="btn btn-primary btn-sm">View Inventory</a>
+            </div>
+            <div class="help-card">
+                <div class="help-icon">💰</div>
+                <h3>4. Track Expenses</h3>
+                <p>Monitor your spending on food, vet visits, and supplies.</p>
+                <a href="{{ url_for('expenses_list') }}" class="btn btn-primary btn-sm">View Expenses</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Guides -->
+    <div class="help-section">
+        <h2>📚 Feature Guides</h2>
+        
+        <div class="accordion">
+            <!-- Reptile Management -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🦎 Managing Reptiles</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Adding a Reptile</h4>
+                    <ol>
+                        <li>Click "Add Reptile" on the dashboard</li>
+                        <li>Fill in required fields (Name and Species)</li>
+                        <li>Optionally add morph, sex, dates, measurements, and photo</li>
+                        <li>Click "Add Reptile" to save</li>
+                    </ol>
+                    
+                    <h4>Editing Information</h4>
+                    <p>Click on any reptile card, then click "Edit" to update their information.</p>
+                    
+                    <h4>Deleting a Reptile</h4>
+                    <p><strong>⚠️ Warning:</strong> This will delete all associated data (feeding logs, shed records, photos, etc.)</p>
+                </div>
+            </div>
+
+            <!-- Feeding Logs -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🍖 Feeding Logs</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Recording a Feeding</h4>
+                    <ol>
+                        <li>Go to reptile's profile page</li>
+                        <li>Click "Add Feeding Log"</li>
+                        <li>Enter date, food type, size, and quantity</li>
+                        <li>Mark if they ate or refused</li>
+                        <li>Add any notes about the feeding</li>
+                    </ol>
+                    
+                    <h4>Viewing History</h4>
+                    <p>Scroll to the "Feeding Logs" section on any reptile's profile to see their complete feeding history.</p>
+                </div>
+            </div>
+
+            <!-- Expense Tracking -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>💰 Expense Tracking</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Adding an Expense</h4>
+                    <ol>
+                        <li>Click "💰 Expenses" in the navigation menu</li>
+                        <li>Click "Add Expense"</li>
+                        <li>Fill in date, category, and amount</li>
+                        <li>Optionally link to a specific reptile</li>
+                        <li>Upload a receipt (drag & drop or click to browse)</li>
+                        <li>Click "Add Expense"</li>
+                    </ol>
+                    
+                    <h4>Expense Categories</h4>
+                    <ul>
+                        <li>Food & Feeders</li>
+                        <li>Veterinary Care</li>
+                        <li>Supplements & Medications</li>
+                        <li>Enclosure & Equipment</li>
+                        <li>Heating & Lighting</li>
+                        <li>And 7 more categories...</li>
+                    </ul>
+                    
+                    <h4>Viewing Reports</h4>
+                    <p>Click "View Reports" to see spending by category, monthly trends, and summary statistics.</p>
+                </div>
+            </div>
+
+            <!-- Food Inventory -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>📦 Food Inventory</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Adding Stock</h4>
+                    <ol>
+                        <li>Click "📦 Food Inventory" in the navigation</li>
+                        <li>Click "Add Stock"</li>
+                        <li>Enter food type, size, and quantity</li>
+                        <li>Optionally add cost, supplier, and dates</li>
+                        <li>Click "Add Stock"</li>
+                    </ol>
+                    
+                    <h4>Stock Alerts</h4>
+                    <ul>
+                        <li>🟢 <strong>Green:</strong> Good stock (>5 items)</li>
+                        <li>🟡 <strong>Yellow:</strong> Low stock (1-5 items)</li>
+                        <li>🔴 <strong>Red:</strong> Out of stock (0 items)</li>
+                    </ul>
+                    
+                    <h4>Quick Adjustments</h4>
+                    <p>Use the "+1" and "-1" buttons on any item to quickly adjust quantities.</p>
+                    
+                    <h4>Transaction History</h4>
+                    <p>Click on any item to view its complete transaction history showing all purchases, feedings, and adjustments.</p>
+                </div>
+            </div>
+
+            <!-- Weight & Length Tracking -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>📏 Weight & Length Tracking</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Recording Measurements</h4>
+                    <ol>
+                        <li>Go to reptile's profile</li>
+                        <li>Click "Weight Tracking" or "Length Tracking"</li>
+                        <li>Click "Add Measurement"</li>
+                        <li>Enter date and measurement</li>
+                        <li>Add optional notes</li>
+                    </ol>
+                    
+                    <h4>Growth Charts</h4>
+                    <p>Charts automatically display on tracking pages showing growth trends over time.</p>
+                    
+                    <h4>Best Practices</h4>
+                    <ul>
+                        <li>Weigh weekly during growth phase</li>
+                        <li>Weigh monthly for adults</li>
+                        <li>Measure length every 3-6 months</li>
+                        <li>Note any sudden changes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🔔 Notifications</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Setting Up Email Notifications</h4>
+                    <ol>
+                        <li>Click "Notification Settings" in navigation</li>
+                        <li>Enable "Email Notifications"</li>
+                        <li>Enter your email address</li>
+                        <li>Configure SMTP settings (Gmail, Outlook, etc.)</li>
+                        <li>Click "Save Settings"</li>
+                        <li>Click "Send Test Email" to verify</li>
+                    </ol>
+                    
+                    <h4>Setting Up SMS Notifications</h4>
+                    <ol>
+                        <li>Sign up for Twilio account</li>
+                        <li>Get Account SID, Auth Token, and phone number</li>
+                        <li>Enable "SMS Notifications" in settings</li>
+                        <li>Enter your phone number and Twilio credentials</li>
+                        <li>Click "Send Test SMS" to verify</li>
+                    </ol>
+                    
+                    <h4>Notification Preferences</h4>
+                    <ul>
+                        <li><strong>Reminder Time:</strong> When to receive daily reminders</li>
+                        <li><strong>Advance Notice:</strong> Get notified 0-7 days before feeding due</li>
+                        <li><strong>Overdue Only:</strong> Only notify for overdue feedings</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>💾 Data Management</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <h4>Backing Up Data</h4>
+                    <ol>
+                        <li>Click "Backup Data" in navigation</li>
+                        <li>Click "Download Backup"</li>
+                        <li>Save JSON file to a safe location</li>
+                        <li>Backup includes all reptiles, logs, expenses, and inventory</li>
+                    </ol>
+                    
+                    <h4>Restoring Data</h4>
+                    <p><strong>⚠️ Warning:</strong> This will replace or merge with existing data</p>
+                    <ol>
+                        <li>Click "Restore Data"</li>
+                        <li>Upload backup JSON file</li>
+                        <li>Choose "Replace" or "Merge" mode</li>
+                        <li>Click "Restore"</li>
+                    </ol>
+                    
+                    <h4>Backup Recommendations</h4>
+                    <ul>
+                        <li>Create weekly backups</li>
+                        <li>Store backups in multiple locations</li>
+                        <li>Test restore process occasionally</li>
+                        <li>Backup before major updates</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips & Best Practices -->
+    <div class="help-section">
+        <h2>💡 Tips & Best Practices</h2>
+        <div class="tips-grid">
+            <div class="tip-card">
+                <h4>📝 Regular Updates</h4>
+                <p>Log feedings immediately after they occur for accurate records.</p>
+            </div>
+            <div class="tip-card">
+                <h4>📸 Take Photos</h4>
+                <p>Regular photos help track growth and color changes over time.</p>
+            </div>
+            <div class="tip-card">
+                <h4>📊 Review Reports</h4>
+                <p>Check expense reports monthly to track spending patterns.</p>
+            </div>
+            <div class="tip-card">
+                <h4>🔔 Set Reminders</h4>
+                <p>Enable feeding reminders to never miss a feeding schedule.</p>
+            </div>
+            <div class="tip-card">
+                <h4>📦 Monitor Stock</h4>
+                <p>Reorder food when inventory reaches 5 items to avoid running out.</p>
+            </div>
+            <div class="tip-card">
+                <h4>💾 Backup Regularly</h4>
+                <p>Create weekly backups to protect your data.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="help-section">
+        <h2>🆘 Troubleshooting</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <h4>Can't upload a photo?</h4>
+                <p>Check file size (max 10MB) and format (JPG, PNG). Try a different browser if issues persist.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Notifications not working?</h4>
+                <p>Verify your email/phone number and SMTP/Twilio settings. Send a test notification to check configuration.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Data not saving?</h4>
+                <p>Check your internet connection and verify all required fields are filled. Try refreshing the page.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Chart not displaying?</h4>
+                <p>You need at least 2 data points for charts to display. Add more measurements and refresh the page.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Resources -->
+    <div class="help-section">
+        <h2>📚 Additional Resources</h2>
+        <div class="resource-links">
+            <a href="https://github.com/Liam-Douglas/reptile-tracker" target="_blank" class="resource-link">
+                <span class="resource-icon">📖</span>
+                <div>
+                    <h4>Documentation</h4>
+                    <p>View complete documentation on GitHub</p>
+                </div>
+            </a>
+            <a href="https://github.com/Liam-Douglas/reptile-tracker/blob/main/USER_GUIDE.md" target="_blank" class="resource-link">
+                <span class="resource-icon">📘</span>
+                <div>
+                    <h4>User Guide</h4>
+                    <p>Comprehensive user guide with detailed instructions</p>
+                </div>
+            </a>
+            <a href="https://github.com/Liam-Douglas/reptile-tracker/issues" target="_blank" class="resource-link">
+                <span class="resource-icon">🐛</span>
+                <div>
+                    <h4>Report Issues</h4>
+                    <p>Found a bug? Report it on GitHub</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Contact Support -->
+    <div class="help-section">
+        <div class="support-box">
+            <h3>Need More Help?</h3>
+            <p>If you can't find what you're looking for, check the documentation or open an issue on GitHub.</p>
+            <a href="https://github.com/Liam-Douglas/reptile-tracker/issues/new" target="_blank" class="btn btn-primary">Get Support</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.help-section {
+    margin-bottom: 3rem;
+}
+
+.help-section h2 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3498db;
+}
+
+.help-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.help-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.help-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.help-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.help-card h3 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.help-card p {
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.accordion {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.accordion-item {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-item:last-child {
+    border-bottom: none;
+}
+
+.accordion-header {
+    width: 100%;
+    background: white;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    transition: background 0.2s;
+}
+
+.accordion-header:hover {
+    background: #f8f9fa;
+}
+
+.accordion-icon {
+    transition: transform 0.3s;
+}
+
+.accordion-header.active .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #f8f9fa;
+}
+
+.accordion-content.active {
+    max-height: 2000px;
+    padding: 1.5rem;
+}
+
+.accordion-content h4 {
+    color: #2c3e50;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.accordion-content h4:first-child {
+    margin-top: 0;
+}
+
+.accordion-content ol, .accordion-content ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.accordion-content li {
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.tip-card {
+    background: #f8f9fa;
+    border-left: 4px solid #3498db;
+    padding: 1.5rem;
+    border-radius: 4px;
+}
+
+.tip-card h4 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.tip-card p {
+    color: #666;
+    margin: 0;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.faq-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.faq-item h4 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.faq-item p {
+    color: #666;
+    margin: 0;
+}
+
+.resource-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.resource-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.resource-link:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.resource-icon {
+    font-size: 2rem;
+}
+
+.resource-link h4 {
+    color: #2c3e50;
+    margin: 0 0 0.25rem 0;
+}
+
+.resource-link p {
+    color: #666;
+    margin: 0;
+}
+
+.support-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.support-box h3 {
+    margin-bottom: 1rem;
+}
+
+.support-box p {
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.support-box .btn {
+    background: white;
+    color: #667eea;
+}
+
+.support-box .btn:hover {
+    background: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .help-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+function toggleAccordion(button) {
+    const content = button.nextElementSibling;
+    const isActive = button.classList.contains('active');
+    
+    // Close all accordions
+    document.querySelectorAll('.accordion-header').forEach(header => {
+        header.classList.remove('active');
+        header.nextElementSibling.classList.remove('active');
+    });
+    
+    // Open clicked accordion if it wasn't active
+    if (!isActive) {
+        button.classList.add('active');
+        content.classList.add('active');
+    }
+}
+</script>
+{% endblock %}
