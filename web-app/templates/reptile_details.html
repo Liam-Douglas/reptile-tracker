@@ -74,6 +74,26 @@
     </div>
     {% endif %}
     
+    {% if feeding_logs %}
+    <div class="profile-stat-card stat-feeding">
+        <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">{{ feeding_logs[0].feeding_date|format_date }}</div>
+            <div class="stat-label">Last Fed</div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if shed_records %}
+    <div class="profile-stat-card stat-shed">
+        <div class="stat-icon"><i class="fas fa-sync-alt"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">{{ shed_records[0].shed_date|format_date }}</div>
+            <div class="stat-label">Last Shed</div>
+        </div>
+    </div>
+    {% endif %}
+    
     {% if reptile.date_of_birth %}
     <div class="profile-stat-card stat-age">
         <div class="stat-icon"><i class="fas fa-birthday-cake"></i></div>
@@ -338,6 +358,8 @@
 
 .stat-weight .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
 .stat-length .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.stat-feeding .stat-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
+.stat-shed .stat-icon { background: linear-gradient(135deg, #30cfd0, #330867); }
 .stat-age .stat-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
 .stat-acquired .stat-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
 
