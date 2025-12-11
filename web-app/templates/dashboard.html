@@ -127,6 +127,48 @@
 </div>
 {% endif %}
 
+<!-- Upcoming Feedings Section -->
+{% if upcoming_feedings %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #3b82f6;">
+    <div class="card-header" style="background: #dbeafe;">
+        <h3 class="card-title" style="color: #1e40af;">
+            <i class="fas fa-calendar-alt"></i> Upcoming Feedings (Next 7 Days)
+        </h3>
+        <a href="{{ url_for('feeding_reminders') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+            View All Reminders
+        </a>
+    </div>
+    <div style="padding: 1rem;">
+        <div style="display: grid; gap: 0.75rem;">
+            {% for item in upcoming_feedings[:5] %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: 6px;">
+                <div>
+                    <strong>
+                        <a href="{{ url_for('reptile_details', reptile_id=item.reptile_id) }}" style="color: var(--primary-color); text-decoration: none;">
+                            {{ item.reptile_name }}
+                        </a>
+                    </strong>
+                    <span style="color: #3b82f6; margin-left: 0.5rem; font-size: 0.9rem;">
+                        <i class="fas fa-clock"></i> {{ item.next_feeding_date|format_date }}
+                        (in {{ "%.0f"|format(item.days_until) }} day{{ 's' if item.days_until != 1 else '' }})
+                    </span>
+                </div>
+                <a href="{{ url_for('add_feeding') }}?reptile_id={{ item.reptile_id }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <i class="fas fa-utensils"></i> Feed Now
+                </a>
+            </div>
+            {% endfor %}
+            {% if upcoming_feedings|length > 5 %}
+            <div style="text-align: center; padding-top: 0.5rem;">
+                <a href="{{ url_for('feeding_reminders') }}" style="color: var(--primary-color); text-decoration: none;">
+                    View {{ upcoming_feedings|length - 5 }} more upcoming feeding(s) →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Reptiles Section Header -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -186,7 +228,7 @@
                     {% if reptile.date_of_birth %}
                         <div class="stat-item">
                             <i class="fas fa-birthday-cake"></i>
-                            <span>{{ reptile.date_of_birth }}</span>
+                            <span>{{ reptile.date_of_birth|format_date }}</span>
                         </div>
                     {% endif %}
                 </div>

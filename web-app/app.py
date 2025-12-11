@@ -50,13 +50,24 @@ def format_date_filter(date_string):
     if not date_string:
         return ''
     try:
-        # Try parsing different date formats
-        for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']:
+        # Convert to string if not already
+        date_str = str(date_string).strip()
+        
+        # Try parsing different date formats including datetime with time
+        formats = [
+            '%Y-%m-%d %H:%M:%S',  # SQLite datetime format
+            '%Y-%m-%d',           # Standard date
+            '%d/%m/%Y',           # DD/MM/YYYY
+            '%m/%d/%Y'            # MM/DD/YYYY
+        ]
+        
+        for fmt in formats:
             try:
-                date_obj = datetime.strptime(str(date_string), fmt)
+                date_obj = datetime.strptime(date_str, fmt)
                 return date_obj.strftime('%d %B %Y')
             except ValueError:
                 continue
+        
         # If no format matches, return original
         return date_string
     except Exception:
@@ -69,10 +80,12 @@ def index():
     reptiles = db.get_all_reptiles()
     stats = db.get_dashboard_stats()
     overdue_feedings = db.get_overdue_feedings()
+    upcoming_feedings = db.get_upcoming_feedings(days_ahead=7)
     return render_template('dashboard.html',
                          reptiles=reptiles,
                          stats=stats,
-                         overdue_feedings=overdue_feedings)
+                         overdue_feedings=overdue_feedings,
+                         upcoming_feedings=upcoming_feedings)
 
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):

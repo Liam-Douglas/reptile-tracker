@@ -876,11 +876,31 @@ class ReptileDatabase:
             SELECT fr.*, r.name as reptile_name, r.species
             FROM feeding_reminders fr
             JOIN reptiles r ON fr.reptile_id = r.id
-            WHERE fr.is_active = 1 
+            WHERE fr.is_active = 1
             AND fr.next_feeding_date IS NOT NULL
             AND fr.next_feeding_date <= ?
             ORDER BY fr.next_feeding_date ASC
         ''', (today,))
+        
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_upcoming_feedings(self, days_ahead: int = 7) -> List[Dict]:
+        """Get reptiles with upcoming feedings in the next X days (not overdue)"""
+        from datetime import datetime, timedelta
+        today = datetime.now().strftime('%Y-%m-%d')
+        future_date = (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
+        self.cursor.execute('''
+            SELECT fr.*, r.name as reptile_name, r.species,
+                   julianday(fr.next_feeding_date) - julianday(?) as days_until
+            FROM feeding_reminders fr
+            JOIN reptiles r ON fr.reptile_id = r.id
+            WHERE fr.is_active = 1
+            AND fr.next_feeding_date IS NOT NULL
+            AND fr.next_feeding_date > ?
+            AND fr.next_feeding_date <= ?
+            ORDER BY fr.next_feeding_date ASC
+        ''', (today, today, future_date))
         
         return [dict(row) for row in self.cursor.fetchall()]
     
