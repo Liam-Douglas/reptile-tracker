@@ -2,7 +2,7 @@ services:
   - type: web
     name: reptile-tracker
     runtime: python
-    buildCommand: cd web-app && pip install -r requirements.txt
+    buildCommand: apt-get update && apt-get install -y tesseract-ocr && cd web-app && pip install -r requirements.txt
     startCommand: cd web-app && gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION

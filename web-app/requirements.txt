@@ -4,6 +4,9 @@ Flask>=2.3.0
 Werkzeug>=2.3.0
 Pillow>=9.0.0
 
+# For OCR receipt scanning
+pytesseract>=0.3.10
+
 # For data import/export
 pandas>=2.0.0
 openpyxl>=3.1.0
@@ -14,3 +17,9 @@ gunicorn>=21.0.0
 # For notifications
 twilio>=8.0.0
 APScheduler>=3.10.0
+
+# Note: Tesseract OCR must be installed on the system
+# Installation instructions:
+# - Ubuntu/Debian: sudo apt-get install tesseract-ocr
+# - macOS: brew install tesseract
+# - Windows: Download installer from https://github.com/UB-Mannheim/tesseract/wiki
