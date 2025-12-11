@@ -22,8 +22,21 @@
         <div class="stat-label">Total Sheds</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ "%.0f"|format(stats.feeding_success_rate) if stats.feeding_success_rate else "0" }}%</div>
-        <div class="stat-label">Success Rate</div>
+        <div class="stat-value">
+            {% if stats.total_feedings > 0 %}
+                {{ "%.0f"|format(stats.feeding_success_rate) }}%
+            {% else %}
+                <span style="font-size: 1.5rem; color: var(--text-secondary);">N/A</span>
+            {% endif %}
+        </div>
+        <div class="stat-label">
+            Feeding Success Rate
+            {% if stats.total_feedings == 0 %}
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    (No feedings logged yet)
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 <!-- Overdue Feedings Alert -->
