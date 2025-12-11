@@ -1257,6 +1257,119 @@ class ReptileDatabase:
         ''')
         return [dict(row) for row in self.cursor.fetchall()]
     
+    def get_inventory_forecast(self, inventory_id: int = None, days_lookback: int = 30) -> List[Dict]:
+        """
+        Calculate consumption forecast for inventory items
+        Returns forecast data including consumption rate and estimated days until depletion
+        """
+        forecasts = []
+        
+        # Get inventory items to forecast
+        if inventory_id:
+            items = [self.get_food_item(inventory_id)]
+            if not items[0]:
+                return []
+        else:
+            items = self.get_food_inventory(include_zero=False)
+        
+        # Calculate forecast for each item
+        for item in items:
+            # Get consumption data from feeding logs (last N days)
+            self.cursor.execute('''
+                SELECT 
+                    COUNT(*) as feeding_count,
+                    SUM(quantity) as total_consumed,
+                    MIN(feeding_date) as first_feeding,
+                    MAX(feeding_date) as last_feeding
+                FROM feeding_logs
+                WHERE inventory_id = ?
+                    AND auto_deducted = 1
+                    AND ate = 1
+                    AND feeding_date >= date('now', '-' || ? || ' days')
+            ''', (item['id'], days_lookback))
+            
+            consumption_data = dict(self.cursor.fetchone())
+            
+            # Calculate consumption rate
+            total_consumed = consumption_data['total_consumed'] or 0
+            feeding_count = consumption_data['feeding_count'] or 0
+            
+            if feeding_count > 0 and consumption_data['first_feeding'] and consumption_data['last_feeding']:
+                # Calculate days between first and last feeding
+                from datetime import datetime
+                first_date = datetime.strptime(consumption_data['first_feeding'], '%Y-%m-%d')
+                last_date = datetime.strptime(consumption_data['last_feeding'], '%Y-%m-%d')
+                days_span = (last_date - first_date).days + 1  # +1 to include both days
+                
+                if days_span > 0:
+                    # Average consumption per day
+                    consumption_per_day = total_consumed / days_span
+                    
+                    # Days until depletion
+                    if consumption_per_day > 0:
+                        days_remaining = item['quantity'] / consumption_per_day
+                    else:
+                        days_remaining = None
+                    
+                    # Estimated depletion date
+                    if days_remaining:
+                        from datetime import timedelta
+                        depletion_date = datetime.now() + timedelta(days=days_remaining)
+                        depletion_date_str = depletion_date.strftime('%Y-%m-%d')
+                    else:
+                        depletion_date_str = None
+                else:
+                    consumption_per_day = 0
+                    days_remaining = None
+                    depletion_date_str = None
+            else:
+                consumption_per_day = 0
+                days_remaining = None
+                depletion_date_str = None
+            
+            # Determine status
+            if days_remaining is None:
+                status = 'unknown'
+                status_class = 'secondary'
+            elif days_remaining <= 7:
+                status = 'critical'
+                status_class = 'danger'
+            elif days_remaining <= 14:
+                status = 'low'
+                status_class = 'warning'
+            else:
+                status = 'good'
+                status_class = 'success'
+            
+            # Calculate reorder suggestion
+            if consumption_per_day > 0:
+                # Suggest reordering when 14 days of stock remain
+                reorder_threshold = consumption_per_day * 14
+                needs_reorder = item['quantity'] <= reorder_threshold
+                suggested_order_qty = max(int(consumption_per_day * 30), 10)  # 30 days worth, minimum 10
+            else:
+                needs_reorder = False
+                suggested_order_qty = 10
+            
+            forecasts.append({
+                'inventory_id': item['id'],
+                'food_type': item['food_type'],
+                'food_size': item['food_size'],
+                'current_quantity': item['quantity'],
+                'feeding_count': feeding_count,
+                'total_consumed': total_consumed,
+                'days_analyzed': days_lookback,
+                'consumption_per_day': round(consumption_per_day, 2),
+                'days_remaining': int(days_remaining) if days_remaining else None,
+                'depletion_date': depletion_date_str,
+                'status': status,
+                'status_class': status_class,
+                'needs_reorder': needs_reorder,
+                'suggested_order_qty': suggested_order_qty
+            })
+        
+        return forecasts
+    
     def delete_food_item(self, inventory_id: int) -> bool:
         """Delete a food inventory item"""
         self.cursor.execute('DELETE FROM food_inventory WHERE id = ?', (inventory_id,))

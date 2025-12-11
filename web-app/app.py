@@ -941,10 +941,17 @@ def food_inventory():
     # Get out of stock items
     out_of_stock = db.get_out_of_stock_items()
     
+    # Get inventory forecasts
+    forecasts = db.get_inventory_forecast(days_lookback=30)
+    
+    # Create a forecast lookup dictionary by inventory_id
+    forecast_dict = {f['inventory_id']: f for f in forecasts}
+    
     return render_template('food_inventory.html',
                          inventory=inventory,
                          low_stock=low_stock,
-                         out_of_stock=out_of_stock)
+                         out_of_stock=out_of_stock,
+                         forecasts=forecast_dict)
 
 @app.route('/inventory/add', methods=['GET', 'POST'])
 def add_inventory_item():

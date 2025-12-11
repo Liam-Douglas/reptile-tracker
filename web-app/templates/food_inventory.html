@@ -67,6 +67,113 @@
 </div>
 {% endif %}
 
+<!-- Inventory Forecast -->
+{% if forecasts %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #3b82f6;">
+    <div class="card-header" style="background: #dbeafe;">
+        <h3 class="card-title" style="color: #1e40af;">
+            <i class="fas fa-chart-line"></i> Inventory Forecast & Reorder Suggestions
+        </h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #64748b;">
+            Based on last 30 days of consumption data
+        </p>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; gap: 1rem;">
+            {% for item in inventory %}
+                {% if item.id in forecasts %}
+                    {% set forecast = forecasts[item.id] %}
+                    {% if forecast.feeding_count > 0 %}
+                    <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border-left: 4px solid
+                        {% if forecast.status == 'critical' %}#ef4444
+                        {% elif forecast.status == 'low' %}#f59e0b
+                        {% elif forecast.status == 'good' %}#10b981
+                        {% else %}#6b7280{% endif %};">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">{{ forecast.food_type }} - {{ forecast.food_size }}</h4>
+                                <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">
+                                    {{ forecast.current_quantity }} in stock
+                                </p>
+                            </div>
+                            <span class="badge badge-{{ forecast.status_class }}" style="font-size: 0.85rem;">
+                                {% if forecast.status == 'critical' %}Critical
+                                {% elif forecast.status == 'low' %}Low
+                                {% elif forecast.status == 'good' %}Good
+                                {% else %}Unknown{% endif %}
+                            </span>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-utensils" style="color: var(--primary-color);"></i>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Consumption Rate</div>
+                                    <div style="font-weight: 600;">{{ forecast.consumption_per_day }}/day</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar-day" style="color: var(--primary-color);"></i>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Days Remaining</div>
+                                    <div style="font-weight: 600;">
+                                        {% if forecast.days_remaining %}
+                                            ~{{ forecast.days_remaining }} days
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if forecast.depletion_date %}
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar-times" style="color: var(--primary-color);"></i>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Est. Depletion</div>
+                                    <div style="font-weight: 600;">{{ forecast.depletion_date }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-chart-bar" style="color: var(--primary-color);"></i>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Feedings Tracked</div>
+                                    <div style="font-weight: 600;">{{ forecast.feeding_count }} times</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if forecast.needs_reorder %}
+                        <div style="padding: 0.75rem; background: #fef3c7; border-radius: 4px; border-left: 3px solid #f59e0b;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: #92400e;">
+                                        <i class="fas fa-shopping-cart"></i> Reorder Recommended
+                                    </strong>
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #78350f;">
+                                        Suggested order: {{ forecast.suggested_order_qty }} units (30 days supply)
+                                    </p>
+                                </div>
+                                <a href="{{ url_for('inventory_item_details', inventory_id=item.id) }}"
+                                   class="btn btn-warning"
+                                   style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                    <i class="fas fa-plus"></i> Restock
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Inventory Grid -->
 <div class="card">
     <div class="card-header">
