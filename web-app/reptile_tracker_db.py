@@ -210,6 +210,7 @@ class ReptileDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (inventory_id) REFERENCES food_inventory (id) ON DELETE CASCADE
             )
+        ''')
         
         # Purchase receipts table (for bulk inventory additions)
         self.cursor.execute('''
