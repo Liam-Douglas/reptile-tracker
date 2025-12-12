@@ -1127,6 +1127,9 @@ def food_inventory():
     """Display food inventory"""
     db = get_db()
     
+    # Get days ahead parameter for shopping list (default 30)
+    days_ahead = request.args.get('days', 30, type=int)
+    
     # Get all inventory items
     inventory = db.get_food_inventory(include_zero=True)
     
@@ -1142,11 +1145,16 @@ def food_inventory():
     # Create a forecast lookup dictionary by inventory_id
     forecast_dict = {f['inventory_id']: f for f in forecasts}
     
+    # Get shopping list data
+    shopping_list_data = db.get_shopping_list(days_ahead=days_ahead)
+    
     return render_template('food_inventory.html',
                          inventory=inventory,
                          low_stock=low_stock,
                          out_of_stock=out_of_stock,
-                         forecasts=forecast_dict)
+                         forecasts=forecast_dict,
+                         shopping_list=shopping_list_data,
+                         days_ahead=days_ahead)
 
 @app.route('/shopping-list')
 def shopping_list():

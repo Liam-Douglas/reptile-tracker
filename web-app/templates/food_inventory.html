@@ -89,6 +89,95 @@
 </div>
 {% endif %}
 
+<!-- Food Requirements / Shopping List -->
+{% if shopping_list %}
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #8b5cf6;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 class="card-title" style="color: #8b5cf6;">
+                <i class="fas fa-shopping-cart"></i> Food Requirements
+            </h3>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">
+                Based on feeding schedules for the next {{ days_ahead }} days
+            </p>
+        </div>
+        <form method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label style="font-size: 0.875rem; color: var(--text-secondary);">Days ahead:</label>
+            <select name="days" class="form-select" onchange="this.form.submit()" style="width: auto; padding: 0.375rem 0.75rem;">
+                <option value="7" {% if days_ahead == 7 %}selected{% endif %}>7 days</option>
+                <option value="14" {% if days_ahead == 14 %}selected{% endif %}>14 days</option>
+                <option value="30" {% if days_ahead == 30 %}selected{% endif %}>30 days</option>
+                <option value="60" {% if days_ahead == 60 %}selected{% endif %}>60 days</option>
+                <option value="90" {% if days_ahead == 90 %}selected{% endif %}>90 days</option>
+            </select>
+        </form>
+    </div>
+    <div style="padding: 1rem;">
+        <div style="display: grid; gap: 1rem;">
+            {% for item in shopping_list %}
+            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border-left: 4px solid
+                {% if item.shortage > 0 %}#ef4444
+                {% else %}#10b981{% endif %};">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 2fr; gap: 1rem; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Food Type</div>
+                        <div style="font-weight: 600;">{{ item.food_type }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Food Size</div>
+                        <div style="font-weight: 600;">{{ item.food_size }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Needed</div>
+                        <div style="font-weight: 600; color: #3b82f6;">{{ item.quantity_needed }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">In Stock</div>
+                        <div style="font-weight: 600; color: #10b981;">{{ item.current_stock }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">To Buy</div>
+                        {% if item.shortage > 0 %}
+                            <div style="font-weight: 600; color: #ef4444; font-size: 1.125rem;">{{ item.shortage }}</div>
+                        {% else %}
+                            <div style="font-weight: 600; color: #10b981;">✓ In stock</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Reptile breakdown (collapsible) -->
+                <details style="margin-top: 0.75rem;">
+                    <summary style="cursor: pointer; font-size: 0.875rem; color: var(--text-secondary); user-select: none;">
+                        {{ item.reptiles|length }} reptile(s) need this food
+                    </summary>
+                    <div style="margin-top: 0.5rem; padding-left: 1rem; border-left: 2px solid var(--border-color);">
+                        {% for reptile in item.reptiles %}
+                        <div style="padding: 0.5rem 0; font-size: 0.875rem;">
+                            <strong>{{ reptile.name }}</strong>: {{ reptile.feedings }} feeding(s) = {{ reptile.quantity }} items
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #6b7280;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-shopping-cart"></i> Food Requirements
+        </h3>
+    </div>
+    <div style="padding: 1.5rem; text-align: center; color: var(--text-secondary);">
+        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p style="margin: 0;">No feeding schedules with food preferences set up yet.</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">Set up feeding reminders with food preferences to see shopping list here.</p>
+    </div>
+</div>
+{% endif %}
+
 <!-- Inventory Forecast -->
 <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #3b82f6;">
     <div class="card-header">

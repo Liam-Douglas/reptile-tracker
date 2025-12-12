@@ -171,9 +171,6 @@
             <a href="{{ url_for('food_inventory') }}" class="nav-link {% if request.endpoint in ['food_inventory', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions'] %}active{% endif %}">
                 <i class="fas fa-box"></i> Inventory
             </a>
-            <a href="{{ url_for('shopping_list') }}" class="nav-link {% if request.endpoint == 'shopping_list' %}active{% endif %}">
-                <i class="fas fa-shopping-cart"></i> Shopping List
-            </a>
             <a href="{{ url_for('settings_page') }}" class="nav-link {% if request.endpoint in ['settings_page', 'import_page', 'backup_data', 'restore_data'] %}active{% endif %}">
                 <i class="fas fa-cog"></i> Settings
             </a>
