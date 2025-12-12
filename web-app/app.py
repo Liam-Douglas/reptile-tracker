@@ -840,7 +840,6 @@ def upgrade_food(reptile_id):
                          recent_feedings=recent_feedings,
                          food_types=food_types,
                          food_sizes=food_sizes)
-                         existing_reminder=existing_reminder)
 
 @app.route('/reptile/<int:reptile_id>/feeding-reminder/disable', methods=['POST'])
 def disable_feeding_reminder(reptile_id):
