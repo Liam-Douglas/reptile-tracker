@@ -1229,40 +1229,64 @@ def scan_receipt():
                 file.save(filepath)
                 
                 # Process with OCR
-                ocr = ReceiptOCR()
-                result = ocr.process_receipt_image(filepath)
-                
-                if not result.get('success'):
-                    error_msg = result.get('error', 'Unknown error')
-                    flash(f"Error processing receipt: {error_msg}", 'error')
-                    # Still allow manual entry as fallback
-                    flash('You can try again with a clearer image, or use manual entry instead.', 'info')
-                    return redirect(url_for('scan_receipt'))
-                
-                # Check if any text was extracted
-                raw_text = result.get('raw_text', '').strip()
-                if not raw_text or len(raw_text) < 5:
-                    flash('Could not extract text from image. Please ensure the image is clear and well-lit.', 'error')
-                    flash('Tip: Try taking the photo in better lighting or use manual entry instead.', 'info')
-                    return redirect(url_for('scan_receipt'))
-                
-                # Store parsed data in session for review
-                session['scanned_receipt'] = {
-                    'image_path': filename,
-                    'supplier': result.get('supplier'),
-                    'date': result.get('date'),
-                    'total': result.get('total'),
-                    'items': result.get('items', []),
-                    'raw_text': raw_text
-                }
-                
-                items_found = len(result.get("items", []))
-                if items_found > 0:
-                    flash(f'Receipt scanned! Found {items_found} items. Please review and edit before saving.', 'success')
-                else:
-                    flash('Receipt scanned, but no food items were automatically detected. You can add items manually.', 'warning')
-                
-                return redirect(url_for('review_scanned_receipt'))
+                try:
+                    ocr = ReceiptOCR()
+                    result = ocr.process_receipt_image(filepath)
+                    
+                    if not result.get('success'):
+                        error_msg = result.get('error', 'Unknown error')
+                        print(f"OCR Error: {error_msg}")
+                        # Proceed anyway with empty data - user can enter manually
+                        result = {
+                            'success': True,
+                            'supplier': None,
+                            'date': None,
+                            'total': None,
+                            'items': [],
+                            'raw_text': f'OCR failed: {error_msg}'
+                        }
+                    
+                    # Check if any text was extracted
+                    raw_text = result.get('raw_text', '').strip()
+                    if not raw_text or len(raw_text) < 5:
+                        print("OCR extracted insufficient text")
+                        # Proceed anyway - user can enter manually
+                        raw_text = 'No text extracted by OCR'
+                        result['items'] = []
+                    
+                    # Store parsed data in session for review
+                    session['scanned_receipt'] = {
+                        'image_path': filename,
+                        'supplier': result.get('supplier'),
+                        'date': result.get('date'),
+                        'total': result.get('total'),
+                        'items': result.get('items', []),
+                        'raw_text': raw_text
+                    }
+                    
+                    items_found = len(result.get("items", []))
+                    if items_found > 0:
+                        flash(f'Receipt scanned! Found {items_found} items. Please review and edit before saving.', 'success')
+                    else:
+                        flash('Receipt image saved. OCR could not detect items automatically - please add them manually below.', 'warning')
+                    
+                    return redirect(url_for('review_scanned_receipt'))
+                    
+                except Exception as e:
+                    print(f"OCR Exception: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    # Still proceed - let user enter manually
+                    session['scanned_receipt'] = {
+                        'image_path': filename,
+                        'supplier': None,
+                        'date': None,
+                        'total': None,
+                        'items': [],
+                        'raw_text': f'OCR error: {str(e)}'
+                    }
+                    flash('Receipt image saved. Please add items manually (OCR unavailable).', 'warning')
+                    return redirect(url_for('review_scanned_receipt'))
                 
         except Exception as e:
             flash(f'Error scanning receipt: {str(e)}', 'error')
