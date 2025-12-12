@@ -103,52 +103,46 @@
                     <!-- Pre-populate with scanned items -->
                     {% if scanned_data.get('items') %}
                         {% for item in scanned_data.get('items') %}
-                        <div class="receipt-item" id="item-{{ loop.index0 }}" style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
+                        <div class="receipt-item" id="item-{{ loop.index0 }}" style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
                             <div>
                                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                                     Food Type <span style="color: #ef4444;">*</span>
                                 </label>
-                                <input type="text" 
-                                       name="food_type_{{ loop.index0 }}" 
-                                       list="food-types-{{ loop.index0 }}"
-                                       required
-                                       value="{{ item.food_type }}"
-                                       placeholder="e.g., Rat, Mouse"
-                                       onchange="updateTotal()"
-                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                                <datalist id="food-types-{{ loop.index0 }}">
+                                <select name="food_type_{{ loop.index0 }}"
+                                        required
+                                        onchange="updateTotal()"
+                                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                                    <option value="">Select...</option>
                                     {% for type in food_types %}
-                                    <option value="{{ type }}">
+                                    <option value="{{ type }}" {% if item.food_type == type %}selected{% endif %}>{{ type }}</option>
                                     {% endfor %}
-                                </datalist>
+                                    <option value="Other">Other (type below)</option>
+                                </select>
                             </div>
                             
                             <div>
                                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                                     Size <span style="color: #ef4444;">*</span>
                                 </label>
-                                <input type="text" 
-                                       name="food_size_{{ loop.index0 }}" 
-                                       list="food-sizes-{{ loop.index0 }}"
-                                       required
-                                       value="{{ item.food_size }}"
-                                       placeholder="e.g., Large"
-                                       onchange="updateTotal()"
-                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                                <datalist id="food-sizes-{{ loop.index0 }}">
+                                <select name="food_size_{{ loop.index0 }}"
+                                        required
+                                        onchange="updateTotal()"
+                                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                                    <option value="">Select...</option>
                                     {% for size in food_sizes %}
-                                    <option value="{{ size }}">
+                                    <option value="{{ size }}" {% if item.food_size == size %}selected{% endif %}>{{ size }}</option>
                                     {% endfor %}
-                                </datalist>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                             
                             <div>
                                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                                     Quantity <span style="color: #ef4444;">*</span>
                                 </label>
-                                <input type="number" 
-                                       name="quantity_{{ loop.index0 }}" 
-                                       min="1" 
+                                <input type="number"
+                                       name="quantity_{{ loop.index0 }}"
+                                       min="1"
                                        value="{{ item.quantity }}"
                                        required
                                        onchange="updateTotal()"
@@ -159,14 +153,28 @@
                                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                                     Cost Each
                                 </label>
-                                <input type="number" 
-                                       name="cost_per_unit_{{ loop.index0 }}" 
-                                       min="0" 
+                                <input type="number"
+                                       name="cost_per_unit_{{ loop.index0 }}"
+                                       min="0"
                                        step="0.01"
                                        value="{{ '%.2f'|format(item.cost_per_unit) if item.cost_per_unit else '' }}"
                                        placeholder="0.00"
                                        onchange="updateTotal()"
                                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                                    Total
+                                </label>
+                                <input type="number"
+                                       name="item_total_{{ loop.index0 }}"
+                                       min="0"
+                                       step="0.01"
+                                       value="{{ '%.2f'|format(item.total_cost) if item.total_cost else '' }}"
+                                       placeholder="0.00"
+                                       readonly
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-secondary);">
                             </div>
                             
                             <div>
@@ -253,49 +261,43 @@ function addItem() {
     itemDiv.className = 'receipt-item';
     itemDiv.id = `item-${index}`;
     itemDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem;">
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                     Food Type <span style="color: #ef4444;">*</span>
                 </label>
-                <input type="text" 
-                       name="food_type_${index}" 
-                       list="food-types-${index}"
-                       required
-                       placeholder="e.g., Rat, Mouse"
-                       onchange="updateTotal()"
-                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                <datalist id="food-types-${index}">
-                    ${foodTypes.map(type => `<option value="${type}">`).join('')}
-                </datalist>
+                <select name="food_type_${index}"
+                        required
+                        onchange="updateItemTotal(${index}); updateTotal();"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                    <option value="">Select type...</option>
+                    ${foodTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+                </select>
             </div>
             
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                     Size <span style="color: #ef4444;">*</span>
                 </label>
-                <input type="text" 
-                       name="food_size_${index}" 
-                       list="food-sizes-${index}"
-                       required
-                       placeholder="e.g., Large"
-                       onchange="updateTotal()"
-                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                <datalist id="food-sizes-${index}">
-                    ${foodSizes.map(size => `<option value="${size}">`).join('')}
-                </datalist>
+                <select name="food_size_${index}"
+                        required
+                        onchange="updateItemTotal(${index}); updateTotal();"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                    <option value="">Select size...</option>
+                    ${foodSizes.map(size => `<option value="${size}">${size}</option>`).join('')}
+                </select>
             </div>
             
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                     Quantity <span style="color: #ef4444;">*</span>
                 </label>
-                <input type="number" 
-                       name="quantity_${index}" 
-                       min="1" 
+                <input type="number"
+                       name="quantity_${index}"
+                       min="1"
                        value="1"
                        required
-                       onchange="updateTotal()"
+                       onchange="updateItemTotal(${index}); updateTotal();"
                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
             </div>
             
@@ -303,18 +305,29 @@ function addItem() {
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
                     Cost Each
                 </label>
-                <input type="number" 
-                       name="cost_per_unit_${index}" 
-                       min="0" 
+                <input type="number"
+                       name="cost_per_unit_${index}"
+                       min="0"
                        step="0.01"
                        placeholder="0.00"
-                       onchange="updateTotal()"
+                       onchange="updateItemTotal(${index}); updateTotal();"
                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
             </div>
             
             <div>
-                <button type="button" 
-                        onclick="removeItem(${index})" 
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                    Total
+                </label>
+                <input type="text"
+                       id="item_total_${index}"
+                       readonly
+                       value="$0.00"
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-secondary); font-weight: 500;">
+            </div>
+            
+            <div>
+                <button type="button"
+                        onclick="removeItem(${index})"
                         class="btn btn-danger"
                         style="padding: 0.75rem 1rem; white-space: nowrap;">
                     <i class="fas fa-trash"></i>
