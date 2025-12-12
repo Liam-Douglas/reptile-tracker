@@ -83,34 +83,27 @@
 
             <div class="form-group">
                 <label class="form-label" for="food_type">Food Type *</label>
-                <input type="text"
-                       id="food_type"
-                       name="food_type"
-                       class="form-input"
-                       list="food_type_list"
-                       placeholder="e.g., Mouse, Cricket, Dubia Roach"
-                       value="{{ log.food_type if log else '' }}">
-                <datalist id="food_type_list">
+                <select id="food_type"
+                        name="food_type"
+                        class="form-select"
+                        required>
+                    <option value="">Select food type...</option>
                     {% for food_type in food_types %}
-                        <option value="{{ food_type }}">
+                        <option value="{{ food_type }}" {% if log and log.food_type == food_type %}selected{% endif %}>{{ food_type }}</option>
                     {% endfor %}
-                </datalist>
+                </select>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="food_size">Food Size</label>
-                <input type="text"
-                       id="food_size"
-                       name="food_size"
-                       class="form-input"
-                       list="food_size_list"
-                       placeholder="e.g., Large, Medium, Small"
-                       value="{{ log.food_size if log and log.food_size else '' }}">
-                <datalist id="food_size_list">
+                <select id="food_size"
+                        name="food_size"
+                        class="form-select">
+                    <option value="">Select size...</option>
                     {% for food_size in food_sizes %}
-                        <option value="{{ food_size }}">
+                        <option value="{{ food_size }}" {% if log and log.food_size == food_size %}selected{% endif %}>{{ food_size }}</option>
                     {% endfor %}
-                </datalist>
+                </select>
             </div>
         </div>
 

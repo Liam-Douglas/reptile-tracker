@@ -25,41 +25,30 @@
                         <label for="food_type" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
                             Food Type <span style="color: #ef4444;">*</span>
                         </label>
-                        <input type="text" 
-                               name="food_type" 
-                               id="food_type" 
-                               required
-                               list="food-types"
-                               value="{{ request.form.get('food_type', '') }}"
-                               placeholder="e.g., Rat, Mouse, Cricket"
-                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                        <datalist id="food-types">
+                        <select name="food_type"
+                                id="food_type"
+                                required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                            <option value="">Select food type...</option>
                             {% for type in food_types %}
-                            <option value="{{ type }}">
+                            <option value="{{ type }}" {% if request.form.get('food_type') == type %}selected{% endif %}>{{ type }}</option>
                             {% endfor %}
-                        </datalist>
-                        <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">
-                            Start typing to see suggestions
-                        </small>
+                        </select>
                     </div>
                     
                     <div>
                         <label for="food_size" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
                             Size <span style="color: #ef4444;">*</span>
                         </label>
-                        <input type="text" 
-                               name="food_size" 
-                               id="food_size" 
-                               required
-                               list="food-sizes"
-                               value="{{ request.form.get('food_size', '') }}"
-                               placeholder="e.g., Small, Medium, Large, Pinkie"
-                               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                        <datalist id="food-sizes">
+                        <select name="food_size"
+                                id="food_size"
+                                required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                            <option value="">Select size...</option>
                             {% for size in food_sizes %}
-                            <option value="{{ size }}">
+                            <option value="{{ size }}" {% if request.form.get('food_size') == size %}selected{% endif %}>{{ size }}</option>
                             {% endfor %}
-                        </datalist>
+                        </select>
                     </div>
                 </div>
                 
