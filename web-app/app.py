@@ -1113,10 +1113,9 @@ def add_inventory_item():
         except Exception as e:
             flash(f'Error adding inventory: {str(e)}', 'error')
     
-    # Get existing food types for suggestions
-    existing_inventory = db.get_food_inventory(include_zero=True)
-    food_types = list(set([item['food_type'] for item in existing_inventory]))
-    food_sizes = list(set([item['food_size'] for item in existing_inventory]))
+    # Get food types and sizes (includes standard options from supplier)
+    food_types = db.get_distinct_food_types()
+    food_sizes = db.get_distinct_food_sizes()
     
     return render_template('add_inventory_item.html',
                          food_types=food_types,
