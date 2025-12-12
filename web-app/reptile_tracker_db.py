@@ -440,6 +440,9 @@ class ReptileDatabase:
         return [dict(row) for row in self.cursor.fetchall()]
     def get_distinct_food_types(self) -> List[str]:
         """Get list of unique food types from inventory and feeding logs"""
+        # Standard food types based on frozen food supplier
+        standard_types = ['Rat', 'Mouse', 'Rabbit', 'Cricket', 'Dubia Roach', 'Quail']
+        
         # Get from inventory
         self.cursor.execute('SELECT DISTINCT food_type FROM food_inventory ORDER BY food_type')
         inventory_types = [row['food_type'] for row in self.cursor.fetchall()]
@@ -448,9 +451,17 @@ class ReptileDatabase:
         self.cursor.execute('SELECT DISTINCT food_type FROM feeding_logs WHERE food_type IS NOT NULL ORDER BY food_type')
         log_types = [row['food_type'] for row in self.cursor.fetchall()]
         
-        # Combine and remove duplicates, maintaining order
+        # Combine standard types with existing data, maintaining order and removing duplicates
         all_types = []
         seen = set()
+        
+        # Add standard types first
+        for food_type in standard_types:
+            if food_type not in seen:
+                all_types.append(food_type)
+                seen.add(food_type)
+        
+        # Add any additional types from database
         for food_type in inventory_types + log_types:
             if food_type and food_type not in seen:
                 all_types.append(food_type)
@@ -460,6 +471,21 @@ class ReptileDatabase:
     
     def get_distinct_food_sizes(self) -> List[str]:
         """Get list of unique food sizes from inventory and feeding logs"""
+        # Standard food sizes based on frozen food supplier (in logical order)
+        standard_sizes = [
+            'Pinkie',
+            'Fuzzie',
+            'Hopper',
+            'Weaner',
+            'Juvenile',
+            'Small',
+            'Adults',
+            'Medium',
+            'Large',
+            'X Large',
+            'Jumbo'
+        ]
+        
         # Get from inventory
         self.cursor.execute('SELECT DISTINCT food_size FROM food_inventory WHERE food_size IS NOT NULL ORDER BY food_size')
         inventory_sizes = [row['food_size'] for row in self.cursor.fetchall()]
@@ -468,9 +494,17 @@ class ReptileDatabase:
         self.cursor.execute('SELECT DISTINCT food_size FROM feeding_logs WHERE food_size IS NOT NULL ORDER BY food_size')
         log_sizes = [row['food_size'] for row in self.cursor.fetchall()]
         
-        # Combine and remove duplicates, maintaining order
+        # Combine standard sizes with existing data, maintaining order and removing duplicates
         all_sizes = []
         seen = set()
+        
+        # Add standard sizes first (in proper order)
+        for food_size in standard_sizes:
+            if food_size not in seen:
+                all_sizes.append(food_size)
+                seen.add(food_size)
+        
+        # Add any additional sizes from database
         for food_size in inventory_sizes + log_sizes:
             if food_size and food_size not in seen:
                 all_sizes.append(food_size)
