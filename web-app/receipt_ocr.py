@@ -44,15 +44,39 @@ class ReceiptOCR:
             # Open and preprocess image
             image = Image.open(image_path)
             
+            # Convert to RGB first (handles various formats)
+            if image.mode not in ('RGB', 'L'):
+                image = image.convert('RGB')
+            
             # Convert to grayscale for better OCR
             image = image.convert('L')
             
-            # Use Tesseract to extract text
-            text = pytesseract.image_to_string(image)
+            # Enhance image for better OCR
+            from PIL import ImageEnhance, ImageFilter
+            
+            # Increase contrast
+            enhancer = ImageEnhance.Contrast(image)
+            image = enhancer.enhance(2.0)
+            
+            # Sharpen image
+            image = image.filter(ImageFilter.SHARPEN)
+            
+            # Use Tesseract to extract text with custom config
+            # --psm 6: Assume a single uniform block of text
+            # --oem 3: Use both legacy and LSTM OCR engines
+            custom_config = r'--oem 3 --psm 6'
+            text = pytesseract.image_to_string(image, config=custom_config)
+            
+            if not text or len(text.strip()) < 10:
+                # Try again with different PSM mode if first attempt failed
+                custom_config = r'--oem 3 --psm 4'  # Assume single column of text
+                text = pytesseract.image_to_string(image, config=custom_config)
             
             return text
         except Exception as e:
             print(f"Error extracting text from image: {e}")
+            import traceback
+            traceback.print_exc()
             return ""
     
     def parse_receipt(self, text: str) -> Dict:

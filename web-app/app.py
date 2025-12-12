@@ -1233,7 +1233,17 @@ def scan_receipt():
                 result = ocr.process_receipt_image(filepath)
                 
                 if not result.get('success'):
-                    flash(f"Error processing receipt: {result.get('error', 'Unknown error')}", 'error')
+                    error_msg = result.get('error', 'Unknown error')
+                    flash(f"Error processing receipt: {error_msg}", 'error')
+                    # Still allow manual entry as fallback
+                    flash('You can try again with a clearer image, or use manual entry instead.', 'info')
+                    return redirect(url_for('scan_receipt'))
+                
+                # Check if any text was extracted
+                raw_text = result.get('raw_text', '').strip()
+                if not raw_text or len(raw_text) < 10:
+                    flash('Could not extract text from image. Please ensure the image is clear and well-lit.', 'error')
+                    flash('Tip: Try taking the photo in better lighting or use manual entry instead.', 'info')
                     return redirect(url_for('scan_receipt'))
                 
                 # Store parsed data in session for review
@@ -1243,10 +1253,15 @@ def scan_receipt():
                     'date': result.get('date'),
                     'total': result.get('total'),
                     'items': result.get('items', []),
-                    'raw_text': result.get('raw_text')
+                    'raw_text': raw_text
                 }
                 
-                flash(f'Receipt scanned! Found {len(result.get("items", []))} items. Please review and edit before saving.', 'success')
+                items_found = len(result.get("items", []))
+                if items_found > 0:
+                    flash(f'Receipt scanned! Found {items_found} items. Please review and edit before saving.', 'success')
+                else:
+                    flash('Receipt scanned, but no food items were automatically detected. You can add items manually.', 'warning')
+                
                 return redirect(url_for('review_scanned_receipt'))
                 
         except Exception as e:
