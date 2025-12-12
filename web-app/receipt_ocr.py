@@ -18,9 +18,9 @@ class ReceiptOCR:
             'rat', 'rats', 'mouse', 'mice', 'cricket', 'crickets',
             'dubia', 'roach', 'roaches', 'mealworm', 'mealworms',
             'superworm', 'superworms', 'hornworm', 'hornworms',
-            'waxworm', 'waxworms', 'pinkie', 'pinkies', 'fuzzy', 'fuzzies',
+            'waxworm', 'waxworms', 'pinkie', 'pinkies', 'fuzzy', 'fuzzies', 'fuzzie',
             'hopper', 'hoppers', 'small', 'medium', 'large', 'xl', 'jumbo',
-            'adult', 'baby', 'juvenile', 'feeder'
+            'adult', 'baby', 'juvenile', 'feeder', 'rabbit', 'raticool'
         ]
         
         # Size keywords

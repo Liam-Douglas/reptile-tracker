@@ -1241,7 +1241,7 @@ def scan_receipt():
                 
                 # Check if any text was extracted
                 raw_text = result.get('raw_text', '').strip()
-                if not raw_text or len(raw_text) < 10:
+                if not raw_text or len(raw_text) < 5:
                     flash('Could not extract text from image. Please ensure the image is clear and well-lit.', 'error')
                     flash('Tip: Try taking the photo in better lighting or use manual entry instead.', 'info')
                     return redirect(url_for('scan_receipt'))
