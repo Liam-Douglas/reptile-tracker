@@ -110,17 +110,44 @@ def days_ago_filter(date_string):
 
 @app.route('/')
 def index():
-    """Dashboard - show all reptiles"""
+    """Dashboard - show all reptiles with inventory and expense overview"""
     db = get_db()
     reptiles = db.get_all_reptiles()
     stats = db.get_dashboard_stats()
     overdue_feedings = db.get_overdue_feedings()
     upcoming_feedings = db.get_upcoming_feedings(days_ahead=7)
+    
+    # Get inventory data
+    inventory = db.get_food_inventory()
+    low_stock = [item for item in inventory if 0 < item['quantity'] <= 5]
+    out_of_stock = [item for item in inventory if item['quantity'] == 0]
+    total_inventory_value = sum(
+        (item['quantity'] * item.get('cost_per_unit', 0))
+        for item in inventory if item.get('cost_per_unit')
+    )
+    
+    # Get expense data (last 30 days)
+    from datetime import datetime, timedelta
+    thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+    recent_receipts = db.get_purchase_receipts()
+    monthly_expenses = sum(
+        receipt.get('total_cost', 0)
+        for receipt in recent_receipts
+        if receipt.get('receipt_date', '') >= thirty_days_ago
+    )
+    
     return render_template('dashboard.html',
                          reptiles=reptiles,
                          stats=stats,
                          overdue_feedings=overdue_feedings,
-                         upcoming_feedings=upcoming_feedings)
+                         upcoming_feedings=upcoming_feedings,
+                         inventory_count=len(inventory),
+                         low_stock_count=len(low_stock),
+                         out_of_stock_count=len(out_of_stock),
+                         low_stock_items=low_stock[:3],
+                         out_of_stock_items=out_of_stock[:3],
+                         total_inventory_value=total_inventory_value,
+                         monthly_expenses=monthly_expenses)
 
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):
