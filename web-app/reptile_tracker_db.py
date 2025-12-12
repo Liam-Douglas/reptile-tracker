@@ -437,6 +437,15 @@ class ReptileDatabase:
             query += f' LIMIT {limit}'
         
         self.cursor.execute(query)
+    
+    def get_food_item_by_type_size(self, food_type: str, food_size: str) -> Optional[Dict]:
+        """Get a food inventory item by type and size"""
+        self.cursor.execute('''
+            SELECT * FROM food_inventory 
+            WHERE food_type = ? AND food_size = ?
+        ''', (food_type, food_size))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
         return [dict(row) for row in self.cursor.fetchall()]
     def get_distinct_food_types(self) -> List[str]:
         """Get list of unique food types from inventory and feeding logs"""

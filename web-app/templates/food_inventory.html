@@ -5,23 +5,17 @@
 {% block content %}
 <div class="page-header" style="margin-bottom: 1.5rem;">
     <h1 class="page-title">
-        <i class="fas fa-box"></i> Food Inventory
+        <i class="fas fa-box"></i> Food Inventory & Expenses
     </h1>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
-            <i class="fas fa-receipt"></i> Receipts
-        </a>
-        <a href="{{ url_for('inventory_transactions') }}" class="btn btn-secondary">
-            <i class="fas fa-history"></i> Transactions
-        </a>
-        <a href="{{ url_for('add_inventory_item') }}" class="btn btn-secondary">
+        <a href="{{ url_for('add_inventory_bulk') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add Stock
         </a>
-        <a href="{{ url_for('scan_receipt') }}" class="btn btn-primary">
+        <a href="{{ url_for('scan_receipt') }}" class="btn btn-secondary">
             <i class="fas fa-camera"></i> Scan Receipt
         </a>
-        <a href="{{ url_for('add_purchase_receipt') }}" class="btn btn-secondary">
-            <i class="fas fa-keyboard"></i> Manual Entry
+        <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
+            <i class="fas fa-receipt"></i> Purchase History
         </a>
     </div>
 </div>

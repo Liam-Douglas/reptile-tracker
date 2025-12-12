@@ -1120,6 +1120,123 @@ def add_inventory_item():
     return render_template('add_inventory_item.html',
                          food_types=food_types,
                          food_sizes=food_sizes)
+@app.route('/inventory/add-bulk', methods=['GET', 'POST'])
+def add_inventory_bulk():
+    """Add multiple inventory items at once with expense tracking"""
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # Get common purchase info
+            purchase_date = request.form.get('purchase_date')
+            supplier = request.form.get('supplier')
+            payment_method = request.form.get('payment_method')
+            notes = request.form.get('notes')
+            
+            # Parse all items from form data
+            items = []
+            item_index = 0
+            total_cost = 0
+            
+            while True:
+                food_type = request.form.get(f'food_type_{item_index}')
+                if not food_type:
+                    break
+                
+                food_size = request.form.get(f'food_size_{item_index}')
+                quantity = int(request.form.get(f'quantity_{item_index}', 1))
+                unit = request.form.get(f'unit_{item_index}', 'items')
+                cost_per_unit = request.form.get(f'cost_per_unit_{item_index}')
+                expiry_date = request.form.get(f'expiry_date_{item_index}')
+                
+                cost_per_unit = float(cost_per_unit) if cost_per_unit else None
+                item_total = (quantity * cost_per_unit) if cost_per_unit else 0
+                total_cost += item_total
+                
+                items.append({
+                    'food_type': food_type,
+                    'food_size': food_size,
+                    'quantity': quantity,
+                    'unit': unit,
+                    'cost_per_unit': cost_per_unit,
+                    'expiry_date': expiry_date or None,
+                    'item_total': item_total
+                })
+                
+                item_index += 1
+            
+            if not items:
+                flash('Please add at least one item', 'error')
+                return redirect(url_for('add_inventory_bulk'))
+            
+            # Add all items to inventory
+            for item in items:
+                # Check if item already exists
+                existing_item = db.get_food_item_by_type_size(item['food_type'], item['food_size'])
+                
+                if existing_item:
+                    # Update existing item
+                    new_quantity = existing_item['quantity'] + item['quantity']
+                    db.update_food_quantity(
+                        existing_item['id'],
+                        new_quantity,
+                        notes=f"Bulk purchase: Added {item['quantity']} {item['unit']}"
+                    )
+                else:
+                    # Add new item
+                    db.add_food_item(
+                        food_type=item['food_type'],
+                        food_size=item['food_size'],
+                        quantity=item['quantity'],
+                        unit=item['unit'],
+                        cost_per_unit=item['cost_per_unit'],
+                        supplier=supplier,
+                        purchase_date=purchase_date,
+                        expiry_date=item['expiry_date'],
+                        notes=notes
+                    )
+            
+            # Create a purchase receipt record if there's cost info
+            if total_cost > 0:
+                receipt_items = [
+                    {
+                        'food_type': item['food_type'],
+                        'food_size': item['food_size'],
+                        'quantity': item['quantity'],
+                        'cost_per_unit': item['cost_per_unit'],
+                        'total_cost': item['item_total']
+                    }
+                    for item in items if item['cost_per_unit']
+                ]
+                
+                if receipt_items:
+                    db.add_purchase_receipt(
+                        receipt_date=purchase_date or datetime.now().strftime('%Y-%m-%d'),
+                        items=receipt_items,
+                        supplier=supplier,
+                        total_cost=total_cost,
+                        payment_method=payment_method,
+                        notes=notes
+                    )
+            
+            flash(f'Successfully added {len(items)} item(s) to inventory!', 'success')
+            if total_cost > 0:
+                flash(f'Total expense tracked: ${total_cost:.2f}', 'info')
+            
+            return redirect(url_for('food_inventory'))
+            
+        except Exception as e:
+            flash(f'Error adding items: {str(e)}', 'error')
+            return redirect(url_for('add_inventory_bulk'))
+    
+    # GET request - show form
+    food_types = db.get_distinct_food_types()
+    food_sizes = db.get_distinct_food_sizes()
+    
+    return render_template('add_inventory_bulk.html',
+                         food_types=food_types,
+                         food_sizes=food_sizes)
+
 
 @app.route('/inventory/<int:inventory_id>')
 def inventory_item_details(inventory_id):

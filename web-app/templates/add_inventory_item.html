@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">
-        <i class="fas fa-plus"></i> Add Food Stock
+        <i class="fas fa-plus"></i> Add Food Stock & Track Expenses
     </h1>
     <a href="{{ url_for('food_inventory') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> Back to Inventory
@@ -15,42 +15,55 @@
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">Stock Details</h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: var(--text-secondary); font-weight: normal;">
+            Add one or multiple items to your inventory
+        </p>
     </div>
     <div style="padding: 2rem;">
-        <form method="POST" action="{{ url_for('add_inventory_item') }}">
-            <div style="display: grid; gap: 1.5rem;">
-                <!-- Food Type and Size Row -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <label for="food_type" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
-                            Food Type <span style="color: #ef4444;">*</span>
-                        </label>
-                        <select name="food_type"
-                                id="food_type"
-                                required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                            <option value="">Select food type...</option>
-                            {% for type in food_types %}
-                            <option value="{{ type }}" {% if request.form.get('food_type') == type %}selected{% endif %}>{{ type }}</option>
-                            {% endfor %}
-                        </select>
+        <form method="POST" action="{{ url_for('add_inventory_item') }}" id="inventory-form">
+            <div id="items-container">
+                <!-- First Item -->
+                <div class="inventory-item" data-item-index="0">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border-color);">
+                        <h4 style="margin: 0; color: var(--primary-color);">
+                            <i class="fas fa-box"></i> Item #<span class="item-number">1</span>
+                        </h4>
+                        <button type="button" class="btn btn-danger btn-sm remove-item" style="display: none;" onclick="removeItem(0)">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
                     </div>
                     
-                    <div>
-                        <label for="food_size" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
-                            Size <span style="color: #ef4444;">*</span>
-                        </label>
-                        <select name="food_size"
-                                id="food_size"
-                                required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
-                            <option value="">Select size...</option>
-                            {% for size in food_sizes %}
-                            <option value="{{ size }}" {% if request.form.get('food_size') == size %}selected{% endif %}>{{ size }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
+                    <div style="display: grid; gap: 1.5rem;">
+                        <!-- Food Type and Size Row -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                                    Food Type <span style="color: #ef4444;">*</span>
+                                </label>
+                                <select name="food_type_0"
+                                        required
+                                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                                    <option value="">Select food type...</option>
+                                    {% for type in food_types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                                    Size <span style="color: #ef4444;">*</span>
+                                </label>
+                                <select name="food_size_0"
+                                        required
+                                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                                    <option value="">Select size...</option>
+                                    {% for size in food_sizes %}
+                                    <option value="{{ size }}">{{ size }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                 
                 <!-- Quantity and Unit Row -->
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
