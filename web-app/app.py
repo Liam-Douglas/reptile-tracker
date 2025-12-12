@@ -786,6 +786,59 @@ def set_feeding_reminder(reptile_id):
     
     return render_template('set_feeding_reminder.html',
                          reptile=reptile,
+
+@app.route('/reptile/<int:reptile_id>/upgrade-food', methods=['GET', 'POST'])
+def upgrade_food(reptile_id):
+    """Upgrade food type/size for a reptile"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Standard food options
+    food_types = ['Rat', 'Mouse', 'Rabbit', 'Cricket', 'Dubia Roach', 'Quail']
+    food_sizes = ['Pinkie', 'Fuzzie', 'Hopper', 'Weaner', 'Juvenile', 'Small', 'Adult', 'Medium', 'Large', 'X Large', 'Jumbo']
+    
+    if request.method == 'POST':
+        try:
+            food_type = request.form.get('food_type')
+            food_size = request.form.get('food_size')
+            quantity_per_feeding = int(request.form.get('quantity_per_feeding', 1))
+            
+            if not food_type or not food_size:
+                flash('Please select both food type and size', 'error')
+                return redirect(url_for('upgrade_food', reptile_id=reptile_id))
+            
+            if quantity_per_feeding < 1:
+                flash('Quantity must be at least 1', 'error')
+                return redirect(url_for('upgrade_food', reptile_id=reptile_id))
+            
+            # Upgrade the food
+            success = db.upgrade_reptile_food(reptile_id, food_type, food_size, quantity_per_feeding)
+            
+            if success:
+                flash(f'Successfully upgraded {reptile["name"]} to {food_size} {food_type}!', 'success')
+                return redirect(url_for('reptile_details', reptile_id=reptile_id))
+            else:
+                flash('No feeding reminder found. Please set up a feeding reminder first.', 'warning')
+                return redirect(url_for('set_feeding_reminder', reptile_id=reptile_id))
+                
+        except Exception as e:
+            flash(f'Error upgrading food: {str(e)}', 'error')
+    
+    # Get current food preference
+    current_food = db.get_reptile_food_preference(reptile_id)
+    
+    # Get recent feeding history
+    recent_feedings = db.get_feeding_logs(reptile_id, limit=10)
+    
+    return render_template('upgrade_food.html',
+                         reptile=reptile,
+                         current_food=current_food,
+                         recent_feedings=recent_feedings,
+                         food_types=food_types,
+                         food_sizes=food_sizes)
                          existing_reminder=existing_reminder)
 
 @app.route('/reptile/<int:reptile_id>/feeding-reminder/disable', methods=['POST'])
@@ -1094,6 +1147,21 @@ def food_inventory():
                          low_stock=low_stock,
                          out_of_stock=out_of_stock,
                          forecasts=forecast_dict)
+
+@app.route('/shopping-list')
+def shopping_list():
+    """Display shopping list based on feeding schedules"""
+    db = get_db()
+    
+    # Get days ahead parameter (default 30)
+    days_ahead = request.args.get('days', 30, type=int)
+    
+    # Get shopping list
+    shopping_list_data = db.get_shopping_list(days_ahead=days_ahead)
+    
+    return render_template('shopping_list.html',
+                         shopping_list=shopping_list_data,
+                         days_ahead=days_ahead)
 
 @app.route('/inventory/add', methods=['GET', 'POST'])
 def add_inventory_item():

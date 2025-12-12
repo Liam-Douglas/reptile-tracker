@@ -162,6 +162,11 @@
             <div class="action-label">Set Reminder</div>
         </a>
         
+        <a href="{{ url_for('upgrade_food', reptile_id=reptile.id) }}" class="action-card action-upgrade">
+            <div class="action-icon"><i class="fas fa-arrow-up"></i></div>
+            <div class="action-label">Upgrade Food</div>
+        </a>
+        
         <button onclick="if(confirm('Are you sure you want to delete {{ reptile.name }}? This will also delete all feeding logs and shed records.')) { document.getElementById('deleteForm').submit(); }" class="action-card action-delete">
             <div class="action-icon"><i class="fas fa-trash"></i></div>
             <div class="action-label">Delete</div>

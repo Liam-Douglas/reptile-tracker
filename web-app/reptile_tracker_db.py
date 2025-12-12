@@ -132,6 +132,9 @@ class ReptileDatabase:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 reptile_id INTEGER NOT NULL,
                 feeding_interval_days INTEGER NOT NULL,
+                food_type TEXT,
+                food_size TEXT,
+                quantity_per_feeding INTEGER DEFAULT 1,
                 last_fed_date DATE,
                 next_feeding_date DATE,
                 is_active BOOLEAN DEFAULT 1,
@@ -272,6 +275,60 @@ class ReptileDatabase:
                 ''')
                 self.conn.commit()
                 print("[MIGRATION] auto_deducted column added successfully")
+            
+            # Check if new columns exist in feeding_reminders
+            self.cursor.execute("PRAGMA table_info(feeding_reminders)")
+            reminder_columns = [column[1] for column in self.cursor.fetchall()]
+            
+            # Add food_type column if it doesn't exist
+            if 'food_type' not in reminder_columns:
+                print("[MIGRATION] Adding food_type column to feeding_reminders table...")
+                self.cursor.execute('''
+                    ALTER TABLE feeding_reminders
+                    ADD COLUMN food_type TEXT
+                ''')
+                self.conn.commit()
+                print("[MIGRATION] food_type column added successfully")
+            
+            # Add food_size column if it doesn't exist
+            if 'food_size' not in reminder_columns:
+                print("[MIGRATION] Adding food_size column to feeding_reminders table...")
+                self.cursor.execute('''
+                    ALTER TABLE feeding_reminders
+                    ADD COLUMN food_size TEXT
+                ''')
+                self.conn.commit()
+                print("[MIGRATION] food_size column added successfully")
+            
+            # Add quantity_per_feeding column if it doesn't exist
+            if 'quantity_per_feeding' not in reminder_columns:
+                print("[MIGRATION] Adding quantity_per_feeding column to feeding_reminders table...")
+                self.cursor.execute('''
+                    ALTER TABLE feeding_reminders
+                    ADD COLUMN quantity_per_feeding INTEGER DEFAULT 1
+                ''')
+                self.conn.commit()
+                print("[MIGRATION] quantity_per_feeding column added successfully")
+            
+            # Populate food data for existing reminders from recent feeding logs
+            if 'food_type' not in reminder_columns or 'food_size' not in reminder_columns:
+                print("[MIGRATION] Populating food data for existing reminders...")
+                self.cursor.execute('''
+                    UPDATE feeding_reminders
+                    SET food_type = (
+                        SELECT food_type FROM feeding_logs
+                        WHERE feeding_logs.reptile_id = feeding_reminders.reptile_id
+                        ORDER BY feeding_date DESC LIMIT 1
+                    ),
+                    food_size = (
+                        SELECT food_size FROM feeding_logs
+                        WHERE feeding_logs.reptile_id = feeding_reminders.reptile_id
+                        ORDER BY feeding_date DESC LIMIT 1
+                    )
+                    WHERE food_type IS NULL OR food_size IS NULL
+                ''')
+                self.conn.commit()
+                print("[MIGRATION] Food data populated successfully")
                 
         except Exception as e:
             print(f"[MIGRATION ERROR] {str(e)}")
@@ -1057,6 +1114,136 @@ class ReptileDatabase:
         ''', (is_active, reptile_id))
         self.conn.commit()
         return self.cursor.rowcount > 0
+    
+    # ==================== SHOPPING LIST & FOOD UPGRADE OPERATIONS ====================
+    
+    def get_shopping_list(self, days_ahead: int = 30) -> List[Dict]:
+        """
+        Calculate food needs based on feeding schedules for the next X days
+        Returns list of food items needed with quantities
+        """
+        from datetime import datetime, timedelta
+        
+        today = get_current_date()
+        future_date = (datetime.strptime(today, '%Y-%m-%d') + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
+        
+        # Get all active feeding reminders with food preferences
+        self.cursor.execute('''
+            SELECT 
+                fr.reptile_id,
+                r.name as reptile_name,
+                fr.food_type,
+                fr.food_size,
+                fr.quantity_per_feeding,
+                fr.feeding_interval_days,
+                fr.next_feeding_date
+            FROM feeding_reminders fr
+            JOIN reptiles r ON fr.reptile_id = r.id
+            WHERE fr.is_active = 1
+                AND fr.food_type IS NOT NULL
+                AND fr.food_size IS NOT NULL
+                AND fr.next_feeding_date IS NOT NULL
+        ''')
+        
+        reminders = [dict(row) for row in self.cursor.fetchall()]
+        
+        # Calculate total feedings for each reptile in the time period
+        food_needs = {}
+        
+        for reminder in reminders:
+            # Calculate how many feedings will occur in the time period
+            next_feeding = datetime.strptime(reminder['next_feeding_date'], '%Y-%m-%d')
+            end_date = datetime.strptime(future_date, '%Y-%m-%d')
+            interval_days = reminder['feeding_interval_days']
+            
+            feedings_count = 0
+            current_date = next_feeding
+            
+            while current_date <= end_date:
+                feedings_count += 1
+                current_date += timedelta(days=interval_days)
+            
+            if feedings_count > 0:
+                food_key = (reminder['food_type'], reminder['food_size'])
+                quantity_needed = feedings_count * reminder['quantity_per_feeding']
+                
+                if food_key in food_needs:
+                    food_needs[food_key]['quantity_needed'] += quantity_needed
+                    food_needs[food_key]['reptiles'].append({
+                        'name': reminder['reptile_name'],
+                        'feedings': feedings_count,
+                        'quantity': quantity_needed
+                    })
+                else:
+                    food_needs[food_key] = {
+                        'food_type': reminder['food_type'],
+                        'food_size': reminder['food_size'],
+                        'quantity_needed': quantity_needed,
+                        'reptiles': [{
+                            'name': reminder['reptile_name'],
+                            'feedings': feedings_count,
+                            'quantity': quantity_needed
+                        }]
+                    }
+        
+        # Get current inventory levels
+        shopping_list = []
+        for food_key, needs in food_needs.items():
+            food_type, food_size = food_key
+            
+            # Check current inventory
+            inventory_item = self.get_food_item_by_type(food_type, food_size)
+            current_stock = inventory_item['quantity'] if inventory_item else 0
+            
+            shortage = needs['quantity_needed'] - current_stock
+            
+            shopping_list.append({
+                'food_type': food_type,
+                'food_size': food_size,
+                'quantity_needed': needs['quantity_needed'],
+                'current_stock': current_stock,
+                'shortage': max(0, shortage),
+                'reptiles': needs['reptiles']
+            })
+        
+        # Sort by shortage (highest first)
+        shopping_list.sort(key=lambda x: x['shortage'], reverse=True)
+        
+        return shopping_list
+    
+    def get_reptile_food_preference(self, reptile_id: int) -> Optional[Dict]:
+        """Get current food preference from feeding reminder"""
+        self.cursor.execute('''
+            SELECT food_type, food_size, quantity_per_feeding
+            FROM feeding_reminders
+            WHERE reptile_id = ?
+        ''', (reptile_id,))
+        
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def upgrade_reptile_food(self, reptile_id: int, new_food_type: str, 
+                            new_food_size: str, quantity_per_feeding: int = 1) -> bool:
+        """
+        Upgrade a reptile's food type/size and update their feeding schedule
+        Returns True if successful
+        """
+        try:
+            # Update feeding reminder with new food preferences
+            self.cursor.execute('''
+                UPDATE feeding_reminders
+                SET food_type = ?,
+                    food_size = ?,
+                    quantity_per_feeding = ?
+                WHERE reptile_id = ?
+            ''', (new_food_type, new_food_size, quantity_per_feeding, reptile_id))
+            
+            self.conn.commit()
+            return self.cursor.rowcount > 0
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to upgrade food: {str(e)}")
+            return False
 
     
     # ==================== LENGTH HISTORY OPERATIONS ====================
