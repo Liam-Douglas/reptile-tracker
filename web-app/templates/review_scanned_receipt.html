@@ -88,9 +88,9 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h4 style="margin: 0; font-size: 1.1rem;">
                         <i class="fas fa-shopping-cart"></i> Items
-                        {% if scanned_data.items %}
+                        {% if scanned_data.get('items') %}
                         <span style="color: var(--text-secondary); font-weight: normal; font-size: 0.875rem;">
-                            ({{ scanned_data.items|length }} found by OCR)
+                            ({{ scanned_data.get('items')|length }} found by OCR)
                         </span>
                         {% endif %}
                     </h4>
