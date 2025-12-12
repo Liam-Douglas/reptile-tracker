@@ -786,6 +786,7 @@ def set_feeding_reminder(reptile_id):
     
     return render_template('set_feeding_reminder.html',
                          reptile=reptile,
+                         existing_reminder=existing_reminder)
 
 @app.route('/reptile/<int:reptile_id>/upgrade-food', methods=['GET', 'POST'])
 def upgrade_food(reptile_id):
