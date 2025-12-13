@@ -121,454 +121,357 @@
     {% endif %}
 </div>
 
-<!-- Quick Actions -->
-<div class="profile-actions-section">
-    <h3 class="section-title" style="color: #e5e7eb;">
-        <i class="fas fa-bolt"></i> Quick Actions
-    </h3>
-    <div class="profile-actions-grid">
-        <a href="{{ url_for('edit_reptile', reptile_id=reptile.id) }}" class="action-card action-edit">
-            <div class="action-icon"><i class="fas fa-edit"></i></div>
-            <div class="action-label">Edit Profile</div>
-        </a>
-        
-        <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="action-card action-feeding">
-            <div class="action-icon"><i class="fas fa-utensils"></i></div>
-            <div class="action-label">Log Feeding</div>
-        </a>
-        
-        <a href="{{ url_for('add_shed') }}?reptile_id={{ reptile.id }}" class="action-card action-shed">
-            <div class="action-icon"><i class="fas fa-sync"></i></div>
-            <div class="action-label">Log Shed</div>
-        </a>
-        
-        <a href="{{ url_for('weight_tracking', reptile_id=reptile.id) }}" class="action-card action-weight">
-            <div class="action-icon"><i class="fas fa-chart-line"></i></div>
-            <div class="action-label">Weight Tracking</div>
-        </a>
-        
-        <a href="{{ url_for('length_tracking', reptile_id=reptile.id) }}" class="action-card action-length">
-            <div class="action-icon"><i class="fas fa-ruler"></i></div>
-            <div class="action-label">Length Tracking</div>
-        </a>
-        
-        <a href="{{ url_for('photo_gallery', reptile_id=reptile.id) }}" class="action-card action-photos">
-            <div class="action-icon"><i class="fas fa-images"></i></div>
-            <div class="action-label">Photo Gallery</div>
-        </a>
-        
-        <a href="{{ url_for('set_feeding_reminder', reptile_id=reptile.id) }}" class="action-card action-reminder">
-            <div class="action-icon"><i class="fas fa-bell"></i></div>
-            <div class="action-label">Set Reminder</div>
-        </a>
-        
-        <a href="{{ url_for('upgrade_food', reptile_id=reptile.id) }}" class="action-card action-upgrade">
-            <div class="action-icon"><i class="fas fa-arrow-up"></i></div>
-            <div class="action-label">Upgrade Food</div>
-        </a>
-        
-        <button onclick="if(confirm('Are you sure you want to delete {{ reptile.name }}? This will also delete all feeding logs and shed records.')) { document.getElementById('deleteForm').submit(); }" class="action-card action-delete">
-            <div class="action-icon"><i class="fas fa-trash"></i></div>
-            <div class="action-label">Delete</div>
+<!-- Tabbed Content Section -->
+<div class="profile-tabs-container">
+    <div class="profile-tabs">
+        <button class="profile-tab active" onclick="switchProfileTab('care')">
+            <i class="fas fa-heart"></i> Care
         </button>
+        <button class="profile-tab" onclick="switchProfileTab('reminders')">
+            <i class="fas fa-bell"></i> Reminders
+        </button>
+        <button class="profile-tab" onclick="switchProfileTab('growth')">
+            <i class="fas fa-chart-line"></i> Growth
+        </button>
+        <button class="profile-tab" onclick="switchProfileTab('actions')">
+            <i class="fas fa-bolt"></i> Actions
+        </button>
+    </div>
+
+    <!-- Care Tab -->
+    <div id="care-tab" class="tab-content active">
+        <div class="care-grid">
+            <!-- Feeding Schedule Card -->
+            <div class="care-card">
+                <div class="care-card-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Feeding Schedule</h3>
+                    <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="btn-small btn-primary">
+                        <i class="fas fa-plus"></i> Log Feeding
+                    </a>
+                </div>
+                <div class="care-card-body">
+                    {% if feeding_logs %}
+                        <div class="schedule-info">
+                            <div class="schedule-item">
+                                <span class="schedule-label">Last Fed:</span>
+                                <span class="schedule-value">{{ feeding_logs[0].feeding_date|format_date }}</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-label">Days Since:</span>
+                                <span class="schedule-value">{{ feeding_logs[0].feeding_date|days_ago }}</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-label">Last Food:</span>
+                                <span class="schedule-value">{{ feeding_logs[0].food_type }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-utensils"></i>
+                            <p>No feeding records yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Feeding History Card -->
+            <div class="care-card">
+                <div class="care-card-header">
+                    <h3><i class="fas fa-history"></i> Feeding History</h3>
+                    <a href="{{ url_for('feeding_logs') }}" class="btn-small btn-secondary">View All</a>
+                </div>
+                <div class="care-card-body">
+                    {% if feeding_logs %}
+                        <div class="history-list">
+                            {% for log in feeding_logs[:5] %}
+                            <div class="history-item">
+                                <div class="history-date">{{ log.feeding_date|format_date }}</div>
+                                <div class="history-details">
+                                    <span class="history-food">{{ log.food_type }}</span>
+                                    {% if log.amount %}
+                                        <span class="history-amount">{{ log.amount }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="history-status">
+                                    {% if log.ate %}
+                                        <span class="badge badge-success"><i class="fas fa-check"></i> Ate</span>
+                                    {% else %}
+                                        <span class="badge badge-danger"><i class="fas fa-times"></i> Refused</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>No feeding history</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Shed History Card -->
+            <div class="care-card">
+                <div class="care-card-header">
+                    <h3><i class="fas fa-sync-alt"></i> Shed History</h3>
+                    <a href="{{ url_for('add_shed') }}?reptile_id={{ reptile.id }}" class="btn-small btn-primary">
+                        <i class="fas fa-plus"></i> Log Shed
+                    </a>
+                </div>
+                <div class="care-card-body">
+                    {% if shed_records %}
+                        <div class="history-list">
+                            {% for record in shed_records[:5] %}
+                            <div class="history-item">
+                                <div class="history-date">{{ record.shed_date|format_date }}</div>
+                                <div class="history-details">
+                                    <span class="history-food">Shed Record</span>
+                                </div>
+                                <div class="history-status">
+                                    {% if record.complete %}
+                                        <span class="badge badge-success"><i class="fas fa-check"></i> Complete</span>
+                                    {% else %}
+                                        <span class="badge badge-warning"><i class="fas fa-exclamation"></i> Partial</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-sync-alt"></i>
+                            <p>No shed records yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Health Notes Card -->
+            <div class="care-card">
+                <div class="care-card-header">
+                    <h3><i class="fas fa-notes-medical"></i> Health Notes</h3>
+                    <a href="{{ url_for('edit_reptile', reptile_id=reptile.id) }}" class="btn-small btn-secondary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </div>
+                <div class="care-card-body">
+                    {% if reptile.notes %}
+                        <div class="health-notes">
+                            <p>{{ reptile.notes }}</p>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-notes-medical"></i>
+                            <p>No health notes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reminders Tab -->
+    <div id="reminders-tab" class="tab-content">
+        <div class="reminders-container">
+            <div class="reminders-header">
+                <h2><i class="fas fa-bell"></i> Feeding Reminders</h2>
+                <a href="{{ url_for('set_feeding_reminder', reptile_id=reptile.id) }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Set New Reminder
+                </a>
+            </div>
+            
+            <div class="reminders-grid">
+                <div class="reminder-card">
+                    <div class="reminder-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="reminder-content">
+                        <h3>Feeding Reminders</h3>
+                        <p>Set up automatic reminders for feeding schedules</p>
+                        <a href="{{ url_for('feeding_reminders') }}" class="btn-link">View All Reminders →</a>
+                    </div>
+                </div>
+
+                <div class="reminder-card">
+                    <div class="reminder-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="reminder-content">
+                        <h3>Notification Settings</h3>
+                        <p>Configure how you receive feeding notifications</p>
+                        <a href="{{ url_for('notification_settings') }}" class="btn-link">Manage Settings →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Growth Tab -->
+    <div id="growth-tab" class="tab-content">
+        <div class="growth-container">
+            <div class="growth-header">
+                <h2><i class="fas fa-chart-line"></i> Growth Tracking</h2>
+                <div class="growth-actions">
+                    <a href="{{ url_for('weight_tracking', reptile_id=reptile.id) }}" class="btn btn-primary">
+                        <i class="fas fa-weight"></i> Weight Tracking
+                    </a>
+                    <a href="{{ url_for('length_tracking', reptile_id=reptile.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-ruler"></i> Length Tracking
+                    </a>
+                </div>
+            </div>
+
+            <div class="growth-stats-grid">
+                <div class="growth-stat-card">
+                    <div class="growth-stat-icon">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <div class="growth-stat-content">
+                        <div class="growth-stat-label">Current Weight</div>
+                        <div class="growth-stat-value">
+                            {% if reptile.weight_grams %}
+                                {{ reptile.weight_grams }}g
+                            {% else %}
+                                <span class="text-muted">Not recorded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="growth-stat-card">
+                    <div class="growth-stat-icon">
+                        <i class="fas fa-ruler"></i>
+                    </div>
+                    <div class="growth-stat-content">
+                        <div class="growth-stat-label">Current Length</div>
+                        <div class="growth-stat-value">
+                            {% if reptile.length_cm %}
+                                {{ reptile.length_cm }}cm
+                            {% else %}
+                                <span class="text-muted">Not recorded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="growth-stat-card">
+                    <div class="growth-stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="growth-stat-content">
+                        <div class="growth-stat-label">Growth Rate</div>
+                        <div class="growth-stat-value">
+                            <span class="text-muted">Track weight to see</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="growth-stat-card">
+                    <div class="growth-stat-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <div class="growth-stat-content">
+                        <div class="growth-stat-label">Age</div>
+                        <div class="growth-stat-value">
+                            {% if reptile.date_of_birth %}
+                                {{ reptile.date_of_birth|days_ago }}
+                            {% else %}
+                                <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="growth-chart-container">
+                <div class="growth-chart-card">
+                    <h3><i class="fas fa-chart-area"></i> Weight Chart</h3>
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Weight tracking chart will appear here</p>
+                        <p class="text-muted">Add weight measurements to see your reptile's growth over time</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Tab -->
+    <div id="actions-tab" class="tab-content">
+        <div class="actions-container">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="profile-actions-grid">
+                <a href="{{ url_for('edit_reptile', reptile_id=reptile.id) }}" class="action-card action-edit">
+                    <div class="action-icon"><i class="fas fa-edit"></i></div>
+                    <div class="action-label">Edit Profile</div>
+                </a>
+                
+                <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="action-card action-feeding">
+                    <div class="action-icon"><i class="fas fa-utensils"></i></div>
+                    <div class="action-label">Log Feeding</div>
+                </a>
+                
+                <a href="{{ url_for('add_shed') }}?reptile_id={{ reptile.id }}" class="action-card action-shed">
+                    <div class="action-icon"><i class="fas fa-sync"></i></div>
+                    <div class="action-label">Log Shed</div>
+                </a>
+                
+                <a href="{{ url_for('weight_tracking', reptile_id=reptile.id) }}" class="action-card action-weight">
+                    <div class="action-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="action-label">Weight Tracking</div>
+                </a>
+                
+                <a href="{{ url_for('length_tracking', reptile_id=reptile.id) }}" class="action-card action-length">
+                    <div class="action-icon"><i class="fas fa-ruler"></i></div>
+                    <div class="action-label">Length Tracking</div>
+                </a>
+                
+                <a href="{{ url_for('photo_gallery', reptile_id=reptile.id) }}" class="action-card action-photos">
+                    <div class="action-icon"><i class="fas fa-images"></i></div>
+                    <div class="action-label">Photo Gallery</div>
+                </a>
+                
+                <a href="{{ url_for('set_feeding_reminder', reptile_id=reptile.id) }}" class="action-card action-reminder">
+                    <div class="action-icon"><i class="fas fa-bell"></i></div>
+                    <div class="action-label">Set Reminder</div>
+                </a>
+                
+                <a href="{{ url_for('upgrade_food', reptile_id=reptile.id) }}" class="action-card action-upgrade">
+                    <div class="action-icon"><i class="fas fa-arrow-up"></i></div>
+                    <div class="action-label">Upgrade Food</div>
+                </a>
+                
+                <button onclick="if(confirm('Are you sure you want to delete {{ reptile.name }}? This will also delete all feeding logs and shed records.')) { document.getElementById('deleteForm').submit(); }" class="action-card action-delete">
+                    <div class="action-icon"><i class="fas fa-trash"></i></div>
+                    <div class="action-label">Delete</div>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 <form id="deleteForm" method="POST" action="{{ url_for('delete_reptile', reptile_id=reptile.id) }}" style="display: none;"></form>
 
-<!-- Recent Activity -->
-<div class="profile-activity-section">
-    <div class="activity-column">
-        <h3 class="section-title" style="color: #1f2937;">
-            <i class="fas fa-utensils"></i> Recent Feedings
-            <a href="{{ url_for('feeding_logs') }}" class="view-all-link">View All →</a>
-        </h3>
-        
-        {% if feeding_logs %}
-            <div class="activity-list">
-                {% for log in feeding_logs %}
-                <div class="activity-item">
-                    <div class="activity-date">{{ log.date|format_date }}</div>
-                    <div class="activity-content">
-                        <div class="activity-title">{{ log.food_type }}{% if log.amount %} ({{ log.amount }}){% endif %}</div>
-                        <div class="activity-badge">
-                            {% if log.ate %}
-                                <span class="badge badge-success"><i class="fas fa-check"></i> Ate</span>
-                            {% else %}
-                                <span class="badge badge-danger"><i class="fas fa-times"></i> Refused</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state-small">
-                <i class="fas fa-utensils"></i>
-                <p>No feeding logs yet</p>
-            </div>
-        {% endif %}
-    </div>
+<script>
+function switchProfileTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+    });
     
-    <div class="activity-column">
-        <h3 class="section-title" style="color: #1f2937;">
-            <i class="fas fa-sync"></i> Recent Sheds
-            <a href="{{ url_for('shed_records') }}" class="view-all-link">View All →</a>
-        </h3>
-        
-        {% if shed_records %}
-            <div class="activity-list">
-                {% for record in shed_records %}
-                <div class="activity-item">
-                    <div class="activity-date">{{ record.date|format_date }}</div>
-                    <div class="activity-content">
-                        <div class="activity-title">Shed Record</div>
-                        <div class="activity-badge">
-                            {% if record.complete %}
-                                <span class="badge badge-success"><i class="fas fa-check"></i> Complete</span>
-                            {% else %}
-                                <span class="badge badge-warning"><i class="fas fa-exclamation"></i> Partial</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state-small">
-                <i class="fas fa-sync"></i>
-                <p>No shed records yet</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
-<style>
-/* Modern Profile Header */
-.modern-profile-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-}
-
-.profile-hero {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-}
-
-.profile-image-section {
-    flex-shrink: 0;
-}
-
-.profile-hero-image {
-    width: 200px;
-    height: 200px;
-    border-radius: 16px;
-    object-fit: cover;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-.profile-placeholder {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 5rem;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.profile-hero-info {
-    flex: 1;
-    color: white;
-}
-
-.profile-name-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.profile-name {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    color: white;
-}
-
-.profile-species {
-    font-size: 1.3rem;
-    margin-bottom: 0.75rem;
-    opacity: 0.95;
-}
-
-.profile-morph-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    backdrop-filter: blur(10px);
-}
-
-.profile-notes {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 1rem;
-    border-radius: 12px;
-    margin-top: 1rem;
-    backdrop-filter: blur(10px);
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-}
-
-.profile-notes i {
-    margin-top: 0.2rem;
-    opacity: 0.8;
-}
-
-/* Profile Stats Grid */
-.profile-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.profile-stat-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-}
-
-.profile-stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.profile-stat-card .stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.stat-weight .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-.stat-length .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
-.stat-feeding .stat-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
-.stat-shed .stat-icon { background: linear-gradient(135deg, #30cfd0, #330867); }
-.stat-age .stat-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.stat-acquired .stat-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-
-.profile-stat-card .stat-content {
-    flex: 1;
-}
-
-.profile-stat-card .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.25rem;
-}
-
-.profile-stat-card .stat-days-ago {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #6b7280;
-    display: block;
-    margin-top: 0.25rem;
-}
-
-.profile-stat-card .stat-label {
-    font-size: 0.85rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Quick Actions Section */
-.profile-actions-section {
-    margin-bottom: 2rem;
-}
-
-.section-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    justify-content: space-between;
-}
-
-.section-title i {
-    color: #667eea;
-}
-
-.view-all-link {
-    font-size: 0.9rem;
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s ease;
-}
-
-.view-all-link:hover {
-    color: #764ba2;
-}
-
-.profile-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
-}
-
-.action-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem 1rem;
-    text-align: center;
-    text-decoration: none;
-    color: #1f2937;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    cursor: pointer;
-    display: block;
-}
-
-.action-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.action-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-    margin: 0 auto 0.75rem;
-}
-
-.action-edit .action-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-.action-feeding .action-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
-.action-shed .action-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.action-weight .action-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-.action-length .action-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
-.action-photos .action-icon { background: linear-gradient(135deg, #30cfd0, #330867); }
-.action-reminder .action-icon { background: linear-gradient(135deg, #a8edea, #fed6e3); }
-.action-delete .action-icon { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); }
-
-.action-label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #4b5563;
-}
-
-/* Activity Section */
-.profile-activity-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-}
-
-.activity-column {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.activity-item {
-    padding: 1rem;
-    background: #f9fafb;
-    border-radius: 12px;
-    border-left: 4px solid #667eea;
-}
-
-.activity-date {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-bottom: 0.5rem;
-}
-
-.activity-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-.activity-title {
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.empty-state-small {
-    text-align: center;
-    padding: 2rem;
-    color: #9ca3af;
-}
-
-.empty-state-small i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    opacity: 0.5;
-}
-
-.empty-state-small p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .profile-hero {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.profile-tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('active');
+    });
     
-    .profile-name {
-        font-size: 2rem;
-    }
+    // Show selected tab content
+    document.getElementById(tabName + '-tab').classList.add('active');
     
-    .profile-name-section {
-        flex-direction: column;
-    }
-    
-    .profile-actions-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .profile-activity-section {
-        grid-template-columns: 1fr;
-    }
+    // Add active class to clicked tab
+    event.target.closest('.profile-tab').classList.add('active');
 }
-</style>
+</script>
 {% endblock %}
