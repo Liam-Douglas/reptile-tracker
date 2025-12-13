@@ -2622,3 +2622,690 @@ body {
         gap: 1rem;
     }
 }
+
+
+/* ============================================
+   REPTILES PAGE - MODERN REDESIGN
+   ============================================ */
+
+.reptiles-page-modern {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.reptiles-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    color: white;
+}
+
+.reptiles-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+    margin-right: 2rem;
+}
+
+.reptiles-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.reptiles-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.reptiles-header .header-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.total-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+/* Tabs */
+.reptiles-tabs {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    gap: 0.5rem;
+}
+
+.reptiles-tab {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.reptiles-tab:hover {
+    background: #f3f4f6;
+    color: #667eea;
+}
+
+.reptiles-tab.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.reptiles-tab-content {
+    display: none;
+}
+
+.reptiles-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Collection Tab - Detailed Cards */
+.reptiles-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.reptile-card-detailed {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.reptile-card-detailed:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.card-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.reptile-card-detailed:hover .card-img {
+    transform: scale(1.1);
+}
+
+.card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.reptile-card-detailed:hover .card-overlay {
+    opacity: 1;
+}
+
+.view-details-btn {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    color: #667eea;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.view-details-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
+
+.card-body-detailed {
+    padding: 1.5rem;
+}
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.card-name {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.sex-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.sex-icon.male {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.sex-icon.female {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.card-species {
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.morph-badge-wrapper {
+    margin-bottom: 1rem;
+}
+
+.morph-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    color: #7c3aed;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.feeding-status-bar {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.feeding-status-bar.fed-today {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+}
+
+.feeding-status-bar.fed-recent {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+}
+
+.feeding-status-bar.fed-overdue {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: #92400e;
+}
+
+.feeding-status-bar.no-data {
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    color: #4b5563;
+}
+
+.card-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.stat-item-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.stat-item-inline i {
+    color: #667eea;
+}
+
+/* Records Tab */
+.records-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.quick-actions-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.action-btn.secondary:hover {
+    background: #e5e7eb;
+}
+
+.action-btn.outline {
+    background: white;
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.action-btn.outline:hover {
+    background: #667eea;
+    color: white;
+}
+
+.records-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2rem;
+}
+
+.records-section-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.section-card-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f9fafb, #ffffff);
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-card-header i {
+    color: #667eea;
+}
+
+.count-badge {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.section-card-body {
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.records-list-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.record-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.record-row:hover {
+    background: #f3f4f6;
+    transform: translateX(4px);
+}
+
+.record-icon-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.record-icon-circle.feeding {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.record-icon-circle.shed {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.record-info {
+    flex: 1;
+}
+
+.record-name {
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.record-details {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.record-date {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.record-badge {
+    flex-shrink: 0;
+}
+
+.badge-success, .badge-danger, .badge-warning {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.badge-success {
+    background: #22c55e;
+    color: white;
+}
+
+.badge-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.badge-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+/* Reminders Tab */
+.reminders-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.alert-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.alert-card.danger {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-left: 4px solid #ef4444;
+}
+
+.alert-card.info {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    border-left: 4px solid #3b82f6;
+}
+
+.alert-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.alert-card.danger .alert-icon {
+    background: #ef4444;
+    color: white;
+}
+
+.alert-card.info .alert-icon {
+    background: #3b82f6;
+    color: white;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-content h3 {
+    margin: 0 0 1rem 0;
+    color: #1f2937;
+    font-size: 1.1rem;
+}
+
+.alert-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.alert-list li {
+    padding: 0.5rem 0;
+    color: #4b5563;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.alert-list li:last-child {
+    border-bottom: none;
+}
+
+.reminders-section-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.reminders-list-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.reminder-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.reminder-icon-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.reminder-info {
+    flex: 1;
+}
+
+.reminder-name {
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.reminder-schedule {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.reminder-status {
+    flex-shrink: 0;
+}
+
+.status-active, .status-paused {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #22c55e;
+    color: white;
+}
+
+.status-paused {
+    background: #6b7280;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .reptiles-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .reptiles-header .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-right: 0;
+        width: 100%;
+    }
+    
+    .reptiles-tabs {
+        flex-direction: column;
+        padding: 0.25rem;
+    }
+    
+    .reptiles-tab {
+        width: 100%;
+    }
+    
+    .reptiles-grid-modern {
+        grid-template-columns: 1fr;
+    }
+    
+    .records-grid-modern {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions-bar {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .alert-card {
+        flex-direction: column;
+    }
+}

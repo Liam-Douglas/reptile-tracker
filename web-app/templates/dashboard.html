@@ -254,105 +254,17 @@
     </div>
 </div>
 
-<!-- Reptiles Section Header -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; margin-top: 2rem;">
-    <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-primary);">
-        <i class="fas fa-dragon"></i> My Reptiles
-    </h2>
-    <span style="color: var(--text-secondary);">{{ reptiles|length }} total</span>
+<!-- Quick Access to Reptiles -->
+<div class="card" style="margin-top: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+    <div style="padding: 2rem; text-align: center; color: white;">
+        <i class="fas fa-dragon" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.9;"></i>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">Manage Your Reptiles</h3>
+        <p style="margin: 0 0 1.5rem 0; opacity: 0.9;">View all reptiles, records, and reminders in one place</p>
+        <a href="{{ url_for('reptiles_page') }}" class="btn" style="background: white; color: #667eea; padding: 0.75rem 2rem; font-weight: 600;">
+            <i class="fas fa-arrow-right"></i> Go to Reptiles Page
+        </a>
+    </div>
 </div>
-
-<!-- Modern Reptiles Grid -->
-{% if reptiles %}
-    <div class="modern-reptile-grid">
-        {% for reptile in reptiles %}
-        <div class="modern-reptile-card" onclick="window.location.href='{{ url_for('reptile_details', reptile_id=reptile.id) }}'">
-            <div class="reptile-image-container">
-                {% if reptile.image_path %}
-                    <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}"
-                         alt="{{ reptile.name }}"
-                         class="modern-reptile-image">
-                {% else %}
-                    <div class="modern-reptile-image reptile-placeholder">
-                        <i class="fas fa-dragon"></i>
-                    </div>
-                {% endif %}
-                <div class="reptile-overlay">
-                    <i class="fas fa-eye"></i> View Details
-                </div>
-            </div>
-            <div class="modern-reptile-info">
-                <div class="reptile-header">
-                    <h3 class="modern-reptile-name">{{ reptile.name }}</h3>
-                    {% if reptile.sex %}
-                        <span class="sex-badge sex-{{ reptile.sex|lower }}">
-                            <i class="fas fa-{{ 'mars' if reptile.sex == 'Male' else 'venus' if reptile.sex == 'Female' else 'genderless' }}"></i>
-                        </span>
-                    {% endif %}
-                </div>
-                <div class="modern-reptile-species">
-                    <i class="fas fa-dragon"></i> {{ reptile.species }}
-                </div>
-                {% if reptile.morph %}
-                    <div class="reptile-morph">
-                        <i class="fas fa-palette"></i> {{ reptile.morph }}
-                    </div>
-                {% endif %}
-                
-                <!-- Feeding Status Badge -->
-                {% if reptile.last_feeding_date %}
-                    {% set feeding_date_str = reptile.last_feeding_date|string %}
-                    {% set days_text = feeding_date_str|days_ago %}
-                    {% if days_text == 'Today' %}
-                        <div class="feeding-status fed-today">
-                            <i class="fas fa-check-circle"></i> Fed today
-                        </div>
-                    {% elif 'day ago' in days_text or '1 day' in days_text or '2 days' in days_text or '3 days' in days_text %}
-                        <div class="feeding-status fed-recently">
-                            <i class="fas fa-check-circle"></i> Fed {{ days_text|lower }}
-                        </div>
-                    {% else %}
-                        <div class="feeding-status fed-overdue">
-                            <i class="fas fa-exclamation-circle"></i> Fed {{ days_text|lower }}
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <div class="feeding-status no-feeding">
-                        <i class="fas fa-info-circle"></i> No feeding recorded
-                    </div>
-                {% endif %}
-                
-                <div class="reptile-stats">
-                    {% if reptile.weight_grams %}
-                        <div class="stat-item">
-                            <i class="fas fa-weight-hanging"></i>
-                            <span>{{ reptile.weight_grams }}g</span>
-                        </div>
-                    {% endif %}
-                    {% if reptile.length_cm %}
-                        <div class="stat-item">
-                            <i class="fas fa-ruler"></i>
-                            <span>{{ reptile.length_cm }}cm</span>
-                        </div>
-                    {% endif %}
-                    {% if reptile.date_of_birth %}
-                        <div class="stat-item">
-                            <i class="fas fa-birthday-cake"></i>
-                            <span>{{ reptile.date_of_birth|format_date }}</span>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <div class="empty-state">
-        <i class="fas fa-dragon"></i>
-        <h3>No Reptiles Yet</h3>
-        <p>Add your first reptile to get started!</p>
-    </div>
-{% endif %}
 
 <!-- Welcome Tutorial Overlay -->
 <div id="welcome-tutorial" class="tutorial-overlay" data-tutorial>
