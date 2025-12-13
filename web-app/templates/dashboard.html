@@ -35,51 +35,32 @@
         </div>
     </div>
     
-    <div class="modern-stat-card stat-inventory">
+    <div class="modern-stat-card stat-feedings">
         <div class="stat-icon">
-            <i class="fas fa-box"></i>
+            <i class="fas fa-utensils"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-value">{{ inventory_count }}</div>
-            <div class="stat-label">Food Items in Stock</div>
-            {% if low_stock_count > 0 or out_of_stock_count > 0 %}
-            <div class="stat-hint" style="color: #ef4444; font-weight: 600;">
-                {% if out_of_stock_count > 0 %}{{ out_of_stock_count }} out of stock{% endif %}
-                {% if out_of_stock_count > 0 and low_stock_count > 0 %}, {% endif %}
-                {% if low_stock_count > 0 %}{{ low_stock_count }} low stock{% endif %}
-            </div>
-            {% endif %}
-        </div>
-        <a href="{{ url_for('finance', tab='inventory') }}" class="stat-trend" style="cursor: pointer; text-decoration: none;">
-            <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-    
-    <div class="modern-stat-card stat-value">
-        <div class="stat-icon">
-            <i class="fas fa-dollar-sign"></i>
-        </div>
-        <div class="stat-content">
-            <div class="stat-value">${{ "%.2f"|format(total_inventory_value) }}</div>
-            <div class="stat-label">Inventory Value</div>
+            <div class="stat-value">{{ stats.total_feedings or 0 }}</div>
+            <div class="stat-label">Total Feedings</div>
+            <div class="stat-hint">All time</div>
         </div>
         <div class="stat-trend">
-            <i class="fas fa-warehouse"></i>
+            <i class="fas fa-chart-line"></i>
         </div>
     </div>
     
-    <div class="modern-stat-card stat-expenses">
+    <div class="modern-stat-card stat-sheds">
         <div class="stat-icon">
-            <i class="fas fa-receipt"></i>
+            <i class="fas fa-sync-alt"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-value">${{ "%.2f"|format(monthly_expenses) }}</div>
-            <div class="stat-label">Monthly Expenses</div>
-            <div class="stat-hint">Last 30 days</div>
+            <div class="stat-value">{{ stats.total_sheds or 0 }}</div>
+            <div class="stat-label">Total Sheds</div>
+            <div class="stat-hint">All time</div>
         </div>
-        <a href="{{ url_for('finance', tab='expenses') }}" class="stat-trend" style="cursor: pointer; text-decoration: none;">
-            <i class="fas fa-arrow-right"></i>
-        </a>
+        <div class="stat-trend">
+            <i class="fas fa-history"></i>
+        </div>
     </div>
 </div>
 
@@ -309,12 +290,37 @@
                         </span>
                     {% endif %}
                 </div>
-                <div class="modern-reptile-species">{{ reptile.species }}</div>
+                <div class="modern-reptile-species">
+                    <i class="fas fa-dragon"></i> {{ reptile.species }}
+                </div>
                 {% if reptile.morph %}
                     <div class="reptile-morph">
                         <i class="fas fa-palette"></i> {{ reptile.morph }}
                     </div>
                 {% endif %}
+                
+                <!-- Feeding Status Badge -->
+                {% if reptile.last_feeding_date %}
+                    {% set days_since = (now - reptile.last_feeding_date)|days_difference %}
+                    {% if days_since == 0 %}
+                        <div class="feeding-status fed-today">
+                            <i class="fas fa-check-circle"></i> Fed today
+                        </div>
+                    {% elif days_since <= 3 %}
+                        <div class="feeding-status fed-recently">
+                            <i class="fas fa-check-circle"></i> Fed {{ days_since }} day{{ 's' if days_since > 1 else '' }} ago
+                        </div>
+                    {% else %}
+                        <div class="feeding-status fed-overdue">
+                            <i class="fas fa-exclamation-circle"></i> Fed {{ days_since }} days ago
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="feeding-status no-feeding">
+                        <i class="fas fa-info-circle"></i> No feeding recorded
+                    </div>
+                {% endif %}
+                
                 <div class="reptile-stats">
                     {% if reptile.weight_grams %}
                         <div class="stat-item">

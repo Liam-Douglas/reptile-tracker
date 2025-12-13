@@ -73,6 +73,30 @@ def format_date_filter(date_string):
     except Exception:
         return date_string
 
+@app.template_filter('days_difference')
+def days_difference_filter(date_obj):
+    """Calculate days difference from now"""
+    if not date_obj:
+        return 0
+    try:
+        from datetime import datetime
+        if isinstance(date_obj, str):
+            # Try parsing different date formats
+            formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']
+            for fmt in formats:
+                try:
+                    date_obj = datetime.strptime(date_obj, fmt)
+                    break
+                except ValueError:
+                    continue
+        
+        if hasattr(date_obj, 'days'):
+            return date_obj.days
+        
+        return (datetime.now() - date_obj).days
+    except Exception:
+        return 0
+
 @app.template_filter('days_ago')
 def days_ago_filter(date_string):
     """Calculate days ago from a date string"""
@@ -136,7 +160,7 @@ def index():
         if receipt.get('receipt_date', '') >= thirty_days_ago
     )
     
-    # Get recent activity (last 7 days)
+    # Get recent activity (last 7 days) and last feeding for each reptile
     seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
     recent_feedings = []
     recent_sheds = []
@@ -144,6 +168,11 @@ def index():
     for reptile in reptiles:
         # Get recent feedings for this reptile
         feedings = db.get_feeding_logs(reptile['id'], limit=10)
+        
+        # Add last feeding date to reptile
+        if feedings:
+            reptile['last_feeding_date'] = feedings[0].get('feeding_date')
+        
         for feeding in feedings:
             if feeding.get('feeding_date', '') >= seven_days_ago:
                 feeding['reptile_name'] = reptile['name']
@@ -163,6 +192,8 @@ def index():
     # Add to stats dict
     stats['recent_feedings'] = recent_feedings
     stats['recent_sheds'] = recent_sheds
+    stats['total_feedings'] = len([f for r in reptiles for f in db.get_feeding_logs(r['id'], limit=1000)])
+    stats['total_sheds'] = len([s for r in reptiles for s in db.get_shed_records(r['id'], limit=1000)])
     
     return render_template('dashboard.html',
                          reptiles=reptiles,
@@ -175,7 +206,8 @@ def index():
                          low_stock_items=low_stock[:3],
                          out_of_stock_items=out_of_stock[:3],
                          total_inventory_value=total_inventory_value,
-                         monthly_expenses=monthly_expenses)
+                         monthly_expenses=monthly_expenses,
+                         now=datetime.now())
 
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):
