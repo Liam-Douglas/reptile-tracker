@@ -188,8 +188,8 @@
                                 <div class="history-date">{{ log.feeding_date|format_date }}</div>
                                 <div class="history-details">
                                     <span class="history-food">{{ log.food_type }}</span>
-                                    {% if log.amount %}
-                                        <span class="history-amount">{{ log.amount }}</span>
+                                    {% if log.food_size %}
+                                        <span class="history-amount">{{ log.food_size }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="history-status">
