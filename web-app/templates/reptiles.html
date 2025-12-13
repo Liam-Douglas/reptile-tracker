@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}My Reptiles - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="reptiles-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-dragon"></i> My Reptiles</h1>
+        <a href="{{ url_for('add_reptile') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Reptile
+        </a>
+    </div>
+
+    <!-- Reptile Cards Grid -->
+    <section class="reptiles-section">
+        <h2 class="section-heading">Your Collection</h2>
+        {% if reptiles %}
+            <div class="reptiles-grid">
+                {% for reptile in reptiles %}
+                <div class="reptile-card-modern">
+                    <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="card-link">
+                        <div class="card-image">
+                            {% if reptile.image_path %}
+                                <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}" alt="{{ reptile.name }}">
+                            {% else %}
+                                <div class="card-placeholder">
+                                    <i class="fas fa-dragon"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">{{ reptile.name }}</h3>
+                            <p class="card-species">{{ reptile.species }}</p>
+                            
+                            {% if reptile.last_feeding_date %}
+                                {% set days_text = reptile.last_feeding_date|days_ago %}
+                                {% if days_text == 'Today' %}
+                                    <div class="feeding-badge fed-today">
+                                        <i class="fas fa-check-circle"></i> Fed today
+                                    </div>
+                                {% elif 'day ago' in days_text or 'days ago' in days_text %}
+                                    {% set days_num = days_text.split()[0]|int if days_text.split()[0].isdigit() else 0 %}
+                                    {% if days_num <= 3 %}
+                                        <div class="feeding-badge fed-recent">
+                                            <i class="fas fa-clock"></i> {{ days_text }}
+                                        </div>
+                                    {% else %}
+                                        <div class="feeding-badge fed-overdue">
+                                            <i class="fas fa-exclamation-circle"></i> {{ days_text }}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="feeding-badge fed-unknown">
+                                        <i class="fas fa-question-circle"></i> No recent feeding
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="feeding-badge fed-unknown">
+                                    <i class="fas fa-question-circle"></i> No feeding data
+                                </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state-large">
+                <i class="fas fa-dragon"></i>
+                <h3>No Reptiles Yet</h3>
+                <p>Add your first reptile to start tracking their care</p>
+                <a href="{{ url_for('add_reptile') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Your First Reptile
+                </a>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Records Section -->
+    <section class="records-section">
+        <h2 class="section-heading">Recent Records</h2>
+        
+        <div class="records-grid">
+            <!-- Feeding Logs -->
+            <div class="records-card">
+                <div class="records-header">
+                    <h3><i class="fas fa-utensils"></i> Recent Feedings</h3>
+                    <a href="{{ url_for('feeding_logs') }}" class="view-all-btn">View All →</a>
+                </div>
+                <div class="records-body">
+                    {% if feeding_logs %}
+                        <div class="records-list">
+                            {% for log in feeding_logs[:10] %}
+                            <div class="record-item">
+                                <div class="record-icon feeding-icon">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div class="record-details">
+                                    <div class="record-name">{{ log.reptile_name }}</div>
+                                    <div class="record-info">{{ log.food_type }}{% if log.food_size %} ({{ log.food_size }}){% endif %}</div>
+                                    <div class="record-date">{{ log.feeding_date|format_date }}</div>
+                                </div>
+                                <div class="record-status">
+                                    {% if log.ate %}
+                                        <span class="status-badge success"><i class="fas fa-check"></i></span>
+                                    {% else %}
+                                        <span class="status-badge danger"><i class="fas fa-times"></i></span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-small">
+                            <i class="fas fa-utensils"></i>
+                            <p>No feeding records yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="records-footer">
+                    <a href="{{ url_for('add_feeding') }}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-plus"></i> Log Feeding
+                    </a>
+                </div>
+            </div>
+
+            <!-- Shed Records -->
+            <div class="records-card">
+                <div class="records-header">
+                    <h3><i class="fas fa-sync-alt"></i> Recent Sheds</h3>
+                    <a href="{{ url_for('shed_records') }}" class="view-all-btn">View All →</a>
+                </div>
+                <div class="records-body">
+                    {% if shed_records %}
+                        <div class="records-list">
+                            {% for record in shed_records[:10] %}
+                            <div class="record-item">
+                                <div class="record-icon shed-icon">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="record-details">
+                                    <div class="record-name">{{ record.reptile_name }}</div>
+                                    <div class="record-info">Shed Record</div>
+                                    <div class="record-date">{{ record.shed_date|format_date }}</div>
+                                </div>
+                                <div class="record-status">
+                                    {% if record.complete %}
+                                        <span class="status-badge success"><i class="fas fa-check"></i></span>
+                                    {% else %}
+                                        <span class="status-badge warning"><i class="fas fa-exclamation"></i></span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-small">
+                            <i class="fas fa-sync-alt"></i>
+                            <p>No shed records yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="records-footer">
+                    <a href="{{ url_for('add_shed') }}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-plus"></i> Log Shed
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reminders Section -->
+    <section class="reminders-section">
+        <h2 class="section-heading">Feeding Reminders</h2>
+        
+        <div class="reminders-grid">
+            <!-- Overdue Feedings -->
+            {% if overdue_feedings %}
+            <div class="reminder-alert alert-danger">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>Overdue Feedings ({{ overdue_feedings|length }})</h3>
+                    <ul class="alert-list">
+                        {% for feeding in overdue_feedings[:5] %}
+                        <li>
+                            <strong>{{ feeding.reptile_name }}</strong> - 
+                            Last fed {{ feeding.last_feeding_date|days_ago }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if overdue_feedings|length > 5 %}
+                        <p class="alert-more">+ {{ overdue_feedings|length - 5 }} more</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Upcoming Feedings -->
+            {% if upcoming_feedings %}
+            <div class="reminder-alert alert-info">
+                <div class="alert-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>Upcoming Feedings ({{ upcoming_feedings|length }})</h3>
+                    <ul class="alert-list">
+                        {% for feeding in upcoming_feedings[:5] %}
+                        <li>
+                            <strong>{{ feeding.reptile_name }}</strong> - 
+                            Due {{ feeding.next_feeding_date|format_date }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if upcoming_feedings|length > 5 %}
+                        <p class="alert-more">+ {{ upcoming_feedings|length - 5 }} more</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Active Reminders -->
+            <div class="reminders-card">
+                <div class="reminders-header">
+                    <h3><i class="fas fa-bell"></i> Active Reminders</h3>
+                    <a href="{{ url_for('feeding_reminders') }}" class="view-all-btn">Manage →</a>
+                </div>
+                <div class="reminders-body">
+                    {% if reminders %}
+                        <div class="reminders-list">
+                            {% for reminder in reminders %}
+                            <div class="reminder-item">
+                                <div class="reminder-icon">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="reminder-details">
+                                    <div class="reminder-name">{{ reminder.reptile_name }}</div>
+                                    <div class="reminder-schedule">Every {{ reminder.frequency_days }} days</div>
+                                </div>
+                                <div class="reminder-toggle">
+                                    {% if reminder.enabled %}
+                                        <span class="toggle-badge active"><i class="fas fa-check-circle"></i> Active</span>
+                                    {% else %}
+                                        <span class="toggle-badge inactive"><i class="fas fa-pause-circle"></i> Paused</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-small">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>No active reminders</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="reminders-footer">
+                    <a href="{{ url_for('feeding_reminders') }}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-plus"></i> Set Reminder
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
