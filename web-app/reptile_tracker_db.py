@@ -1149,6 +1149,7 @@ class ReptileDatabase:
         
         # Calculate total feedings for each reptile in the time period
         food_needs = {}
+        today_date = datetime.strptime(today, '%Y-%m-%d')
         
         for reminder in reminders:
             # Calculate how many feedings will occur in the time period
@@ -1156,8 +1157,11 @@ class ReptileDatabase:
             end_date = datetime.strptime(future_date, '%Y-%m-%d')
             interval_days = reminder['feeding_interval_days']
             
+            # Start counting from today or next feeding date, whichever is later
+            start_date = max(today_date, next_feeding)
+            
             feedings_count = 0
-            current_date = next_feeding
+            current_date = start_date
             
             while current_date <= end_date:
                 feedings_count += 1
@@ -1194,6 +1198,12 @@ class ReptileDatabase:
             # Check current inventory
             inventory_item = self.get_food_item_by_type(food_type, food_size)
             current_stock = inventory_item['quantity'] if inventory_item else 0
+            
+            # Debug logging
+            if not inventory_item:
+                print(f"[DEBUG] No inventory found for: {food_type} - {food_size}")
+            else:
+                print(f"[DEBUG] Found inventory: {food_type} - {food_size} = {current_stock}")
             
             shortage = needs['quantity_needed'] - current_stock
             
