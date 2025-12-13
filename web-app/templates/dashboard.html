@@ -301,18 +301,19 @@
                 
                 <!-- Feeding Status Badge -->
                 {% if reptile.last_feeding_date %}
-                    {% set days_since = (now - reptile.last_feeding_date)|days_difference %}
-                    {% if days_since == 0 %}
+                    {% set feeding_date_str = reptile.last_feeding_date|string %}
+                    {% set days_text = feeding_date_str|days_ago %}
+                    {% if days_text == 'Today' %}
                         <div class="feeding-status fed-today">
                             <i class="fas fa-check-circle"></i> Fed today
                         </div>
-                    {% elif days_since <= 3 %}
+                    {% elif 'day ago' in days_text or '1 day' in days_text or '2 days' in days_text or '3 days' in days_text %}
                         <div class="feeding-status fed-recently">
-                            <i class="fas fa-check-circle"></i> Fed {{ days_since }} day{{ 's' if days_since > 1 else '' }} ago
+                            <i class="fas fa-check-circle"></i> Fed {{ days_text|lower }}
                         </div>
                     {% else %}
                         <div class="feeding-status fed-overdue">
-                            <i class="fas fa-exclamation-circle"></i> Fed {{ days_since }} days ago
+                            <i class="fas fa-exclamation-circle"></i> Fed {{ days_text|lower }}
                         </div>
                     {% endif %}
                 {% else %}
