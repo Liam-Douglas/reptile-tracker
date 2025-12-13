@@ -3092,6 +3092,90 @@ body {
     gap: 1.5rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+/* Alert Card with Header/Body Structure (Finance & Dashboard) */
+.alert-card.alert-danger,
+.alert-card.alert-warning {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.alert-card.alert-danger {
+    border-left: 4px solid #ef4444;
+}
+
+.alert-card.alert-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.alert-header {
+    padding: 1rem 1.5rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.alert-item:hover {
+    transform: translateX(4px);
+}
+
+.alert-item-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.alert-item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.alert-item-subtitle {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.alert-icon.danger {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.alert-icon.warning {
+    background: #fef3c7;
+    color: #f59e0b;
+}
 }
 
 .alert-card.danger {
