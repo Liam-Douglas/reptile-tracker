@@ -1,0 +1,831 @@
+
+{% extends "base.html" %}
+
+{% block title %}Finance - Reptile Tracker{% endblock %}
+
+{% block content %}
+<!-- Modern Header -->
+<div class="finance-header">
+    <div class="header-content">
+        <div>
+            <h1 class="header-title">
+                <i class="fas fa-chart-line"></i> Finance Management
+            </h1>
+            <p class="header-subtitle">Track inventory, expenses, and financial health</p>
+        </div>
+        <div class="header-stats-mini">
+            <div class="mini-stat">
+                <div class="mini-stat-value">${{ "%.2f"|format(total_inventory_value) }}</div>
+                <div class="mini-stat-label">Inventory Value</div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-stat-value">${{ "%.2f"|format(monthly_expenses) }}</div>
+                <div class="mini-stat-label">Monthly Spend</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="finance-tabs">
+    <button class="finance-tab {% if active_tab == 'inventory' %}active{% endif %}" 
+            onclick="switchTab('inventory')">
+        <i class="fas fa-box"></i>
+        <span>Inventory</span>
+        {% if out_of_stock|length > 0 or low_stock|length > 0 %}
+        <span class="tab-badge">{{ out_of_stock|length + low_stock|length }}</span>
+        {% endif %}
+    </button>
+    <button class="finance-tab {% if active_tab == 'expenses' %}active{% endif %}" 
+            onclick="switchTab('expenses')">
+        <i class="fas fa-receipt"></i>
+        <span>Expenses</span>
+    </button>
+    <button class="finance-tab {% if active_tab == 'reports' %}active{% endif %}" 
+            onclick="switchTab('reports')">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reports</span>
+    </button>
+</div>
+
+<!-- Inventory Tab Content -->
+<div id="inventory-tab" class="tab-content {% if active_tab == 'inventory' %}active{% endif %}">
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{{ url_for('add_inventory_bulk') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Stock
+        </a>
+        <a href="{{ url_for('scan_receipt') }}" class="btn btn-secondary">
+            <i class="fas fa-camera"></i> Scan Receipt
+        </a>
+        <a href="{{ url_for('purchase_receipts') }}" class="btn btn-secondary">
+            <i class="fas fa-receipt"></i> Purchase History
+        </a>
+        <a href="{{ url_for('shopping_list') }}" class="btn btn-secondary">
+            <i class="fas fa-shopping-cart"></i> Shopping List
+        </a>
+    </div>
+
+    <!-- Stock Alerts -->
+    {% if out_of_stock %}
+    <div class="alert-card alert-danger">
+        <div class="alert-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Out of Stock ({{ out_of_stock|length }})</h3>
+        </div>
+        <div class="alert-body">
+            {% for item in out_of_stock %}
+            <div class="alert-item">
+                <div class="alert-item-info">
+                    <div class="alert-icon danger">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div>
+                        <div class="alert-item-title">{{ item.food_type }} - {{ item.food_size }}</div>
+                        <div class="alert-item-subtitle">Out of stock</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('add_inventory_item') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Restock
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if low_stock %}
+    <div class="alert-card alert-warning">
+        <div class="alert-header">
+            <h3><i class="fas fa-exclamation-circle"></i> Low Stock Alert ({{ low_stock|length }})</h3>
+        </div>
+        <div class="alert-body">
+            {% for item in low_stock %}
+            <div class="alert-item">
+                <div class="alert-item-info">
+                    <div class="alert-icon warning">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div>
+                        <div class="alert-item-title">{{ item.food_type }} - {{ item.food_size }}</div>
+                        <div class="alert-item-subtitle">Only {{ item.quantity }} {{ item.unit }} remaining</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('inventory_item_details', inventory_id=item.id) }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-plus"></i> Add More
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inventory Grid -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-warehouse"></i> Current Inventory</h3>
+            <span class="badge">{{ inventory|length }} items</span>
+        </div>
+        <div class="inventory-grid">
+            {% for item in inventory %}
+            <div class="inventory-card" onclick="window.location.href='{{ url_for('inventory_item_details', inventory_id=item.id) }}'">
+                <div class="inventory-card-header">
+                    <h4>{{ item.food_type }}</h4>
+                    <span class="inventory-badge {% if item.quantity == 0 %}badge-danger{% elif item.quantity <= 5 %}badge-warning{% else %}badge-success{% endif %}">
+                        {{ item.quantity }} {{ item.unit }}
+                    </span>
+                </div>
+                <div class="inventory-card-body">
+                    <div class="inventory-detail">
+                        <i class="fas fa-ruler"></i>
+                        <span>{{ item.food_size }}</span>
+                    </div>
+                    {% if item.cost_per_unit %}
+                    <div class="inventory-detail">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>${{ "%.2f"|format(item.cost_per_unit) }}/{{ item.unit }}</span>
+                    </div>
+                    {% endif %}
+                    {% if item.expiry_date %}
+                    <div class="inventory-detail">
+                        <i class="fas fa-calendar"></i>
+                        <span>Exp: {{ item.expiry_date|format_date }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if forecasts.get(item.id) %}
+                <div class="inventory-forecast">
+                    <i class="fas fa-chart-line"></i>
+                    Lasts ~{{ forecasts[item.id].days_remaining }} days
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Expenses Tab Content -->
+<div id="expenses-tab" class="tab-content {% if active_tab == 'expenses' %}active{% endif %}">
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Expense
+        </a>
+        <a href="{{ url_for('expense_reports') }}" class="btn btn-secondary">
+            <i class="fas fa-chart-bar"></i> View Reports
+        </a>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #dbeafe;">
+                <i class="fas fa-receipt" style="color: #1e40af;"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ expense_summary.count }}</div>
+                <div class="stat-label">Total Expenses</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #dcfce7;">
+                <i class="fas fa-dollar-sign" style="color: #15803d;"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">${{ "%.2f"|format(expense_summary.total) }}</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #fef3c7;">
+                <i class="fas fa-chart-line" style="color: #a16207;"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">${{ "%.2f"|format(expense_summary.average) }}</div>
+                <div class="stat-label">Average Expense</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-filter"></i> Filters</h3>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('finance') }}" class="filter-form">
+                <input type="hidden" name="tab" value="expenses">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="reptile_id">Reptile</label>
+                        <select name="reptile_id" id="reptile_id" class="form-control">
+                            <option value="">All Reptiles</option>
+                            {% for reptile in reptiles %}
+                            <option value="{{ reptile.id }}" {% if selected_reptile == reptile.id %}selected{% endif %}>
+                                {{ reptile.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select name="category" id="category" class="form-control">
+                            <option value="">All Categories</option>
+                            {% for cat in expense_categories %}
+                            <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                                {{ cat }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ start_date or '' }}" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end_date">End Date</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ end_date or '' }}" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <a href="{{ url_for('finance', tab='expenses') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expenses List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-list"></i> Expense History</h3>
+        </div>
+        <div class="expenses-list">
+            {% if expenses %}
+                {% for expense in expenses %}
+                <div class="expense-item" onclick="window.location.href='{{ url_for('expense_details', expense_id=expense.id) }}'">
+                    <div class="expense-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="expense-info">
+                        <div class="expense-title">{{ expense.category }}</div>
+                        <div class="expense-meta">
+                            {{ expense.expense_date|format_date }}
+                            {% if expense.reptile_name %}
+                            • {{ expense.reptile_name }}
+                            {% endif %}
+                            {% if expense.vendor %}
+                            • {{ expense.vendor }}
+                            {% endif %}
+                        </div>
+                        {% if expense.description %}
+                        <div class="expense-description">{{ expense.description }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="expense-amount">
+                        ${{ "%.2f"|format(expense.amount) }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No Expenses Found</h3>
+                    <p>Start tracking your reptile expenses</p>
+                    <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add First Expense
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Reports Tab Content -->
+<div id="reports-tab" class="tab-content {% if active_tab == 'reports' %}active{% endif %}">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-bar"></i> Financial Reports</h3>
+        </div>
+        <div class="card-body">
+            <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <i class="fas fa-chart-pie" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                Detailed reports and analytics coming soon!
+            </p>
+            <div style="text-align: center;">
+                <a href="{{ url_for('expense_reports') }}" class="btn btn-primary">
+                    <i class="fas fa-chart-bar"></i> View Current Reports
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Finance Header */
+.finance-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.header-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.5rem 0 0 0;
+    font-size: 1rem;
+}
+
+.header-stats-mini {
+    display: flex;
+    gap: 2rem;
+}
+
+.mini-stat {
+    text-align: right;
+}
+
+.mini-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.mini-stat-label {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Tab Navigation */
+.finance-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    background: var(--bg-secondary);
+    padding: 0.5rem;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+.finance-tab {
+    flex: 1;
+    min-width: 120px;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.finance-tab:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--text-primary);
+}
+
+.finance-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.tab-badge {
+    background: #ef4444;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Alert Cards */
+.alert-card {
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border-left: 4px solid;
+}
+
+.alert-danger {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.alert-warning {
+    border-left-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.alert-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.alert-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-body {
+    padding: 1rem;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.alert-item:hover {
+    transform: translateX(4px);
+}
+
+.alert-item:last-child {
+    margin-bottom: 0;
+}
+
+.alert-item-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.alert-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.alert-icon.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.alert-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.alert-item-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.alert-item-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Inventory Grid */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.inventory-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.inventory-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.inventory-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.inventory-card-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.inventory-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #a16207;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.inventory-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inventory-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.inventory-detail i {
+    width: 16px;
+    color: var(--primary-color);
+}
+
+.inventory-forecast {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Filter Form */
+.filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.625rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Expenses List */
+.expenses-list {
+    padding: 1rem;
+}
+
+.expense-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.expense-item:hover {
+    transform: translateX(4px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.expense-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.expense-info {
+    flex: 1;
+}
+
+.expense-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 0.25rem;
+}
+
+.expense-meta {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.expense-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.expense-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .finance-header {
+        padding: 1.5rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-stats-mini {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .finance-tabs {
+        overflow-x: auto;
+    }
+    
+    .finance-tab {
+        min-width: 100px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .inventory-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .expense-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .expense-amount {
+        align-self: flex-end;
+    }
+}
+</style>
+
+<script>
+function switchTab(tabName) {
+    // Update URL with tab parameter
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.pushState({}, '', url);
+    
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.finance-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.closest('.finance-tab').classList.add('active');
+}
+</script>
+{% endblock %}
+
+{% block fab %}
+<a href="{{ url_for('add_inventory_bulk') }}" class="fab" title="Add Stock">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}

@@ -165,11 +165,8 @@
             <a href="{{ url_for('feeding_reminders') }}" class="nav-link {% if request.endpoint == 'feeding_reminders' %}active{% endif %}">
                 <i class="fas fa-bell"></i> Reminders
             </a>
-            <a href="{{ url_for('expenses_list') }}" class="nav-link {% if request.endpoint in ['expenses_list', 'add_expense', 'edit_expense', 'expense_details', 'expense_reports'] %}active{% endif %}">
-                <i class="fas fa-dollar-sign"></i> Expenses
-            </a>
-            <a href="{{ url_for('food_inventory') }}" class="nav-link {% if request.endpoint in ['food_inventory', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions'] %}active{% endif %}">
-                <i class="fas fa-box"></i> Inventory
+            <a href="{{ url_for('finance') }}" class="nav-link {% if request.endpoint in ['finance', 'expenses_list', 'food_inventory', 'add_expense', 'edit_expense', 'expense_details', 'expense_reports', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions', 'purchase_receipts', 'scan_receipt'] %}active{% endif %}">
+                <i class="fas fa-chart-line"></i> Finance
             </a>
             <a href="{{ url_for('settings_page') }}" class="nav-link {% if request.endpoint in ['settings_page', 'import_page', 'backup_data', 'restore_data'] %}active{% endif %}">
                 <i class="fas fa-cog"></i> Settings

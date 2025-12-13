@@ -862,45 +862,11 @@ def disable_feeding_reminder(reptile_id):
 
 @app.route('/expenses')
 def expenses_list():
-    """Display all expenses with filtering"""
-    db = get_db()
-    
-    # Get filter parameters
-    reptile_id = request.args.get('reptile_id', type=int)
-    category = request.args.get('category')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    
-    # Get expenses with filters
-    expenses = db.get_expenses(
-        reptile_id=reptile_id,
-        category=category,
-        start_date=start_date,
-        end_date=end_date
-    )
-    
-    # Get summary statistics
-    summary = db.get_expense_summary(
-        start_date=start_date,
-        end_date=end_date,
-        reptile_id=reptile_id
-    )
-    
-    # Get all reptiles for filter dropdown
-    reptiles = db.get_all_reptiles()
-    
-    # Get unique categories
-    categories = db.get_expense_categories()
-    
-    return render_template('expenses.html',
-                         expenses=expenses,
-                         summary=summary,
-                         reptiles=reptiles,
-                         categories=categories,
-                         selected_reptile=reptile_id,
-                         selected_category=category,
-                         start_date=start_date,
-                         end_date=end_date)
+    """Redirect to finance page with expenses tab"""
+    # Preserve query parameters
+    args = request.args.to_dict()
+    args['tab'] = 'expenses'
+    return redirect(url_for('finance', **args))
 
 @app.route('/expense/add', methods=['GET', 'POST'])
 def add_expense():
@@ -1122,39 +1088,87 @@ def expense_reports():
 
 # ==================== FOOD INVENTORY ROUTES ====================
 
-@app.route('/inventory')
-def food_inventory():
-    """Display food inventory"""
+@app.route('/finance')
+def finance():
+    """Unified Finance page - Inventory & Expenses combined"""
     db = get_db()
     
-    # Get days ahead parameter for shopping list (default 30)
+    # Get active tab from query parameter (default: inventory)
+    active_tab = request.args.get('tab', 'inventory')
+    
+    # === INVENTORY DATA ===
     days_ahead = request.args.get('days', 30, type=int)
-    
-    # Get all inventory items
     inventory = db.get_food_inventory(include_zero=True)
-    
-    # Get low stock items
     low_stock = db.get_low_stock_items(threshold=5)
-    
-    # Get out of stock items
     out_of_stock = db.get_out_of_stock_items()
-    
-    # Get inventory forecasts
     forecasts = db.get_inventory_forecast(days_lookback=30)
-    
-    # Create a forecast lookup dictionary by inventory_id
     forecast_dict = {f['inventory_id']: f for f in forecasts}
-    
-    # Get shopping list data
     shopping_list_data = db.get_shopping_list(days_ahead=days_ahead)
     
-    return render_template('food_inventory.html',
+    # Calculate inventory value
+    total_inventory_value = sum(
+        (item['quantity'] * item.get('cost_per_unit', 0))
+        for item in inventory if item.get('cost_per_unit')
+    )
+    
+    # === EXPENSES DATA ===
+    reptile_id = request.args.get('reptile_id', type=int)
+    category = request.args.get('category')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    expenses = db.get_expenses(
+        reptile_id=reptile_id,
+        category=category,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    expense_summary = db.get_expense_summary(
+        start_date=start_date,
+        end_date=end_date,
+        reptile_id=reptile_id
+    )
+    
+    reptiles = db.get_all_reptiles()
+    categories = db.get_expense_categories()
+    
+    # Calculate monthly expenses (last 30 days)
+    from datetime import datetime, timedelta
+    thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+    recent_receipts = db.get_purchase_receipts()
+    monthly_expenses = sum(
+        receipt.get('total_cost', 0)
+        for receipt in recent_receipts
+        if receipt.get('receipt_date', '') >= thirty_days_ago
+    )
+    
+    return render_template('finance.html',
+                         active_tab=active_tab,
+                         # Inventory data
                          inventory=inventory,
                          low_stock=low_stock,
                          out_of_stock=out_of_stock,
                          forecasts=forecast_dict,
                          shopping_list=shopping_list_data,
-                         days_ahead=days_ahead)
+                         days_ahead=days_ahead,
+                         total_inventory_value=total_inventory_value,
+                         inventory_count=len(inventory),
+                         # Expenses data
+                         expenses=expenses,
+                         expense_summary=expense_summary,
+                         reptiles=reptiles,
+                         expense_categories=categories,
+                         selected_reptile=reptile_id,
+                         selected_category=category,
+                         start_date=start_date,
+                         end_date=end_date,
+                         monthly_expenses=monthly_expenses)
+
+@app.route('/inventory')
+def food_inventory():
+    """Redirect to finance page with inventory tab"""
+    return redirect(url_for('finance', tab='inventory'))
 
 @app.route('/shopping-list')
 def shopping_list():
