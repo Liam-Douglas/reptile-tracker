@@ -5,19 +5,26 @@
 {% block content %}
 <div class="reptiles-page-modern">
     <!-- Modern Header -->
-    <div class="reptiles-header">
+    <div class="modern-header">
         <div class="header-content">
             <div>
-                <h1><i class="fas fa-dragon"></i> My Reptiles</h1>
-                <p>Manage your collection, records, and reminders</p>
+                <h1 class="header-title">
+                    <i class="fas fa-dragon"></i> My Reptiles
+                </h1>
+                <p class="header-subtitle">Manage your collection, records, and reminders</p>
             </div>
-            <div class="header-stats">
-                <span class="total-count">{{ reptiles|length }} total</span>
+            <div class="header-actions">
+                <div class="header-stats-mini">
+                    <div class="mini-stat">
+                        <div class="mini-stat-value">{{ reptiles|length }}</div>
+                        <div class="mini-stat-label">Total Reptiles</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('add_reptile') }}" class="btn-modern btn-primary">
+                    <i class="fas fa-plus"></i> Add Reptile
+                </a>
             </div>
         </div>
-        <a href="{{ url_for('add_reptile') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Reptile
-        </a>
     </div>
 
     <!-- Tabs Navigation -->
@@ -125,6 +132,13 @@
                                 </div>
                             {% endif %}
                         </div>
+
+                        <!-- Next Feeding Date -->
+                        {% if reptile.next_feeding_date %}
+                            <div class="next-feeding-date">
+                                <i class="fas fa-calendar-alt"></i> Next feeding: {{ reptile.next_feeding_date|format_date }}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -265,7 +279,7 @@
                     <ul class="alert-list">
                         {% for feeding in overdue_feedings %}
                         <li>
-                            <strong>{{ feeding.reptile_name }}</strong> - Last fed {{ feeding.last_feeding_date|days_ago }}
+                            <strong>{{ feeding.reptile_name }}</strong> - Last fed {{ feeding.last_feeding_date|format_date }}
                         </li>
                         {% endfor %}
                     </ul>
@@ -309,12 +323,17 @@
                                     <div class="reminder-name">{{ reminder.reptile_name }}</div>
                                     <div class="reminder-schedule">Every {{ reminder.frequency_days }} days</div>
                                 </div>
-                                <div class="reminder-status">
-                                    {% if reminder.enabled %}
-                                        <span class="status-active"><i class="fas fa-check-circle"></i> Active</span>
-                                    {% else %}
-                                        <span class="status-paused"><i class="fas fa-pause-circle"></i> Paused</span>
-                                    {% endif %}
+                                <div class="reminder-actions">
+                                    <div class="reminder-status">
+                                        {% if reminder.enabled %}
+                                            <span class="status-active"><i class="fas fa-check-circle"></i> Active</span>
+                                        {% else %}
+                                            <span class="status-paused"><i class="fas fa-pause-circle"></i> Paused</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('set_feeding_reminder', reptile_id=reminder.reptile_id) }}" class="edit-reminder-btn">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 </div>
                             </div>
                             {% endfor %}

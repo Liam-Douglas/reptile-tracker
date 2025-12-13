@@ -66,44 +66,46 @@
 
 <!-- Low Stock Alerts -->
 {% if low_stock_items or out_of_stock_items %}
-<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #f59e0b;">
-    <div class="card-header" style="background: #fef3c7;">
-        <h3 class="card-title" style="color: #92400e;">
-            <i class="fas fa-exclamation-triangle"></i> Stock Alerts
-        </h3>
-        <a href="{{ url_for('finance', tab='inventory') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+<div class="alert-card alert-warning dashboard-stock-alert">
+    <div class="alert-header">
+        <h3><i class="fas fa-exclamation-triangle"></i> Stock Alerts</h3>
+        <a href="{{ url_for('finance', tab='inventory') }}" class="btn btn-secondary btn-sm">
             View Inventory
         </a>
     </div>
-    <div style="padding: 1rem;">
-        <div style="display: grid; gap: 0.75rem;">
-            {% for item in out_of_stock_items %}
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #fee2e2; border-radius: 6px; border: 1px solid #fca5a5;">
-                <div>
-                    <strong style="color: #991b1b;">{{ item.food_type }} - {{ item.food_size }}</strong>
-                    <span style="color: #ef4444; margin-left: 0.5rem; font-size: 0.9rem;">
-                        <i class="fas fa-times-circle"></i> Out of stock
-                    </span>
+    <div class="alert-body">
+        {% for item in out_of_stock_items %}
+        <div class="alert-item alert-item-danger">
+            <div class="alert-item-info">
+                <div class="alert-icon danger">
+                    <i class="fas fa-box-open"></i>
                 </div>
-                <a href="{{ url_for('add_inventory_bulk') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                    <i class="fas fa-plus"></i> Restock
-                </a>
-            </div>
-            {% endfor %}
-            {% for item in low_stock_items %}
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #fef3c7; border-radius: 6px; border: 1px solid #fcd34d;">
                 <div>
-                    <strong style="color: #78350f;">{{ item.food_type }} - {{ item.food_size }}</strong>
-                    <span style="color: #f59e0b; margin-left: 0.5rem; font-size: 0.9rem;">
-                        <i class="fas fa-exclamation-circle"></i> Only {{ item.quantity }} left
-                    </span>
+                    <div class="alert-item-title">{{ item.food_type }} - {{ item.food_size }}</div>
+                    <div class="alert-item-subtitle">Out of stock</div>
                 </div>
-                <a href="{{ url_for('add_inventory_bulk') }}" class="btn btn-warning" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                    <i class="fas fa-plus"></i> Add More
-                </a>
             </div>
-            {% endfor %}
+            <a href="{{ url_for('add_inventory_bulk') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Restock
+            </a>
         </div>
+        {% endfor %}
+        {% for item in low_stock_items %}
+        <div class="alert-item alert-item-warning">
+            <div class="alert-item-info">
+                <div class="alert-icon warning">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                    <div class="alert-item-title">{{ item.food_type }} - {{ item.food_size }}</div>
+                    <div class="alert-item-subtitle">Only {{ item.quantity }} left</div>
+                </div>
+            </div>
+            <a href="{{ url_for('add_inventory_bulk') }}" class="btn btn-warning btn-sm">
+                <i class="fas fa-plus"></i> Add More
+            </a>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endif %}

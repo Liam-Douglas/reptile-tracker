@@ -2633,53 +2633,10 @@ body {
     margin: 0 auto;
 }
 
-/* Header */
-.reptiles-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    color: white;
-}
+/* Reptiles Page - Now uses .modern-header */
 
-.reptiles-header .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex: 1;
-    margin-right: 2rem;
-}
-
-.reptiles-header h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.reptiles-header p {
-    margin: 0;
-    opacity: 0.9;
-}
-
-.reptiles-header .header-stats {
-    display: flex;
-    gap: 1rem;
-}
-
-.total-count {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
-}
-
-/* Tabs */
+/* Unified Tab System - Used by Finance and Reptiles pages */
+.finance-tabs,
 .reptiles-tabs {
     display: flex;
     background: white;
@@ -2690,6 +2647,7 @@ body {
     gap: 0.5rem;
 }
 
+.finance-tab,
 .reptiles-tab {
     flex: 1;
     padding: 1rem 1.5rem;
@@ -2707,11 +2665,13 @@ body {
     gap: 0.5rem;
 }
 
+.finance-tab:hover,
 .reptiles-tab:hover {
     background: #f3f4f6;
     color: #667eea;
 }
 
+.finance-tab.active,
 .reptiles-tab.active {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
@@ -3308,4 +3268,79 @@ body {
     .alert-card {
         flex-direction: column;
     }
+}
+
+
+/* Edit button for reminders */
+.reminder-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.edit-reminder-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    color: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.edit-reminder-btn:hover {
+    background: #667eea;
+
+/* Next Feeding Date */
+.next-feeding-date {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.next-feeding-date i {
+    font-size: 0.9rem;
+
+/* Dashboard Stock Alert Specific Styles */
+.dashboard-stock-alert {
+    margin-bottom: 2rem;
+}
+
+.alert-item-danger {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+.alert-item-danger .alert-item-title {
+    color: #991b1b;
+}
+
+.alert-item-warning {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+}
+
+.alert-item-warning .alert-item-title {
+    color: #78350f;
+}
+
+.alert-icon.warning {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+}
+    color: white;
+    transform: scale(1.1);
 }

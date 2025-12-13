@@ -211,32 +211,39 @@ def index():
 
 @app.route('/reptiles')
 def reptiles_page():
-   """Show all reptiles with records and reminders"""
-   db = get_db()
-   reptiles = db.get_all_reptiles()
-   
-   # Get last feeding for each reptile
-   for reptile in reptiles:
-       feedings = db.get_feeding_logs(reptile['id'], limit=1)
-       if feedings:
-           reptile['last_feeding_date'] = feedings[0].get('feeding_date')
-   
-   # Get all feeding logs and shed records
-   all_feeding_logs = db.get_feeding_logs(limit=50)
-   all_shed_records = db.get_shed_records(limit=50)
-   
-   # Get feeding reminders
-   reminders = db.get_feeding_reminders()
-   overdue_feedings = db.get_overdue_feedings()
-   upcoming_feedings = db.get_upcoming_feedings(days_ahead=7)
-   
-   return render_template('reptiles.html',
-                        reptiles=reptiles,
-                        feeding_logs=all_feeding_logs,
-                        shed_records=all_shed_records,
-                        reminders=reminders,
-                        overdue_feedings=overdue_feedings,
-                        upcoming_feedings=upcoming_feedings)
+    """Show all reptiles with records and reminders"""
+    db = get_db()
+    reptiles = db.get_all_reptiles()
+    
+    # Get last feeding and next feeding for each reptile
+    for reptile in reptiles:
+        feedings = db.get_feeding_logs(reptile['id'], limit=1)
+        if feedings:
+            reptile['last_feeding_date'] = feedings[0].get('feeding_date')
+        
+        # Get next feeding date from reminders
+        reminder = db.get_feeding_reminders(reptile['id'])
+        if reminder:
+            reptile['next_feeding_date'] = reminder[0].get('next_feeding_date')
+        else:
+            reptile['next_feeding_date'] = None
+    
+    # Get all feeding logs and shed records
+    all_feeding_logs = db.get_feeding_logs(limit=50)
+    all_shed_records = db.get_shed_records(limit=50)
+    
+    # Get feeding reminders
+    reminders = db.get_feeding_reminders()
+    overdue_feedings = db.get_overdue_feedings()
+    upcoming_feedings = db.get_upcoming_feedings(days_ahead=7)
+    
+    return render_template('reptiles.html',
+                         reptiles=reptiles,
+                         feeding_logs=all_feeding_logs,
+                         shed_records=all_shed_records,
+                         reminders=reminders,
+                         overdue_feedings=overdue_feedings,
+                         upcoming_feedings=upcoming_feedings)
 
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):

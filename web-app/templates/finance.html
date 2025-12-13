@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- Modern Header -->
-<div class="finance-header">
+<div class="modern-header">
     <div class="header-content">
         <div>
             <h1 class="header-title">
@@ -13,14 +13,16 @@
             </h1>
             <p class="header-subtitle">Track inventory, expenses, and financial health</p>
         </div>
-        <div class="header-stats-mini">
-            <div class="mini-stat">
-                <div class="mini-stat-value">${{ "%.2f"|format(total_inventory_value) }}</div>
-                <div class="mini-stat-label">Inventory Value</div>
-            </div>
-            <div class="mini-stat">
-                <div class="mini-stat-value">${{ "%.2f"|format(monthly_expenses) }}</div>
-                <div class="mini-stat-label">Monthly Spend</div>
+        <div class="header-actions">
+            <div class="header-stats-mini">
+                <div class="mini-stat">
+                    <div class="mini-stat-value">${{ "%.2f"|format(total_inventory_value) }}</div>
+                    <div class="mini-stat-label">Inventory Value</div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-value">${{ "%.2f"|format(monthly_expenses) }}</div>
+                    <div class="mini-stat-label">Monthly Spend</div>
+                </div>
             </div>
         </div>
     </div>
