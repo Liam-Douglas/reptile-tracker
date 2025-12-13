@@ -136,6 +136,34 @@ def index():
         if receipt.get('receipt_date', '') >= thirty_days_ago
     )
     
+    # Get recent activity (last 7 days)
+    seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+    recent_feedings = []
+    recent_sheds = []
+    
+    for reptile in reptiles:
+        # Get recent feedings for this reptile
+        feedings = db.get_feeding_logs(reptile['id'], limit=10)
+        for feeding in feedings:
+            if feeding.get('feeding_date', '') >= seven_days_ago:
+                feeding['reptile_name'] = reptile['name']
+                recent_feedings.append(feeding)
+        
+        # Get recent sheds for this reptile
+        sheds = db.get_shed_records(reptile['id'], limit=10)
+        for shed in sheds:
+            if shed.get('shed_date', '') >= seven_days_ago:
+                shed['reptile_name'] = reptile['name']
+                recent_sheds.append(shed)
+    
+    # Sort by date (most recent first)
+    recent_feedings.sort(key=lambda x: x.get('feeding_date', ''), reverse=True)
+    recent_sheds.sort(key=lambda x: x.get('shed_date', ''), reverse=True)
+    
+    # Add to stats dict
+    stats['recent_feedings'] = recent_feedings
+    stats['recent_sheds'] = recent_sheds
+    
     return render_template('dashboard.html',
                          reptiles=reptiles,
                          stats=stats,

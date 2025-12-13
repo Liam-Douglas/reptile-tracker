@@ -1109,11 +1109,122 @@ body {
         flex-direction: column;
         align-items: flex-start;
     }
+    
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .activity-time {
+        align-self: flex-end;
+    }
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+
+/* ========================================
+   ACTIVITY FEED
+   ======================================== */
+
+.activity-feed-card {
+    animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.activity-feed {
+    padding: 0;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(4px);
+}
+
+.activity-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    color: white;
+}
+
+.activity-icon.feeding {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.activity-icon.shed {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.activity-icon.expense {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.activity-icon.inventory {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.activity-title strong {
+    color: var(--primary);
+}
+
+.activity-meta {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.activity-time {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.activity-view-more {
+    text-align: center;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.activity-view-more a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.activity-view-more a:hover {
+    color: #45a049;
+}
 }
 
 /* Empty State */

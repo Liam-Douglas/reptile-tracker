@@ -206,8 +206,75 @@
 </div>
 {% endif %}
 
+<!-- Recent Activity Feed -->
+<div class="card activity-feed-card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-clock"></i> Recent Activity
+        </h3>
+        <span class="badge">Last 7 days</span>
+    </div>
+    <div class="activity-feed">
+        {% if stats.recent_feedings or stats.recent_sheds %}
+            <!-- Recent Feedings -->
+            {% for feeding in stats.recent_feedings[:5] %}
+            <div class="activity-item">
+                <div class="activity-icon feeding">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">
+                        <strong>{{ feeding.reptile_name }}</strong> was fed
+                    </div>
+                    <div class="activity-meta">
+                        {{ feeding.food_type }} • {{ feeding.feeding_date|days_ago }}
+                    </div>
+                </div>
+                <div class="activity-time">
+                    {{ feeding.feeding_date|format_date }}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Recent Sheds -->
+            {% for shed in stats.recent_sheds[:3] %}
+            <div class="activity-item">
+                <div class="activity-icon shed">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">
+                        <strong>{{ shed.reptile_name }}</strong> shed
+                    </div>
+                    <div class="activity-meta">
+                        {% if shed.complete %}Complete{% else %}Incomplete{% endif %} • {{ shed.shed_date|days_ago }}
+                    </div>
+                </div>
+                <div class="activity-time">
+                    {{ shed.shed_date|format_date }}
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% if stats.recent_feedings|length + stats.recent_sheds|length > 8 %}
+            <div class="activity-view-more">
+                <a href="{{ url_for('records_page') }}">
+                    View All Records →
+                </a>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state" style="padding: 2rem;">
+                <i class="fas fa-history"></i>
+                <h3>No Recent Activity</h3>
+                <p>Start logging feedings and sheds to see activity here</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Reptiles Section Header -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; margin-top: 2rem;">
     <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-primary);">
         <i class="fas fa-dragon"></i> My Reptiles
     </h2>
