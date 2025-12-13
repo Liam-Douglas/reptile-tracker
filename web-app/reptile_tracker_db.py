@@ -1543,10 +1543,10 @@ class ReptileDatabase:
         return dict(row) if row else None
     
     def get_food_item_by_type(self, food_type: str, food_size: str) -> Optional[Dict]:
-        """Get food item by type and size"""
+        """Get food item by type and size (case-insensitive)"""
         self.cursor.execute('''
-            SELECT * FROM food_inventory 
-            WHERE food_type = ? AND food_size = ?
+            SELECT * FROM food_inventory
+            WHERE LOWER(food_type) = LOWER(?) AND LOWER(food_size) = LOWER(?)
         ''', (food_type, food_size))
         row = self.cursor.fetchone()
         return dict(row) if row else None
