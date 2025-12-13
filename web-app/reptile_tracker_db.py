@@ -7,6 +7,11 @@ import sqlite3
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ReptileDatabase:
@@ -1124,12 +1129,14 @@ class ReptileDatabase:
         """
         from datetime import datetime, timedelta
         
+        logger.info(f"=== SHOPPING LIST CALCULATION START (days_ahead={days_ahead}) ===")
+        
         today = get_current_date()
         future_date = (datetime.strptime(today, '%Y-%m-%d') + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
         
         # Get all active feeding reminders with food preferences
         self.cursor.execute('''
-            SELECT 
+            SELECT
                 fr.reptile_id,
                 r.name as reptile_name,
                 fr.food_type,
@@ -1146,6 +1153,11 @@ class ReptileDatabase:
         ''')
         
         reminders = [dict(row) for row in self.cursor.fetchall()]
+        logger.info(f"Found {len(reminders)} active feeding reminders with food preferences")
+        
+        for reminder in reminders:
+            logger.info(f"  - {reminder['reptile_name']}: {reminder['food_type']} {reminder['food_size']}, "
+                       f"next feeding: {reminder['next_feeding_date']}, interval: {reminder['feeding_interval_days']} days")
         
         # Calculate total feedings for each reptile in the time period
         food_needs = {}
@@ -1166,6 +1178,8 @@ class ReptileDatabase:
             while current_date <= end_date:
                 feedings_count += 1
                 current_date += timedelta(days=interval_days)
+            
+            logger.info(f"  {reminder['reptile_name']}: {feedings_count} feedings calculated")
             
             if feedings_count > 0:
                 food_key = (reminder['food_type'], reminder['food_size'])
@@ -1190,6 +1204,8 @@ class ReptileDatabase:
                         }]
                     }
         
+        logger.info(f"Total unique food types needed: {len(food_needs)}")
+        
         # Get current inventory levels
         shopping_list = []
         for food_key, needs in food_needs.items():
@@ -1201,9 +1217,9 @@ class ReptileDatabase:
             
             # Debug logging
             if not inventory_item:
-                print(f"[DEBUG] No inventory found for: {food_type} - {food_size}")
+                logger.warning(f"No inventory found for: {food_type} - {food_size}")
             else:
-                print(f"[DEBUG] Found inventory: {food_type} - {food_size} = {current_stock}")
+                logger.info(f"Found inventory: {food_type} - {food_size} = {current_stock}")
             
             shortage = needs['quantity_needed'] - current_stock
             
