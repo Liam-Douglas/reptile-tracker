@@ -1570,11 +1570,27 @@ class ReptileDatabase:
     
     def get_food_item_by_type(self, food_type: str, food_size: str) -> Optional[Dict]:
         """Get food item by type and size (case-insensitive)"""
+        # Debug: show what we're searching for
+        logger.info(f"Searching inventory for: type='{food_type}', size='{food_size}'")
+        
+        # Debug: show all inventory items
+        self.cursor.execute('SELECT food_type, food_size, quantity FROM food_inventory')
+        all_items = self.cursor.fetchall()
+        logger.info(f"All inventory items in database:")
+        for item in all_items:
+            logger.info(f"  - type='{item[0]}', size='{item[1]}', qty={item[2]}")
+        
         self.cursor.execute('''
             SELECT * FROM food_inventory
             WHERE LOWER(food_type) = LOWER(?) AND LOWER(food_size) = LOWER(?)
         ''', (food_type, food_size))
         row = self.cursor.fetchone()
+        
+        if row:
+            logger.info(f"Match found: {dict(row)}")
+        else:
+            logger.warning(f"No match found for: {food_type} - {food_size}")
+        
         return dict(row) if row else None
     
     def update_food_quantity(self, inventory_id: int, quantity_change: int,
