@@ -218,12 +218,51 @@
         <div class="records-container">
             <!-- Quick Actions -->
             <div class="quick-actions-bar">
-                <a href="{{ url_for('add_feeding') }}" class="action-btn primary">
-                    <i class="fas fa-plus"></i> Log Feeding
-                </a>
-                <a href="{{ url_for('add_shed') }}" class="action-btn secondary">
-                    <i class="fas fa-plus"></i> Log Shed
-                </a>
+                <button onclick="showLogActivityModal()" class="action-btn primary">
+                    <i class="fas fa-plus"></i> Log Activity
+                </button>
+            </div>
+
+            <!-- Log Activity Modal -->
+            <div id="logActivityModal" class="modal-overlay" style="display: none;">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-clipboard-list"></i> What would you like to log?</h3>
+                        <button class="modal-close" onclick="closeLogActivityModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <a href="{{ url_for('add_feeding') }}" class="log-option-card">
+                                <div class="log-option-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <h4>Feeding</h4>
+                                <p>Log a feeding session</p>
+                            </a>
+                            <a href="{{ url_for('add_shed') }}" class="log-option-card">
+                                <div class="log-option-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <h4>Shed</h4>
+                                <p>Record a shed event</p>
+                            </a>
+                            <a href="#" onclick="event.preventDefault(); selectReptileForCleaning();" class="log-option-card">
+                                <div class="log-option-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                    <i class="fas fa-spray-can"></i>
+                                </div>
+                                <h4>Tank Cleaning</h4>
+                                <p>Log tank maintenance</p>
+                            </a>
+                            <a href="#" onclick="event.preventDefault(); selectReptileForHandling();" class="log-option-card">
+                                <div class="log-option-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                                    <i class="fas fa-hand-holding"></i>
+                                </div>
+                                <h4>Handling</h4>
+                                <p>Record handling session</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Records Grid -->
@@ -496,6 +535,52 @@
     </div>
 </div>
 
+<style>
+.log-option-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.log-option-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.log-option-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.log-option-card h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.log-option-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+</style>
+
 <script>
 function switchReptileTab(tabName) {
     // Hide all tab contents
@@ -516,5 +601,33 @@ function switchReptileTab(tabName) {
     // Add active class to clicked tab
     event.target.closest('.reptiles-tab').classList.add('active');
 }
+
+function showLogActivityModal() {
+    document.getElementById('logActivityModal').style.display = 'flex';
+}
+
+function closeLogActivityModal() {
+    document.getElementById('logActivityModal').style.display = 'none';
+}
+
+function selectReptileForCleaning() {
+    // For now, just redirect to records page where they can select
+    // In future, could show reptile selector modal
+    window.location.href = "{{ url_for('records_page') }}";
+}
+
+function selectReptileForHandling() {
+    // For now, just redirect to records page where they can select
+    // In future, could show reptile selector modal
+    window.location.href = "{{ url_for('records_page') }}";
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('logActivityModal');
+    if (event.target === modal) {
+        closeLogActivityModal();
+    }
+});
 </script>
 {% endblock %}
