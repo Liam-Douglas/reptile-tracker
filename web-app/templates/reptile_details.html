@@ -52,73 +52,74 @@
     </div>
 </div>
 
-<!-- Quick Stats Grid -->
+<!-- Quick Stats Grid - Actionable Stats -->
 <div class="profile-stats-grid">
-    {% if reptile.weight_grams %}
-    <div class="profile-stat-card stat-weight">
-        <div class="stat-icon"><i class="fas fa-weight"></i></div>
-        <div class="stat-content">
-            <div class="stat-value">{{ reptile.weight_grams }}g</div>
-            <div class="stat-label">Current Weight</div>
-        </div>
-    </div>
-    {% endif %}
-    
-    {% if reptile.length_cm %}
-    <div class="profile-stat-card stat-length">
-        <div class="stat-icon"><i class="fas fa-ruler"></i></div>
-        <div class="stat-content">
-            <div class="stat-value">{{ reptile.length_cm }}cm</div>
-            <div class="stat-label">Current Length</div>
-        </div>
-    </div>
-    {% endif %}
-    
+    <!-- Last Fed -->
     {% if feeding_logs %}
     <div class="profile-stat-card stat-feeding">
         <div class="stat-icon"><i class="fas fa-utensils"></i></div>
         <div class="stat-content">
-            <div class="stat-value">
-                {{ feeding_logs[0].feeding_date|format_date }}
-                <span class="stat-days-ago">({{ feeding_logs[0].feeding_date|days_ago }})</span>
-            </div>
+            <div class="stat-value">{{ feeding_logs[0].feeding_date|days_ago }}</div>
+            <div class="stat-label">Last Fed</div>
+        </div>
+    </div>
+    {% else %}
+    <div class="profile-stat-card stat-feeding stat-empty">
+        <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">Never</div>
             <div class="stat-label">Last Fed</div>
         </div>
     </div>
     {% endif %}
     
-    {% if shed_records %}
-    <div class="profile-stat-card stat-shed">
-        <div class="stat-icon"><i class="fas fa-sync-alt"></i></div>
+    <!-- Next Feeding -->
+    {% if next_feeding_date %}
+    <div class="profile-stat-card stat-next-feeding {% if days_until_feeding <= 0 %}stat-overdue{% elif days_until_feeding <= 2 %}stat-soon{% endif %}">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
         <div class="stat-content">
-            <div class="stat-value">
-                {{ shed_records[0].shed_date|format_date }}
-                <span class="stat-days-ago">({{ shed_records[0].shed_date|days_ago }})</span>
-            </div>
-            <div class="stat-label">Last Shed</div>
+            {% if days_until_feeding < 0 %}
+                <div class="stat-value">{{ days_until_feeding|abs }} days ago</div>
+                <div class="stat-label">Overdue Feeding</div>
+            {% elif days_until_feeding == 0 %}
+                <div class="stat-value">Today</div>
+                <div class="stat-label">Next Feeding</div>
+            {% elif days_until_feeding == 1 %}
+                <div class="stat-value">Tomorrow</div>
+                <div class="stat-label">Next Feeding</div>
+            {% else %}
+                <div class="stat-value">In {{ days_until_feeding }} days</div>
+                <div class="stat-label">Next Feeding</div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="profile-stat-card stat-next-feeding stat-empty">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">Not Set</div>
+            <div class="stat-label">Next Feeding</div>
         </div>
     </div>
     {% endif %}
     
-    {% if reptile.date_of_birth %}
-    <div class="profile-stat-card stat-age">
-        <div class="stat-icon"><i class="fas fa-birthday-cake"></i></div>
+    <!-- Clean Tank -->
+    <div class="profile-stat-card stat-tank stat-empty">
+        <div class="stat-icon"><i class="fas fa-spray-can"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ reptile.date_of_birth|format_date }}</div>
-            <div class="stat-label">Date of Birth</div>
+            <div class="stat-value">Not Tracked</div>
+            <div class="stat-label">Clean Tank</div>
         </div>
     </div>
-    {% endif %}
     
-    {% if reptile.acquisition_date %}
-    <div class="profile-stat-card stat-acquired">
-        <div class="stat-icon"><i class="fas fa-calendar-plus"></i></div>
+    <!-- Last Handled -->
+    <div class="profile-stat-card stat-handled stat-empty">
+        <div class="stat-icon"><i class="fas fa-hand-holding"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ reptile.acquisition_date|format_date }}</div>
-            <div class="stat-label">Acquired</div>
+            <div class="stat-value">Not Tracked</div>
+            <div class="stat-label">Last Handled</div>
         </div>
     </div>
-    {% endif %}
 </div>
 
 <!-- Tabbed Content Section -->
@@ -126,6 +127,9 @@
     <div class="profile-tabs">
         <button class="profile-tab active" onclick="switchProfileTab('care')">
             <i class="fas fa-heart"></i> Care
+        </button>
+        <button class="profile-tab" onclick="switchProfileTab('stats')">
+            <i class="fas fa-info-circle"></i> Stats
         </button>
         <button class="profile-tab" onclick="switchProfileTab('reminders')">
             <i class="fas fa-bell"></i> Reminders
@@ -268,6 +272,98 @@
                     {% endif %}
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div id="stats-tab" class="tab-content">
+        <div class="stats-info-grid">
+            <!-- General Information Card -->
+            <div class="stats-card">
+                <div class="stats-card-header">
+                    <h3><i class="fas fa-info-circle"></i> General Information</h3>
+                    <a href="{{ url_for('edit_reptile', reptile_id=reptile.id) }}" class="btn-small btn-secondary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </div>
+                <div class="stats-card-body">
+                    <div class="stats-grid">
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-dna"></i> Species:</span>
+                            <span class="stat-row-value">{{ reptile.species }}</span>
+                        </div>
+                        {% if reptile.morph %}
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-palette"></i> Morph:</span>
+                            <span class="stat-row-value">{{ reptile.morph }}</span>
+                        </div>
+                        {% endif %}
+                        {% if reptile.sex %}
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-venus-mars"></i> Sex:</span>
+                            <span class="stat-row-value">{{ reptile.sex }}</span>
+                        </div>
+                        {% endif %}
+                        {% if reptile.date_of_birth %}
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-birthday-cake"></i> Date of Birth:</span>
+                            <span class="stat-row-value">{{ reptile.date_of_birth|format_date }}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-hourglass-half"></i> Age:</span>
+                            <span class="stat-row-value">{{ reptile.date_of_birth|days_ago }}</span>
+                        </div>
+                        {% endif %}
+                        {% if reptile.acquisition_date %}
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-calendar-plus"></i> Acquired:</span>
+                            <span class="stat-row-value">{{ reptile.acquisition_date|format_date }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Stats Card -->
+            <div class="stats-card">
+                <div class="stats-card-header">
+                    <h3><i class="fas fa-ruler-combined"></i> Physical Stats</h3>
+                </div>
+                <div class="stats-card-body">
+                    <div class="stats-grid">
+                        {% if reptile.weight_grams %}
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-weight"></i> Current Weight:</span>
+                            <span class="stat-row-value">{{ reptile.weight_grams }}g</span>
+                        </div>
+                        {% endif %}
+                        {% if reptile.length_cm %}
+                        <div class="stat-row">
+                            <span class="stat-row-label"><i class="fas fa-ruler"></i> Current Length:</span>
+                            <span class="stat-row-value">{{ reptile.length_cm }}cm</span>
+                        </div>
+                        {% endif %}
+                        {% if not reptile.weight_grams and not reptile.length_cm %}
+                        <div class="empty-state">
+                            <i class="fas fa-ruler-combined"></i>
+                            <p>No physical measurements recorded</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Card -->
+            {% if reptile.notes %}
+            <div class="stats-card stats-card-full">
+                <div class="stats-card-header">
+                    <h3><i class="fas fa-sticky-note"></i> Notes</h3>
+                </div>
+                <div class="stats-card-body">
+                    <p class="notes-text">{{ reptile.notes }}</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 

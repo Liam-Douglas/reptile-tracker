@@ -257,10 +257,24 @@ def reptile_details(reptile_id):
     feeding_logs = db.get_feeding_logs(reptile_id, limit=10)
     shed_records = db.get_shed_records(reptile_id, limit=10)
     
-    return render_template('reptile_details.html', 
-                         reptile=reptile, 
+    # Get next feeding date from reminders
+    reminder = db.get_feeding_reminders(reptile_id)
+    next_feeding_date = reminder[0].get('next_feeding_date') if reminder else None
+    
+    # Calculate days until next feeding
+    days_until_feeding = None
+    if next_feeding_date:
+        from datetime import datetime
+        next_date = datetime.strptime(next_feeding_date, '%Y-%m-%d')
+        today = datetime.now()
+        days_until_feeding = (next_date - today).days
+    
+    return render_template('reptile_details.html',
+                         reptile=reptile,
                          feeding_logs=feeding_logs,
-                         shed_records=shed_records)
+                         shed_records=shed_records,
+                         next_feeding_date=next_feeding_date,
+                         days_until_feeding=days_until_feeding)
 
 @app.route('/reptile/add', methods=['GET', 'POST'])
 def add_reptile():

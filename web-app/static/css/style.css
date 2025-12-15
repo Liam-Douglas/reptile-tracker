@@ -3378,6 +3378,142 @@ body {
 }
 
 .edit-reminder-btn:hover {
+
+/* Profile Quick Stats - New States */
+.profile-stat-card.stat-empty {
+    opacity: 0.6;
+    background: #f9fafb;
+}
+
+.profile-stat-card.stat-empty .stat-icon {
+    background: #e5e7eb;
+    color: #9ca3af;
+}
+
+.profile-stat-card.stat-overdue {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-left: 4px solid #ef4444;
+}
+
+.profile-stat-card.stat-overdue .stat-icon {
+    background: #ef4444;
+    color: white;
+}
+
+.profile-stat-card.stat-soon {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-left: 4px solid #f59e0b;
+}
+
+.profile-stat-card.stat-soon .stat-icon {
+    background: #f59e0b;
+    color: white;
+}
+
+.profile-stat-card.stat-next-feeding .stat-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.profile-stat-card.stat-tank .stat-icon {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.profile-stat-card.stat-handled .stat-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+/* Stats Tab Styles */
+.stats-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.stats-card-full {
+    grid-column: 1 / -1;
+}
+
+.stats-card-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stats-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-card-body {
+    padding: 1.5rem;
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.stat-row:hover {
+    background: #f3f4f6;
+    transform: translateX(4px);
+}
+
+.stat-row-label {
+    font-weight: 600;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stat-row-label i {
+    color: #667eea;
+    width: 20px;
+}
+
+.stat-row-value {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.notes-text {
+    color: #4b5563;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* Responsive Stats Tab */
+@media (max-width: 768px) {
+    .stats-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
     background: #667eea;
 
 /* Next Feeding Date */
