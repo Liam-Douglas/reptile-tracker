@@ -156,11 +156,8 @@
             </button>
         </div>
         <div class="nav-menu" id="navMenu">
-            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
-                <i class="fas fa-home"></i> Dashboard
-            </a>
-            <a href="{{ url_for('reptiles_page') }}" class="nav-link {% if request.endpoint in ['reptiles_page', 'reptile_details', 'add_reptile', 'edit_reptile', 'records_page', 'feeding_logs', 'shed_records', 'add_feeding', 'add_shed', 'feeding_reminders', 'set_feeding_reminder'] %}active{% endif %}">
-                <i class="fas fa-dragon"></i> Reptiles
+            <a href="{{ url_for('reptiles_page') }}" class="nav-link {% if request.endpoint in ['index', 'reptiles_page', 'reptile_details', 'add_reptile', 'edit_reptile', 'records_page', 'feeding_logs', 'shed_records', 'add_feeding', 'add_shed', 'feeding_reminders', 'set_feeding_reminder'] %}active{% endif %}">
+                <i class="fas fa-home"></i> My Reptiles
             </a>
             <a href="{{ url_for('finance') }}" class="nav-link {% if request.endpoint in ['finance', 'expenses_list', 'food_inventory', 'add_expense', 'edit_expense', 'expense_details', 'expense_reports', 'add_inventory_item', 'inventory_item_details', 'inventory_transactions', 'purchase_receipts', 'scan_receipt'] %}active{% endif %}">
                 <i class="fas fa-chart-line"></i> Finance

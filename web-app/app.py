@@ -217,7 +217,12 @@ def calculate_age_filter(date_string):
 
 @app.route('/')
 def index():
-    """Dashboard - show all reptiles with inventory and expense overview"""
+    """Redirect to reptiles page as main landing page"""
+    return redirect(url_for('reptiles_page'))
+
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard - show all reptiles with inventory and expense overview (legacy route)"""
     db = get_db()
     reptiles = db.get_all_reptiles()
     stats = db.get_dashboard_stats()
