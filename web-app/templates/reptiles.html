@@ -119,6 +119,13 @@
                             </div>
                         {% endif %}
 
+                        <!-- Next Feeding Date (right after feeding status) -->
+                        {% if reptile.next_feeding_date %}
+                            <div class="next-feeding-date">
+                                <i class="fas fa-calendar-alt"></i> Next feeding: {{ reptile.next_feeding_date|format_date }}
+                            </div>
+                        {% endif %}
+
                         <!-- Stats Row -->
                         <div class="card-stats-row">
                             {% if reptile.length_cm %}
@@ -132,13 +139,6 @@
                                 </div>
                             {% endif %}
                         </div>
-
-                        <!-- Next Feeding Date -->
-                        {% if reptile.next_feeding_date %}
-                            <div class="next-feeding-date">
-                                <i class="fas fa-calendar-alt"></i> Next feeding: {{ reptile.next_feeding_date|format_date }}
-                            </div>
-                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
