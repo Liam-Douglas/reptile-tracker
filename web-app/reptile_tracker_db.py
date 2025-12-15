@@ -157,7 +157,6 @@ class ReptileDatabase:
                 FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
             )
         ''')
-        ''')
         
         # Feeding reminders table
         self.cursor.execute('''
