@@ -121,9 +121,24 @@
 
                         <!-- Next Feeding Date (right after feeding status) -->
                         {% if reptile.next_feeding_date %}
-                            <div class="next-feeding-date">
-                                <i class="fas fa-calendar-alt"></i> Next feeding: {{ reptile.next_feeding_date|format_date }}
-                            </div>
+                            {% set next_days_text = reptile.next_feeding_date|days_until %}
+                            {% if next_days_text == 'Today' %}
+                                <div class="feeding-status-bar next-feeding-today">
+                                    <i class="fas fa-calendar-check"></i> Next fed {{ next_days_text|lower }}
+                                </div>
+                            {% elif 'in' in next_days_text %}
+                                <div class="feeding-status-bar next-feeding-upcoming">
+                                    <i class="fas fa-calendar-alt"></i> Next fed {{ next_days_text|lower }}
+                                </div>
+                            {% elif 'day' in next_days_text or 'days' in next_days_text %}
+                                <div class="feeding-status-bar next-feeding-upcoming">
+                                    <i class="fas fa-calendar-alt"></i> Next fed {{ next_days_text|lower }}
+                                </div>
+                            {% else %}
+                                <div class="feeding-status-bar next-feeding-upcoming">
+                                    <i class="fas fa-calendar-alt"></i> Next feeding: {{ reptile.next_feeding_date|format_date }}
+                                </div>
+                            {% endif %}
                         {% endif %}
 
                         <!-- Stats Row -->

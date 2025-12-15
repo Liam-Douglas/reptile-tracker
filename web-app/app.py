@@ -132,6 +132,45 @@ def days_ago_filter(date_string):
     except Exception:
         return ''
 
+@app.template_filter('days_until')
+def days_until_filter(date_string):
+    """Calculate days until a future date string"""
+    if not date_string:
+        return ''
+    try:
+        # Convert to string if not already
+        date_str = str(date_string).strip()
+        
+        # Try parsing different date formats
+        formats = [
+            '%Y-%m-%d %H:%M:%S',  # SQLite datetime format
+            '%Y-%m-%d',           # Standard date
+            '%d/%m/%Y',           # DD/MM/YYYY
+            '%m/%d/%Y'            # MM/DD/YYYY
+        ]
+        
+        for fmt in formats:
+            try:
+                date_obj = datetime.strptime(date_str, fmt)
+                days = (date_obj - datetime.now()).days
+                
+                if days == 0:
+                    return 'Today'
+                elif days == 1:
+                    return 'in 1 day'
+                elif days > 1:
+                    return f'in {days} days'
+                elif days == -1:
+                    return '1 day ago'
+                else:
+                    return f'{abs(days)} days ago'
+            except ValueError:
+                continue
+        
+        return ''
+    except Exception:
+        return ''
+
 @app.route('/')
 def index():
     """Dashboard - show all reptiles with inventory and expense overview"""

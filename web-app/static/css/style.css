@@ -2865,6 +2865,16 @@ body {
     color: #4b5563;
 }
 
+.feeding-status-bar.next-feeding-today {
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    color: #3730a3;
+}
+
+.feeding-status-bar.next-feeding-upcoming {
+    background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+    color: #5b21b6;
+}
+
 .card-stats-row {
     display: flex;
     flex-wrap: wrap;
