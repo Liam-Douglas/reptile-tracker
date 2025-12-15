@@ -494,6 +494,60 @@ def feeding_logs():
     reptiles = db.get_all_reptiles()
     return render_template('feeding_logs.html', logs=logs, reptiles=reptiles, selected_reptile_id=reptile_id)
 
+@app.route('/feeding/<int:reptile_id>', methods=['GET', 'POST'])
+def log_feeding(reptile_id):
+    """Log feeding for specific reptile"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('reptiles_page'))
+    
+    if request.method == 'POST':
+        try:
+            # Get inventory_id if using inventory
+            use_inventory = request.form.get('use_inventory') == 'yes'
+            inventory_id = int(request.form.get('inventory_id')) if use_inventory and request.form.get('inventory_id') else None
+            
+            # Get quantity - use inventory_quantity if using inventory, otherwise use quantity field
+            if use_inventory and request.form.get('inventory_quantity'):
+                quantity = int(request.form.get('inventory_quantity'))
+            else:
+                quantity = int(request.form.get('quantity', 1))
+            
+            data = {
+                'reptile_id': reptile_id,
+                'feeding_date': request.form.get('date') or datetime.now().strftime('%Y-%m-%d'),
+                'food_type': request.form.get('food_type'),
+                'food_size': request.form.get('food_size') or None,
+                'quantity': quantity,
+                'ate': request.form.get('ate') == 'yes',
+                'notes': request.form.get('notes') or None,
+                'inventory_id': inventory_id,
+                'auto_deduct': True  # Always auto-deduct when inventory_id is provided
+            }
+            db.add_feeding_log(**data)
+            
+            # Update feeding reminder dates if reminder exists
+            db.update_feeding_reminder_dates(reptile_id, data['feeding_date'])
+            
+            if inventory_id and data['ate']:
+                flash(f'Feeding logged for {reptile["name"]} and inventory automatically deducted!', 'success')
+            else:
+                flash(f'Feeding logged for {reptile["name"]}!', 'success')
+            return redirect(url_for('reptile_details', reptile_id=reptile_id))
+        except Exception as e:
+            flash(f'Error logging feeding: {str(e)}', 'error')
+    
+    # Get available inventory items for selection
+    inventory_items = db.get_food_inventory(include_zero=False)
+    # Get distinct food types and sizes for dropdowns
+    food_types = db.get_distinct_food_types()
+    food_sizes = db.get_distinct_food_sizes()
+    return render_template('feeding_form.html', reptile=reptile, log=None,
+                         inventory_items=inventory_items, food_types=food_types,
+                         food_sizes=food_sizes)
+
 @app.route('/feeding/add', methods=['GET', 'POST'])
 def add_feeding():
     """Add feeding log"""
@@ -561,6 +615,32 @@ def shed_records():
     records = db.get_all_shed_records(limit=100)
     reptiles = db.get_all_reptiles()
     return render_template('shed_records.html', records=records, reptiles=reptiles)
+
+@app.route('/shed/<int:reptile_id>', methods=['GET', 'POST'])
+def log_shed(reptile_id):
+    """Log shed for specific reptile"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('reptiles_page'))
+    
+    if request.method == 'POST':
+        try:
+            data = {
+                'reptile_id': reptile_id,
+                'shed_date': request.form.get('date') or datetime.now().strftime('%Y-%m-%d'),
+                'complete': request.form.get('complete') == 'yes',
+                'shed_length_cm': float(request.form.get('shed_length_cm')) if request.form.get('shed_length_cm') else None,
+                'notes': request.form.get('notes') or None
+            }
+            db.add_shed_record(**data)
+            flash(f'Shed record logged for {reptile["name"]}!', 'success')
+            return redirect(url_for('reptile_details', reptile_id=reptile_id))
+        except Exception as e:
+            flash(f'Error logging shed: {str(e)}', 'error')
+    
+    return render_template('shed_form.html', reptile=reptile, record=None)
 
 @app.route('/shed/add', methods=['GET', 'POST'])
 def add_shed():

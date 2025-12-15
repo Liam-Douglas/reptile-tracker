@@ -9,17 +9,27 @@
     </div>
     
     <form method="POST">
+        {% if reptile %}
+        <input type="hidden" name="reptile_id" value="{{ reptile.id }}">
+        <div class="form-group">
+            <label class="form-label">Reptile</label>
+            <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                <strong>{{ reptile.name }}</strong> ({{ reptile.species }})
+            </div>
+        </div>
+        {% else %}
         <div class="form-group">
             <label class="form-label" for="reptile_id">Reptile *</label>
             <select id="reptile_id" name="reptile_id" class="form-select" required>
                 <option value="">Select a reptile...</option>
-                {% for reptile in reptiles %}
-                    <option value="{{ reptile.id }}" {% if request.args.get('reptile_id') == reptile.id|string %}selected{% endif %}>
-                        {{ reptile.name }} ({{ reptile.species }})
+                {% for r in reptiles %}
+                    <option value="{{ r.id }}" {% if request.args.get('reptile_id') == r.id|string %}selected{% endif %}>
+                        {{ r.name }} ({{ r.species }})
                     </option>
                 {% endfor %}
             </select>
         </div>
+        {% endif %}
 
         <div class="form-group">
             <label class="form-label" for="date">Date *</label>

@@ -233,14 +233,14 @@
                     <div class="modal-body">
                         <!-- Activity Selection View -->
                         <div id="activitySelection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <a href="{{ url_for('add_feeding') }}" class="log-option-card">
+                            <a href="#" onclick="event.preventDefault(); showReptileSelector('feeding');" class="log-option-card">
                                 <div class="log-option-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                                     <i class="fas fa-utensils"></i>
                                 </div>
                                 <h4>Feeding</h4>
                                 <p>Log a feeding session</p>
                             </a>
-                            <a href="{{ url_for('add_shed') }}" class="log-option-card">
+                            <a href="#" onclick="event.preventDefault(); showReptileSelector('shed');" class="log-option-card">
                                 <div class="log-option-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                                     <i class="fas fa-sync-alt"></i>
                                 </div>
@@ -565,6 +565,68 @@
 </div>
 
 <style>
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
 .log-option-card {
     display: flex;
     flex-direction: column;
@@ -679,7 +741,11 @@ function backToActivitySelection() {
 }
 
 function selectReptile(reptileId) {
-    if (selectedActivityType === 'cleaning') {
+    if (selectedActivityType === 'feeding') {
+        window.location.href = `/feeding/${reptileId}`;
+    } else if (selectedActivityType === 'shed') {
+        window.location.href = `/shed/${reptileId}`;
+    } else if (selectedActivityType === 'cleaning') {
         window.location.href = `/tank-cleaning/${reptileId}`;
     } else if (selectedActivityType === 'handling') {
         window.location.href = `/handling/${reptileId}`;
