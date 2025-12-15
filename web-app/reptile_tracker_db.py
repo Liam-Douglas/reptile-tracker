@@ -129,6 +129,7 @@ class ReptileDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
             )
+        ''')
         
         # Tank cleaning logs table
         self.cursor.execute('''
