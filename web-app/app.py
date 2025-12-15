@@ -269,12 +269,18 @@ def reptile_details(reptile_id):
         today = datetime.now()
         days_until_feeding = (next_date - today).days
     
+    # Get last tank cleaning and handling
+    last_tank_cleaning = db.get_last_tank_cleaning(reptile_id)
+    last_handling = db.get_last_handling(reptile_id)
+    
     return render_template('reptile_details.html',
                          reptile=reptile,
                          feeding_logs=feeding_logs,
                          shed_records=shed_records,
                          next_feeding_date=next_feeding_date,
-                         days_until_feeding=days_until_feeding)
+                         days_until_feeding=days_until_feeding,
+                         last_tank_cleaning=last_tank_cleaning,
+                         last_handling=last_handling)
 
 @app.route('/reptile/add', methods=['GET', 'POST'])
 def add_reptile():
@@ -475,6 +481,57 @@ def add_shed():
     
     reptiles = db.get_all_reptiles()
     return render_template('shed_form.html', reptiles=reptiles, record=None)
+
+@app.route('/tank-cleaning/<int:reptile_id>', methods=['GET', 'POST'])
+def log_tank_cleaning(reptile_id):
+    """Log tank cleaning"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        try:
+            data = {
+                'reptile_id': reptile_id,
+                'cleaning_date': request.form.get('cleaning_date') or datetime.now().strftime('%Y-%m-%d'),
+                'cleaning_type': request.form.get('cleaning_type'),
+                'notes': request.form.get('notes') or None
+            }
+            db.add_tank_cleaning_log(**data)
+            flash(f'Tank cleaning logged for {reptile["name"]}!', 'success')
+            return redirect(url_for('reptile_details', reptile_id=reptile_id))
+        except Exception as e:
+            flash(f'Error logging tank cleaning: {str(e)}', 'error')
+    
+    return render_template('tank_cleaning_form.html', reptile=reptile)
+
+@app.route('/handling/<int:reptile_id>', methods=['GET', 'POST'])
+def log_handling(reptile_id):
+    """Log handling session"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        flash('Reptile not found', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        try:
+            data = {
+                'reptile_id': reptile_id,
+                'handling_date': request.form.get('handling_date') or datetime.now().strftime('%Y-%m-%d'),
+                'duration_minutes': int(request.form.get('duration_minutes')) if request.form.get('duration_minutes') else None,
+                'behavior': request.form.get('behavior') or None,
+                'notes': request.form.get('notes') or None
+            }
+            db.add_handling_log(**data)
+            flash(f'Handling session logged for {reptile["name"]}!', 'success')
+            return redirect(url_for('reptile_details', reptile_id=reptile_id))
+        except Exception as e:
+            flash(f'Error logging handling: {str(e)}', 'error')
+    
+    return render_template('handling_form.html', reptile=reptile)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

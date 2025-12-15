@@ -3504,6 +3504,15 @@ body {
 .notes-text {
     color: #4b5563;
     line-height: 1.6;
+
+/* New Action Cards */
+.action-card.action-tank {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.action-card.action-handling {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
     margin: 0;
     white-space: pre-wrap;
 }

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Log Handling - {{ reptile.name }}{% endblock %}
+
+{% block content %}
+<div class="modern-header">
+    <div class="header-content">
+        <div>
+            <h1 class="header-title">
+                <i class="fas fa-hand-holding"></i> Log Handling Session
+            </h1>
+            <p class="header-subtitle">Record handling session for {{ reptile.name }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 2rem auto;">
+    <form method="POST" class="form-modern">
+        <div class="form-group">
+            <label for="handling_date">
+                <i class="fas fa-calendar"></i> Handling Date
+            </label>
+            <input type="date" 
+                   id="handling_date" 
+                   name="handling_date" 
+                   class="form-control"
+                   value="{{ now.strftime('%Y-%m-%d') }}"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="duration_minutes">
+                <i class="fas fa-clock"></i> Duration (minutes)
+            </label>
+            <input type="number" 
+                   id="duration_minutes" 
+                   name="duration_minutes" 
+                   class="form-control"
+                   min="1"
+                   placeholder="e.g., 15">
+            <small class="form-text">Optional - How long was the handling session?</small>
+        </div>
+
+        <div class="form-group">
+            <label for="behavior">
+                <i class="fas fa-smile"></i> Behavior
+            </label>
+            <select id="behavior" name="behavior" class="form-control">
+                <option value="">Select behavior...</option>
+                <option value="Calm">Calm</option>
+                <option value="Active">Active</option>
+                <option value="Defensive">Defensive</option>
+                <option value="Stressed">Stressed</option>
+                <option value="Curious">Curious</option>
+                <option value="Relaxed">Relaxed</option>
+                <option value="Aggressive">Aggressive</option>
+            </select>
+            <small class="form-text">Optional - How did they behave during handling?</small>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">
+                <i class="fas fa-sticky-note"></i> Notes (Optional)
+            </label>
+            <textarea id="notes" 
+                      name="notes" 
+                      class="form-control" 
+                      rows="4"
+                      placeholder="Any observations about the handling session..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Handling Log
+            </button>
+            <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

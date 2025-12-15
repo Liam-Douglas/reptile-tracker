@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Log Tank Cleaning - {{ reptile.name }}{% endblock %}
+
+{% block content %}
+<div class="modern-header">
+    <div class="header-content">
+        <div>
+            <h1 class="header-title">
+                <i class="fas fa-spray-can"></i> Log Tank Cleaning
+            </h1>
+            <p class="header-subtitle">Record tank cleaning for {{ reptile.name }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 2rem auto;">
+    <form method="POST" class="form-modern">
+        <div class="form-group">
+            <label for="cleaning_date">
+                <i class="fas fa-calendar"></i> Cleaning Date
+            </label>
+            <input type="date" 
+                   id="cleaning_date" 
+                   name="cleaning_date" 
+                   class="form-control"
+                   value="{{ now.strftime('%Y-%m-%d') }}"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="cleaning_type">
+                <i class="fas fa-tasks"></i> Cleaning Type
+            </label>
+            <select id="cleaning_type" name="cleaning_type" class="form-control" required>
+                <option value="">Select cleaning type...</option>
+                <option value="Spot Clean">Spot Clean</option>
+                <option value="Partial Clean">Partial Clean</option>
+                <option value="Deep Clean">Deep Clean</option>
+                <option value="Full Substrate Change">Full Substrate Change</option>
+                <option value="Disinfection">Disinfection</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">
+                <i class="fas fa-sticky-note"></i> Notes (Optional)
+            </label>
+            <textarea id="notes" 
+                      name="notes" 
+                      class="form-control" 
+                      rows="4"
+                      placeholder="Any observations or details about the cleaning..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Cleaning Log
+            </button>
+            <a href="{{ url_for('reptile_details', reptile_id=reptile.id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

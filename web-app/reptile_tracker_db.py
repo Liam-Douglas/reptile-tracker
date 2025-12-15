@@ -129,6 +129,33 @@ class ReptileDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
             )
+        
+        # Tank cleaning logs table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tank_cleaning_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER NOT NULL,
+                cleaning_date DATE NOT NULL,
+                cleaning_type TEXT NOT NULL,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        # Handling logs table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS handling_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reptile_id INTEGER NOT NULL,
+                handling_date DATE NOT NULL,
+                duration_minutes INTEGER,
+                behavior TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (reptile_id) REFERENCES reptiles (id) ON DELETE CASCADE
+            )
+        ''')
         ''')
         
         # Feeding reminders table
@@ -668,6 +695,97 @@ class ReptileDatabase:
         
         self.cursor.execute(query)
         return [dict(row) for row in self.cursor.fetchall()]
+    
+    # ==================== TANK CLEANING LOGS ====================
+    
+    def add_tank_cleaning_log(self, reptile_id: int, cleaning_date: str, 
+                             cleaning_type: str, notes: str = None) -> int:
+        """Add a tank cleaning log"""
+        self.cursor.execute('''
+            INSERT INTO tank_cleaning_logs (reptile_id, cleaning_date, cleaning_type, notes)
+            VALUES (?, ?, ?, ?)
+        ''', (reptile_id, cleaning_date, cleaning_type, notes))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_tank_cleaning_logs(self, reptile_id: int = None, limit: int = None) -> List[Dict]:
+        """Get tank cleaning logs with optional filters"""
+        query = '''
+            SELECT tcl.*, r.name as reptile_name 
+            FROM tank_cleaning_logs tcl
+            JOIN reptiles r ON tcl.reptile_id = r.id
+            WHERE 1=1
+        '''
+        params = []
+        
+        if reptile_id:
+            query += ' AND tcl.reptile_id = ?'
+            params.append(reptile_id)
+        
+        query += ' ORDER BY tcl.cleaning_date DESC'
+        
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_last_tank_cleaning(self, reptile_id: int) -> Dict:
+        """Get the most recent tank cleaning for a reptile"""
+        logs = self.get_tank_cleaning_logs(reptile_id, limit=1)
+        return logs[0] if logs else None
+    
+    def delete_tank_cleaning_log(self, log_id: int) -> bool:
+        """Delete a tank cleaning log"""
+        self.cursor.execute('DELETE FROM tank_cleaning_logs WHERE id = ?', (log_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
+    # ==================== HANDLING LOGS ====================
+    
+    def add_handling_log(self, reptile_id: int, handling_date: str, 
+                        duration_minutes: int = None, behavior: str = None, 
+                        notes: str = None) -> int:
+        """Add a handling log"""
+        self.cursor.execute('''
+            INSERT INTO handling_logs (reptile_id, handling_date, duration_minutes, behavior, notes)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (reptile_id, handling_date, duration_minutes, behavior, notes))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_handling_logs(self, reptile_id: int = None, limit: int = None) -> List[Dict]:
+        """Get handling logs with optional filters"""
+        query = '''
+            SELECT hl.*, r.name as reptile_name 
+            FROM handling_logs hl
+            JOIN reptiles r ON hl.reptile_id = r.id
+            WHERE 1=1
+        '''
+        params = []
+        
+        if reptile_id:
+            query += ' AND hl.reptile_id = ?'
+            params.append(reptile_id)
+        
+        query += ' ORDER BY hl.handling_date DESC'
+        
+        if limit:
+            query += f' LIMIT {limit}'
+        
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def get_last_handling(self, reptile_id: int) -> Dict:
+        """Get the most recent handling for a reptile"""
+        logs = self.get_handling_logs(reptile_id, limit=1)
+        return logs[0] if logs else None
+    
+    def delete_handling_log(self, log_id: int) -> bool:
+        """Delete a handling log"""
+        self.cursor.execute('DELETE FROM handling_logs WHERE id = ?', (log_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
     
     # ==================== STATISTICS & ANALYTICS ====================
     

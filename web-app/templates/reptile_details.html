@@ -104,22 +104,42 @@
     {% endif %}
     
     <!-- Clean Tank -->
+    {% if last_tank_cleaning %}
+    <div class="profile-stat-card stat-tank">
+        <div class="stat-icon"><i class="fas fa-spray-can"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">{{ last_tank_cleaning.cleaning_date|days_ago }}</div>
+            <div class="stat-label">Last Cleaned</div>
+        </div>
+    </div>
+    {% else %}
     <div class="profile-stat-card stat-tank stat-empty">
         <div class="stat-icon"><i class="fas fa-spray-can"></i></div>
         <div class="stat-content">
-            <div class="stat-value">Not Tracked</div>
-            <div class="stat-label">Clean Tank</div>
+            <div class="stat-value">Never</div>
+            <div class="stat-label">Last Cleaned</div>
         </div>
     </div>
+    {% endif %}
     
     <!-- Last Handled -->
-    <div class="profile-stat-card stat-handled stat-empty">
+    {% if last_handling %}
+    <div class="profile-stat-card stat-handled">
         <div class="stat-icon"><i class="fas fa-hand-holding"></i></div>
         <div class="stat-content">
-            <div class="stat-value">Not Tracked</div>
+            <div class="stat-value">{{ last_handling.handling_date|days_ago }}</div>
             <div class="stat-label">Last Handled</div>
         </div>
     </div>
+    {% else %}
+    <div class="profile-stat-card stat-handled stat-empty">
+        <div class="stat-icon"><i class="fas fa-hand-holding"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">Never</div>
+            <div class="stat-label">Last Handled</div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Tabbed Content Section -->
@@ -521,6 +541,16 @@
                 <a href="{{ url_for('length_tracking', reptile_id=reptile.id) }}" class="action-card action-length">
                     <div class="action-icon"><i class="fas fa-ruler"></i></div>
                     <div class="action-label">Length Tracking</div>
+                </a>
+                
+                <a href="{{ url_for('log_tank_cleaning', reptile_id=reptile.id) }}" class="action-card action-tank">
+                    <div class="action-icon"><i class="fas fa-spray-can"></i></div>
+                    <div class="action-label">Log Tank Cleaning</div>
+                </a>
+                
+                <a href="{{ url_for('log_handling', reptile_id=reptile.id) }}" class="action-card action-handling">
+                    <div class="action-icon"><i class="fas fa-hand-holding"></i></div>
+                    <div class="action-label">Log Handling</div>
                 </a>
                 
                 <a href="{{ url_for('photo_gallery', reptile_id=reptile.id) }}" class="action-card action-photos">
