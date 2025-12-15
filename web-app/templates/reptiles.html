@@ -309,6 +309,77 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- Tank Cleaning Records -->
+                <div class="records-section-card">
+                    <div class="section-card-header">
+                        <h3><i class="fas fa-spray-can"></i> Recent Tank Cleanings</h3>
+                        <span class="count-badge">{{ tank_cleaning_logs|length }} records</span>
+                    </div>
+                    <div class="section-card-body">
+                        {% if tank_cleaning_logs %}
+                            <div class="records-list-modern">
+                                {% for log in tank_cleaning_logs[:15] %}
+                                <div class="record-row">
+                                    <div class="record-icon-circle" style="background: linear-gradient(135deg, #99f6e4, #5eead4);">
+                                        <i class="fas fa-spray-can"></i>
+                                    </div>
+                                    <div class="record-info">
+                                        <div class="record-name">{{ log.reptile_name }}</div>
+                                        <div class="record-details">{{ log.cleaning_type }}</div>
+                                        <div class="record-date">{{ log.cleaning_date|format_date }}</div>
+                                    </div>
+                                    <div class="record-badge">
+                                        <span class="badge-success"><i class="fas fa-check"></i></span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state-small">
+                                <i class="fas fa-spray-can"></i>
+                                <p>No tank cleaning records yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Handling Records -->
+                <div class="records-section-card">
+                    <div class="section-card-header">
+                        <h3><i class="fas fa-hand-holding"></i> Recent Handling</h3>
+                        <span class="count-badge">{{ handling_logs|length }} records</span>
+                    </div>
+                    <div class="section-card-body">
+                        {% if handling_logs %}
+                            <div class="records-list-modern">
+                                {% for log in handling_logs[:15] %}
+                                <div class="record-row">
+                                    <div class="record-icon-circle" style="background: linear-gradient(135deg, #f9a8d4, #f472b6);">
+                                        <i class="fas fa-hand-holding"></i>
+                                    </div>
+                                    <div class="record-info">
+                                        <div class="record-name">{{ log.reptile_name }}</div>
+                                        <div class="record-details">
+                                            {% if log.duration_minutes %}{{ log.duration_minutes }} min{% endif %}
+                                            {% if log.behavior %} • {{ log.behavior }}{% endif %}
+                                        </div>
+                                        <div class="record-date">{{ log.handling_date|format_date }}</div>
+                                    </div>
+                                    <div class="record-badge">
+                                        <span class="badge-success"><i class="fas fa-check"></i></span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state-small">
+                                <i class="fas fa-hand-holding"></i>
+                                <p>No handling records yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

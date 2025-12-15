@@ -323,6 +323,10 @@ def reptiles_page():
     all_feeding_logs = db.get_feeding_logs(limit=50)
     all_shed_records = db.get_shed_records(limit=50)
     
+    # Get tank cleaning and handling logs
+    all_tank_cleaning_logs = db.get_tank_cleaning_logs(limit=50)
+    all_handling_logs = db.get_handling_logs(limit=50)
+    
     # Get feeding reminders
     reminders = db.get_feeding_reminders()
     overdue_feedings = db.get_overdue_feedings()
@@ -332,6 +336,8 @@ def reptiles_page():
                          reptiles=reptiles,
                          feeding_logs=all_feeding_logs,
                          shed_records=all_shed_records,
+                         tank_cleaning_logs=all_tank_cleaning_logs,
+                         handling_logs=all_handling_logs,
                          reminders=reminders,
                          overdue_feedings=overdue_feedings,
                          upcoming_feedings=upcoming_feedings)
