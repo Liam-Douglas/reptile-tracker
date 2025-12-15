@@ -687,7 +687,8 @@ def log_tank_cleaning(reptile_id):
         except Exception as e:
             flash(f'Error logging tank cleaning: {str(e)}', 'error')
     
-    return render_template('tank_cleaning_form.html', reptile=reptile)
+    today = datetime.now().strftime('%Y-%m-%d')
+    return render_template('tank_cleaning_form.html', reptile=reptile, today=today)
 
 @app.route('/handling/<int:reptile_id>', methods=['GET', 'POST'])
 def log_handling(reptile_id):
@@ -713,7 +714,8 @@ def log_handling(reptile_id):
         except Exception as e:
             flash(f'Error logging handling: {str(e)}', 'error')
     
-    return render_template('handling_form.html', reptile=reptile)
+    today = datetime.now().strftime('%Y-%m-%d')
+    return render_template('handling_form.html', reptile=reptile, today=today)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
