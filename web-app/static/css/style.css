@@ -2875,6 +2875,36 @@ body {
     color: #5b21b6;
 }
 
+.feeding-status-bar.tank-cleaned-today {
+    background: linear-gradient(135deg, #ccfbf1, #99f6e4);
+    color: #115e59;
+}
+
+.feeding-status-bar.tank-cleaned-recent {
+    background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+    color: #065f46;
+}
+
+.feeding-status-bar.tank-cleaned-overdue {
+    background: linear-gradient(135deg, #fde68a, #fcd34d);
+    color: #78350f;
+}
+
+.feeding-status-bar.handled-today {
+    background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+    color: #831843;
+}
+
+.feeding-status-bar.handled-recent {
+    background: linear-gradient(135deg, #f9a8d4, #f472b6);
+    color: #831843;
+}
+
+.feeding-status-bar.handled-overdue {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: #92400e;
+}
+
 .card-stats-row {
     display: flex;
     flex-wrap: wrap;

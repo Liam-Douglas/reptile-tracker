@@ -171,6 +171,50 @@ def days_until_filter(date_string):
     except Exception:
         return ''
 
+@app.template_filter('calculate_age')
+def calculate_age_filter(date_string):
+    """Calculate age from date of birth"""
+    if not date_string:
+        return ''
+    try:
+        # Convert to string if not already
+        date_str = str(date_string).strip()
+        
+        # Try parsing different date formats
+        formats = [
+            '%Y-%m-%d %H:%M:%S',  # SQLite datetime format
+            '%Y-%m-%d',           # Standard date
+            '%d/%m/%Y',           # DD/MM/YYYY
+            '%m/%d/%Y'            # MM/DD/YYYY
+        ]
+        
+        for fmt in formats:
+            try:
+                birth_date = datetime.strptime(date_str, fmt)
+                today = datetime.now()
+                
+                years = today.year - birth_date.year
+                months = today.month - birth_date.month
+                
+                # Adjust if birthday hasn't occurred this year
+                if months < 0 or (months == 0 and today.day < birth_date.day):
+                    years -= 1
+                    months += 12
+                
+                if years > 0:
+                    return f'{years}y old'
+                elif months > 0:
+                    return f'{months}mo old'
+                else:
+                    days = (today - birth_date).days
+                    return f'{days}d old'
+            except ValueError:
+                continue
+        
+        return ''
+    except Exception:
+        return ''
+
 @app.route('/')
 def index():
     """Dashboard - show all reptiles with inventory and expense overview"""
@@ -254,7 +298,7 @@ def reptiles_page():
     db = get_db()
     reptiles = db.get_all_reptiles()
     
-    # Get last feeding and next feeding for each reptile
+    # Get last feeding, next feeding, tank cleaning, and handling for each reptile
     for reptile in reptiles:
         feedings = db.get_feeding_logs(reptile['id'], limit=1)
         if feedings:
@@ -266,6 +310,14 @@ def reptiles_page():
             reptile['next_feeding_date'] = reminder[0].get('next_feeding_date')
         else:
             reptile['next_feeding_date'] = None
+        
+        # Get last tank cleaning
+        last_cleaning = db.get_last_tank_cleaning(reptile['id'])
+        reptile['last_tank_cleaning_date'] = last_cleaning.get('cleaning_date') if last_cleaning else None
+        
+        # Get last handling
+        last_handling = db.get_last_handling(reptile['id'])
+        reptile['last_handling_date'] = last_handling.get('handling_date') if last_handling else None
     
     # Get all feeding logs and shed records
     all_feeding_logs = db.get_feeding_logs(limit=50)

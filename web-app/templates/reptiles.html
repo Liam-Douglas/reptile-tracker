@@ -64,9 +64,16 @@
 
                     <!-- Card Content -->
                     <div class="card-body-detailed">
-                        <!-- Name and Sex -->
+                        <!-- Name, Age, and Sex -->
                         <div class="card-header-row">
-                            <h3 class="card-name">{{ reptile.name }}</h3>
+                            <h3 class="card-name">
+                                {{ reptile.name }}
+                                {% if reptile.date_of_birth %}
+                                    <span style="font-size: 0.7em; font-weight: normal; color: #6b7280; margin-left: 0.5rem;">
+                                        ({{ reptile.date_of_birth|calculate_age }})
+                                    </span>
+                                {% endif %}
+                            </h3>
                             {% if reptile.sex %}
                                 {% if reptile.sex == 'Male' %}
                                     <span class="sex-icon male"><i class="fas fa-mars"></i></span>
@@ -141,19 +148,55 @@
                             {% endif %}
                         {% endif %}
 
-                        <!-- Stats Row -->
-                        <div class="card-stats-row">
-                            {% if reptile.length_cm %}
-                                <div class="stat-item-inline">
-                                    <i class="fas fa-ruler"></i> {{ reptile.length_cm }}cm
+                        <!-- Tank Last Cleaned -->
+                        {% if reptile.last_tank_cleaning_date %}
+                            {% set cleaning_days_text = reptile.last_tank_cleaning_date|days_ago %}
+                            {% if cleaning_days_text == 'Today' %}
+                                <div class="feeding-status-bar tank-cleaned-today">
+                                    <i class="fas fa-spray-can"></i> Tank cleaned {{ cleaning_days_text|lower }}
                                 </div>
+                            {% elif 'day ago' in cleaning_days_text or 'days ago' in cleaning_days_text %}
+                                {% set days_num = cleaning_days_text.split()[0]|int if cleaning_days_text.split()[0].isdigit() else 0 %}
+                                {% if days_num <= 7 %}
+                                    <div class="feeding-status-bar tank-cleaned-recent">
+                                        <i class="fas fa-spray-can"></i> Tank cleaned {{ cleaning_days_text|lower }}
+                                    </div>
+                                {% else %}
+                                    <div class="feeding-status-bar tank-cleaned-overdue">
+                                        <i class="fas fa-exclamation-circle"></i> Tank cleaned {{ cleaning_days_text|lower }}
+                                    </div>
+                                {% endif %}
                             {% endif %}
-                            {% if reptile.date_of_birth %}
-                                <div class="stat-item-inline">
-                                    <i class="fas fa-birthday-cake"></i> {{ reptile.date_of_birth|format_date }}
+                        {% else %}
+                            <div class="feeding-status-bar no-data">
+                                <i class="fas fa-info-circle"></i> No tank cleaning recorded
+                            </div>
+                        {% endif %}
+
+                        <!-- Last Handled -->
+                        {% if reptile.last_handling_date %}
+                            {% set handling_days_text = reptile.last_handling_date|days_ago %}
+                            {% if handling_days_text == 'Today' %}
+                                <div class="feeding-status-bar handled-today">
+                                    <i class="fas fa-hand-holding"></i> Handled {{ handling_days_text|lower }}
                                 </div>
+                            {% elif 'day ago' in handling_days_text or 'days ago' in handling_days_text %}
+                                {% set days_num = handling_days_text.split()[0]|int if handling_days_text.split()[0].isdigit() else 0 %}
+                                {% if days_num <= 7 %}
+                                    <div class="feeding-status-bar handled-recent">
+                                        <i class="fas fa-hand-holding"></i> Handled {{ handling_days_text|lower }}
+                                    </div>
+                                {% else %}
+                                    <div class="feeding-status-bar handled-overdue">
+                                        <i class="fas fa-exclamation-circle"></i> Handled {{ handling_days_text|lower }}
+                                    </div>
+                                {% endif %}
                             {% endif %}
-                        </div>
+                        {% else %}
+                            <div class="feeding-status-bar no-data">
+                                <i class="fas fa-info-circle"></i> No handling recorded
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
