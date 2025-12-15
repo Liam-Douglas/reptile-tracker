@@ -4,8 +4,9 @@
 {% block title %}Finance - Reptile Tracker{% endblock %}
 
 {% block content %}
-<!-- Modern Header -->
-<div class="modern-header">
+<div class="reptiles-page-modern">
+    <!-- Modern Header -->
+    <div class="modern-header">
     <div class="header-content">
         <div>
             <h1 class="header-title">
@@ -28,27 +29,21 @@
     </div>
 </div>
 
-<!-- Tab Navigation -->
-<div class="finance-tabs">
-    <button class="finance-tab {% if active_tab == 'inventory' %}active{% endif %}" 
-            onclick="switchTab('inventory')">
-        <i class="fas fa-box"></i>
-        <span>Inventory</span>
-        {% if out_of_stock|length > 0 or low_stock|length > 0 %}
-        <span class="tab-badge">{{ out_of_stock|length + low_stock|length }}</span>
-        {% endif %}
-    </button>
-    <button class="finance-tab {% if active_tab == 'expenses' %}active{% endif %}" 
-            onclick="switchTab('expenses')">
-        <i class="fas fa-receipt"></i>
-        <span>Expenses</span>
-    </button>
-    <button class="finance-tab {% if active_tab == 'reports' %}active{% endif %}" 
-            onclick="switchTab('reports')">
-        <i class="fas fa-chart-bar"></i>
-        <span>Reports</span>
-    </button>
-</div>
+    <!-- Tabs Navigation -->
+    <div class="reptiles-tabs">
+        <button class="reptiles-tab {% if active_tab == 'inventory' %}active{% endif %}" onclick="switchTab('inventory')">
+            <i class="fas fa-box"></i> Inventory
+            {% if out_of_stock|length > 0 or low_stock|length > 0 %}
+            <span class="tab-badge">{{ out_of_stock|length + low_stock|length }}</span>
+            {% endif %}
+        </button>
+        <button class="reptiles-tab {% if active_tab == 'expenses' %}active{% endif %}" onclick="switchTab('expenses')">
+            <i class="fas fa-receipt"></i> Expenses
+        </button>
+        <button class="reptiles-tab {% if active_tab == 'reports' %}active{% endif %}" onclick="switchTab('reports')">
+            <i class="fas fa-chart-bar"></i> Reports
+        </button>
+    </div>
 
 <!-- Inventory Tab Content -->
 <div id="inventory-tab" class="tab-content {% if active_tab == 'inventory' %}active{% endif %}">
@@ -813,7 +808,7 @@ function switchTab(tabName) {
     });
     
     // Remove active class from all tab buttons
-    document.querySelectorAll('.finance-tab').forEach(btn => {
+    document.querySelectorAll('.reptiles-tab').forEach(btn => {
         btn.classList.remove('active');
     });
     
@@ -821,9 +816,10 @@ function switchTab(tabName) {
     document.getElementById(tabName + '-tab').classList.add('active');
     
     // Add active class to clicked button
-    event.target.closest('.finance-tab').classList.add('active');
+    event.target.closest('.reptiles-tab').classList.add('active');
 }
 </script>
+</div>
 {% endblock %}
 
 {% block fab %}
