@@ -1190,19 +1190,17 @@ function closeAlertModal() {
     document.body.style.overflow = 'auto';
 }
 
+function dismissAlertBanner() {
+    document.getElementById('alertBanner').style.display = 'none';
+}
+
 // Close alert modal when clicking outside
 document.addEventListener('click', function(event) {
     const alertModal = document.getElementById('alertModal');
     if (event.target === alertModal) {
-
-function dismissAlertBanner() {
-    document.getElementById('alertBanner').style.display = 'none';
-}
         closeAlertModal();
     }
 });
-    }
-}
 
 // Close modal when clicking outside
 document.addEventListener('click', function(event) {
