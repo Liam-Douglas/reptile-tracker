@@ -3840,10 +3840,10 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    background: #a85751;
     color: white;
     padding: 1rem 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 9999;
     animation: slideDown 0.3s ease-out;
 }
