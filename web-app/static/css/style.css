@@ -3860,23 +3860,22 @@ body {
 }
 
 .alert-banner-container {
-    padding: 0 1.5rem;
+    padding: 0 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .alert-banner-content {
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+    align-items: center;
+    gap: 1.25rem;
     flex: 1;
 }
 
 .alert-banner-content > i {
     font-size: 1.5rem;
-    margin-top: 0.125rem;
     flex-shrink: 0;
 }
 
@@ -3887,13 +3886,13 @@ body {
 
 .alert-banner-text strong {
     font-weight: 600;
-    margin-right: 0.25rem;
+    margin-right: 0.5rem;
 }
 
 .alert-banner-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
 }
 
 .alert-banner-btn {

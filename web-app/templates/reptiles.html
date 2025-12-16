@@ -2,7 +2,7 @@
 
 {% block title %}My Reptiles - Reptile Tracker{% endblock %}
 
-{% block content %}
+{% block alert_banner %}
     <!-- Alert Banner -->
     {% if total_alerts > 0 %}
     <div id="alertBanner" class="alert-banner" style="background: #a85751 !important;">
@@ -24,6 +24,9 @@
         </div>
     </div>
     {% endif %}
+{% endblock %}
+
+{% block content %}
 
     <!-- Alert Modal -->
     <div id="alertModal" class="modal-overlay" style="display: none;">
