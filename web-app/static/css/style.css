@@ -3837,66 +3837,110 @@ body {
 /* Alert Banner Styles */
 .alert-banner {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
     color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    padding: 1rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 9999;
-    animation: slideInRight 0.3s ease-out;
-    max-width: 300px;
+    animation: slideDown 0.3s ease-out;
 }
 
-@keyframes slideInRight {
+@keyframes slideDown {
     from {
-        transform: translateX(100%);
+        transform: translateY(-100%);
         opacity: 0;
     }
     to {
-        transform: translateX(0);
+        transform: translateY(0);
         opacity: 1;
     }
 }
 
-.alert-banner-content {
+.alert-banner-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.alert-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
     flex: 1;
 }
 
-.alert-banner-content i {
-    font-size: 1.25rem;
+.alert-banner-content > i {
+    font-size: 1.5rem;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
 }
 
-.alert-banner-content span {
-    font-size: 0.95rem;
+.alert-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.alert-banner-text strong {
+    font-size: 1rem;
+    font-weight: 600;
+    display: block;
+}
+
+.alert-banner-text span {
+    font-size: 0.9rem;
+    opacity: 0.95;
+    line-height: 1.4;
+}
+
+.alert-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .alert-banner-btn {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: 0.625rem 1.25rem;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     white-space: nowrap;
 }
 
 .alert-banner-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateX(2px);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.alert-banner-close {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+}
+
+.alert-banner-close:hover {
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* Alert Modal Styles */
@@ -3979,20 +4023,41 @@ body {
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .alert-banner {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
-        padding: 0.875rem 1rem;
+        padding: 0.875rem 0;
     }
     
-    .alert-banner-content span {
-        font-size: 0.875rem;
+    .alert-banner-container {
+        padding: 0 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .alert-banner-content {
+        gap: 0.75rem;
+    }
+    
+    .alert-banner-content > i {
+        font-size: 1.25rem;
+    }
+    
+    .alert-banner-text strong {
+        font-size: 0.95rem;
+    }
+    
+    .alert-banner-text span {
+        font-size: 0.85rem;
+    }
+    
+    .alert-banner-actions {
+        width: 100%;
+        justify-content: space-between;
     }
     
     .alert-banner-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.85rem;
+        flex: 1;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
     }
 }
 }

@@ -7,13 +7,26 @@
     <!-- DEBUG: total_alerts = {{ total_alerts }} -->
     {% if total_alerts > 0 %}
     <div id="alertBanner" class="alert-banner">
-        <div class="alert-banner-content">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span><strong>{{ total_alerts }}</strong> Alert{{ 's' if total_alerts != 1 else '' }}</span>
+        <div class="alert-banner-container">
+            <div class="alert-banner-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="alert-banner-text">
+                    <strong>System Alert</strong>
+                    <span>You have {{ total_alerts }} alert{{ 's' if total_alerts != 1 else '' }} that require{{ '' if total_alerts != 1 else 's' }} attention.
+                    {% if low_stock %}Low inventory items detected.{% endif %}
+                    {% if overdue_feedings %}Overdue feedings detected.{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="alert-banner-actions">
+                <button onclick="showAlertModal()" class="alert-banner-btn">
+                    View Details
+                </button>
+                <button onclick="dismissAlertBanner()" class="alert-banner-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-        <button onclick="showAlertModal()" class="alert-banner-btn">
-            View Details <i class="fas fa-chevron-right"></i>
-        </button>
     </div>
     {% endif %}
 
@@ -1181,6 +1194,10 @@ function closeAlertModal() {
 document.addEventListener('click', function(event) {
     const alertModal = document.getElementById('alertModal');
     if (event.target === alertModal) {
+
+function dismissAlertBanner() {
+    document.getElementById('alertBanner').style.display = 'none';
+}
         closeAlertModal();
     }
 });
