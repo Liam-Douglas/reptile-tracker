@@ -55,7 +55,7 @@ body {
 .menu-toggle {
     background: none;
     border: none;
-    color: var(--text);
+    color: var(--text-light);
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0.5rem;
@@ -73,9 +73,9 @@ body {
 
 .nav-link {
     padding: 1rem;
-    color: var(--text);
+    color: var(--text-light);
     text-decoration: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #444;
     transition: background-color 0.3s;
 }
 
@@ -3182,6 +3182,7 @@ body {
     font-weight: 600;
     font-size: 0.95rem;
     margin-bottom: 0.25rem;
+    color: #1f2937;
 }
 
 .alert-item-subtitle {
@@ -3729,4 +3730,90 @@ body {
 
 .reptile-selector-card div[style*="font-weight: 600"] {
     color: #1f2937 !important;
+}
+
+
+/* Finance Page - Inventory Cards */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.inventory-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.inventory-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.inventory-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.inventory-card-header h4 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.inventory-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #78350f;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.inventory-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.inventory-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.inventory-detail i {
+    width: 20px;
+    color: #9ca3af;
+}
+
+.inventory-detail span {
+    color: #1f2937;
+    font-weight: 500;
 }
