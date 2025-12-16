@@ -4,19 +4,14 @@
 
 {% block content %}
     <!-- Alert Banner -->
-    <!-- DEBUG: total_alerts = {{ total_alerts }} -->
     {% if total_alerts > 0 %}
     <div id="alertBanner" class="alert-banner">
         <div class="alert-banner-container">
             <div class="alert-banner-content">
                 <i class="fas fa-exclamation-triangle"></i>
-                <div class="alert-banner-text">
-                    <strong>System Alert</strong>
-                    <span>You have {{ total_alerts }} alert{{ 's' if total_alerts != 1 else '' }} that require{{ '' if total_alerts != 1 else 's' }} attention.
-                    {% if low_stock %}Low inventory items detected.{% endif %}
-                    {% if overdue_feedings %}Overdue feedings detected.{% endif %}
-                    </span>
-                </div>
+                <span class="alert-banner-text">
+                    <strong>System Alert</strong> You have {{ total_alerts }} alert{{ 's' if total_alerts != 1 else '' }} that require{{ '' if total_alerts != 1 else 's' }} attention.{% if low_stock %} Low inventory items detected.{% endif %}{% if overdue_feedings %} Overdue feedings detected.{% endif %}
+                </span>
             </div>
             <div class="alert-banner-actions">
                 <button onclick="showAlertModal()" class="alert-banner-btn">

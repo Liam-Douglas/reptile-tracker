@@ -3883,21 +3883,13 @@ body {
 }
 
 .alert-banner-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .alert-banner-text strong {
-    font-size: 1rem;
     font-weight: 600;
-    display: block;
-}
-
-.alert-banner-text span {
-    font-size: 0.9rem;
-    opacity: 0.95;
-    line-height: 1.4;
+    margin-right: 0.25rem;
 }
 
 .alert-banner-actions {
@@ -3955,7 +3947,7 @@ body {
 .alert-section-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text);
+    color: #1f2937;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -3963,7 +3955,7 @@ body {
 }
 
 .alert-section-title i {
-    color: var(--secondary);
+    color: #6366f1;
 }
 
 .alert-items {
@@ -4011,13 +4003,13 @@ body {
 .alert-item-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--text);
+    color: #1f2937;
     margin-bottom: 0.25rem;
 }
 
 .alert-item-subtitle {
     font-size: 0.875rem;
-    color: var(--text-secondary);
+    color: #4b5563;
 }
 
 /* Mobile Responsive */
