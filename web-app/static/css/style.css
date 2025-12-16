@@ -3739,10 +3739,11 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
     padding: 1.5rem;
+    background: transparent;
 }
 
 .inventory-card {
-    background: white;
+    background: white !important;
     border-radius: 12px;
     padding: 1.5rem;
     cursor: pointer;
@@ -3816,4 +3817,20 @@ body {
 .inventory-detail span {
     color: #1f2937;
     font-weight: 500;
+}
+
+
+.inventory-forecast {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.inventory-forecast i {
+    color: #667eea;
 }
