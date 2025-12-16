@@ -225,7 +225,7 @@
 
             <!-- Log Activity Modal -->
             <div id="logActivityModal" class="modal-overlay" style="display: none;">
-                <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-content" style="max-width: 600px;">
                     <div class="modal-header">
                         <h3 id="modalTitle"><i class="fas fa-clipboard-list"></i> What would you like to log?</h3>
                         <button class="modal-close" onclick="closeLogActivityModal()">&times;</button>
@@ -270,7 +270,7 @@
                             </button>
                             <div style="display: grid; gap: 0.75rem; max-height: 400px; overflow-y: auto;">
                                 {% for reptile in reptiles %}
-                                <a href="#" onclick="selectReptile({{ reptile.id }})" class="reptile-selector-card">
+                                <a href="#" onclick="event.preventDefault(); selectReptile({{ reptile.id }})" class="reptile-selector-card">
                                     <div style="display: flex; align-items: center; gap: 1rem;">
                                         {% if reptile.image_path %}
                                             <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}"
@@ -288,6 +288,16 @@
                                     <i class="fas fa-chevron-right" style="color: var(--text-secondary);"></i>
                                 </a>
                                 {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Form View -->
+                        <div id="formView" style="display: none;">
+                            <button onclick="backToReptileSelection()" class="btn btn-secondary" style="margin-bottom: 1rem;">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <div id="formContainer">
+                                <!-- Form will be dynamically loaded here -->
                             </div>
                         </div>
                     </div>
@@ -713,6 +723,8 @@ function switchReptileTab(tabName) {
 }
 
 let selectedActivityType = '';
+let selectedReptileId = null;
+let currentFormData = null;
 
 function showLogActivityModal() {
     document.getElementById('logActivityModal').style.display = 'flex';
@@ -729,26 +741,320 @@ function showReptileSelector(activityType) {
     document.getElementById('activitySelection').style.display = 'none';
     document.getElementById('reptileSelection').style.display = 'block';
     
-    const title = activityType === 'cleaning' ? 'Tank Cleaning' : 'Handling';
-    document.getElementById('modalTitle').innerHTML = `<i class="fas fa-${activityType === 'cleaning' ? 'spray-can' : 'hand-holding'}"></i> Select Reptile for ${title}`;
+    const titles = {
+        'feeding': 'Feeding',
+        'shed': 'Shed',
+        'cleaning': 'Tank Cleaning',
+        'handling': 'Handling'
+    };
+    const icons = {
+        'feeding': 'utensils',
+        'shed': 'sync-alt',
+        'cleaning': 'spray-can',
+        'handling': 'hand-holding'
+    };
+    
+    document.getElementById('modalTitle').innerHTML = `<i class="fas fa-${icons[activityType]}"></i> Select Reptile for ${titles[activityType]}`;
 }
 
 function backToActivitySelection() {
     document.getElementById('activitySelection').style.display = 'grid';
     document.getElementById('reptileSelection').style.display = 'none';
+    document.getElementById('formView').style.display = 'none';
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clipboard-list"></i> What would you like to log?';
     selectedActivityType = '';
+    selectedReptileId = null;
 }
 
-function selectReptile(reptileId) {
+function backToReptileSelection() {
+    document.getElementById('reptileSelection').style.display = 'block';
+    document.getElementById('formView').style.display = 'none';
+    showReptileSelector(selectedActivityType);
+}
+
+async function selectReptile(reptileId) {
+    selectedReptileId = reptileId;
+    
+    // Show loading
+    document.getElementById('reptileSelection').style.display = 'none';
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('formContainer').innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #667eea;"></i><p style="margin-top: 1rem;">Loading form...</p></div>';
+    
+    try {
+        // Fetch form data from API
+        const response = await fetch(`/api/${selectedActivityType === 'cleaning' ? 'tank-cleaning' : selectedActivityType}-form/${reptileId}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        currentFormData = data;
+        
+        // Update modal title
+        const titles = {
+            'feeding': 'Log Feeding',
+            'shed': 'Log Shed',
+            'cleaning': 'Log Tank Cleaning',
+            'handling': 'Log Handling'
+        };
+        document.getElementById('modalTitle').innerHTML = `<i class="fas fa-clipboard-list"></i> ${titles[selectedActivityType]} - ${data.reptile.name}`;
+        
+        // Render the appropriate form
+        renderForm(selectedActivityType, data);
+    } catch (error) {
+        document.getElementById('formContainer').innerHTML = `<div style="text-align: center; padding: 2rem; color: #f44336;"><i class="fas fa-exclamation-circle" style="font-size: 2rem;"></i><p style="margin-top: 1rem;">Error loading form: ${error.message}</p></div>`;
+    }
+}
+
+function renderForm(activityType, data) {
+    let formHTML = '';
+    
+    if (activityType === 'feeding') {
+        formHTML = renderFeedingForm(data);
+    } else if (activityType === 'shed') {
+        formHTML = renderShedForm(data);
+    } else if (activityType === 'cleaning') {
+        formHTML = renderTankCleaningForm(data);
+    } else if (activityType === 'handling') {
+        formHTML = renderHandlingForm(data);
+    }
+    
+    document.getElementById('formContainer').innerHTML = formHTML;
+}
+
+function renderFeedingForm(data) {
+    return `
+        <form id="activityForm" onsubmit="submitForm(event)" style="display: grid; gap: 1rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Date</label>
+                <input type="date" name="date" value="${data.today}" required
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Food Type</label>
+                <input type="text" name="food_type" required list="food-types"
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                <datalist id="food-types">
+                    ${data.food_types.map(type => `<option value="${type}">`).join('')}
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Food Size</label>
+                <input type="text" name="food_size" list="food-sizes"
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                <datalist id="food-sizes">
+                    ${data.food_sizes.map(size => `<option value="${size}">`).join('')}
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Quantity</label>
+                <input type="number" name="quantity" value="1" min="1" required
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Did they eat?</label>
+                <select name="ate" required
+                        style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Notes (Optional)</label>
+                <textarea name="notes" rows="3"
+                          style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.875rem; font-size: 1rem;">
+                    <i class="fas fa-check"></i> Log Feeding
+                </button>
+                <button type="button" onclick="backToReptileSelection()" class="btn btn-secondary" style="padding: 0.875rem;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    `;
+}
+
+function renderShedForm(data) {
+    return `
+        <form id="activityForm" onsubmit="submitForm(event)" style="display: grid; gap: 1rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Date</label>
+                <input type="date" name="date" value="${data.today}" required
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Was the shed complete?</label>
+                <select name="complete" required
+                        style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    <option value="yes">Yes - Complete</option>
+                    <option value="no">No - Partial/Stuck Shed</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Shed Length (cm) - Optional</label>
+                <input type="number" name="shed_length_cm" step="0.1" min="0"
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Notes (Optional)</label>
+                <textarea name="notes" rows="3"
+                          style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.875rem; font-size: 1rem;">
+                    <i class="fas fa-check"></i> Log Shed
+                </button>
+                <button type="button" onclick="backToReptileSelection()" class="btn btn-secondary" style="padding: 0.875rem;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    `;
+}
+
+function renderTankCleaningForm(data) {
+    return `
+        <form id="activityForm" onsubmit="submitForm(event)" style="display: grid; gap: 1rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Date</label>
+                <input type="date" name="cleaning_date" value="${data.today}" required
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Cleaning Type</label>
+                <select name="cleaning_type" required
+                        style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    <option value="">Select cleaning type...</option>
+                    <option value="Spot Clean">Spot Clean</option>
+                    <option value="Partial Clean">Partial Clean</option>
+                    <option value="Deep Clean">Deep Clean</option>
+                    <option value="Full Substrate Change">Full Substrate Change</option>
+                    <option value="Disinfection">Disinfection</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Notes (Optional)</label>
+                <textarea name="notes" rows="3"
+                          style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.875rem; font-size: 1rem;">
+                    <i class="fas fa-check"></i> Log Cleaning
+                </button>
+                <button type="button" onclick="backToReptileSelection()" class="btn btn-secondary" style="padding: 0.875rem;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    `;
+}
+
+function renderHandlingForm(data) {
+    return `
+        <form id="activityForm" onsubmit="submitForm(event)" style="display: grid; gap: 1rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Date</label>
+                <input type="date" name="handling_date" value="${data.today}" required
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Duration (minutes) - Optional</label>
+                <input type="number" name="duration_minutes" min="1"
+                       style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Behavior - Optional</label>
+                <select name="behavior"
+                        style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    <option value="">Select behavior...</option>
+                    <option value="Calm">Calm</option>
+                    <option value="Active">Active</option>
+                    <option value="Defensive">Defensive</option>
+                    <option value="Stressed">Stressed</option>
+                    <option value="Curious">Curious</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Notes (Optional)</label>
+                <textarea name="notes" rows="3"
+                          style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.875rem; font-size: 1rem;">
+                    <i class="fas fa-check"></i> Log Handling
+                </button>
+                <button type="button" onclick="backToReptileSelection()" class="btn btn-secondary" style="padding: 0.875rem;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    `;
+}
+
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Add use_inventory flag for feeding
     if (selectedActivityType === 'feeding') {
-        window.location.href = `/feeding/${reptileId}`;
-    } else if (selectedActivityType === 'shed') {
-        window.location.href = `/shed/${reptileId}`;
-    } else if (selectedActivityType === 'cleaning') {
-        window.location.href = `/tank-cleaning/${reptileId}`;
-    } else if (selectedActivityType === 'handling') {
-        window.location.href = `/handling/${reptileId}`;
+        data.use_inventory = 'no';
+    }
+    
+    // Disable submit button
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    
+    try {
+        const endpoint = selectedActivityType === 'cleaning' ? 'tank-cleaning' : selectedActivityType;
+        const response = await fetch(`/api/${endpoint}/${selectedReptileId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        
+        // Show success message
+        alert(result.message);
+        
+        // Close modal and reload page
+        closeLogActivityModal();
+        window.location.reload();
+    } catch (error) {
+        alert('Error: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     }
 }
 

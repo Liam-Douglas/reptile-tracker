@@ -494,6 +494,69 @@ def feeding_logs():
     reptiles = db.get_all_reptiles()
     return render_template('feeding_logs.html', logs=logs, reptiles=reptiles, selected_reptile_id=reptile_id)
 
+@app.route('/api/feeding-form/<int:reptile_id>')
+def get_feeding_form_data(reptile_id):
+    """Get feeding form data as JSON"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    inventory_items = db.get_food_inventory(include_zero=False)
+    food_types = db.get_distinct_food_types()
+    food_sizes = db.get_distinct_food_sizes()
+    
+    return jsonify({
+        'reptile': reptile,
+        'inventory_items': inventory_items,
+        'food_types': food_types,
+        'food_sizes': food_sizes,
+        'today': datetime.now().strftime('%Y-%m-%d')
+    })
+
+@app.route('/api/feeding/<int:reptile_id>', methods=['POST'])
+def api_log_feeding(reptile_id):
+    """API endpoint to log feeding"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    try:
+        # Get inventory_id if using inventory
+        use_inventory = request.json.get('use_inventory') == 'yes'
+        inventory_id = int(request.json.get('inventory_id')) if use_inventory and request.json.get('inventory_id') else None
+        
+        # Get quantity
+        if use_inventory and request.json.get('inventory_quantity'):
+            quantity = int(request.json.get('inventory_quantity'))
+        else:
+            quantity = int(request.json.get('quantity', 1))
+        
+        data = {
+            'reptile_id': reptile_id,
+            'feeding_date': request.json.get('date') or datetime.now().strftime('%Y-%m-%d'),
+            'food_type': request.json.get('food_type'),
+            'food_size': request.json.get('food_size') or None,
+            'quantity': quantity,
+            'ate': request.json.get('ate') == 'yes',
+            'notes': request.json.get('notes') or None,
+            'inventory_id': inventory_id,
+            'auto_deduct': True
+        }
+        db.add_feeding_log(**data)
+        
+        # Update feeding reminder dates if reminder exists
+        db.update_feeding_reminder_dates(reptile_id, data['feeding_date'])
+        
+        message = f'Feeding logged for {reptile["name"]}!'
+        if inventory_id and data['ate']:
+            message += ' Inventory automatically deducted.'
+        
+        return jsonify({'success': True, 'message': message})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/feeding/<int:reptile_id>', methods=['GET', 'POST'])
 def log_feeding(reptile_id):
     """Log feeding for specific reptile"""
@@ -616,6 +679,40 @@ def shed_records():
     reptiles = db.get_all_reptiles()
     return render_template('shed_records.html', records=records, reptiles=reptiles)
 
+@app.route('/api/shed-form/<int:reptile_id>')
+def get_shed_form_data(reptile_id):
+    """Get shed form data as JSON"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    return jsonify({
+        'reptile': reptile,
+        'today': datetime.now().strftime('%Y-%m-%d')
+    })
+
+@app.route('/api/shed/<int:reptile_id>', methods=['POST'])
+def api_log_shed(reptile_id):
+    """API endpoint to log shed"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    try:
+        data = {
+            'reptile_id': reptile_id,
+            'shed_date': request.json.get('date') or datetime.now().strftime('%Y-%m-%d'),
+            'complete': request.json.get('complete') == 'yes',
+            'shed_length_cm': float(request.json.get('shed_length_cm')) if request.json.get('shed_length_cm') else None,
+            'notes': request.json.get('notes') or None
+        }
+        db.add_shed_record(**data)
+        return jsonify({'success': True, 'message': f'Shed record logged for {reptile["name"]}!'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/shed/<int:reptile_id>', methods=['GET', 'POST'])
 def log_shed(reptile_id):
     """Log shed for specific reptile"""
@@ -664,6 +761,39 @@ def add_shed():
     reptiles = db.get_all_reptiles()
     return render_template('shed_form.html', reptiles=reptiles, record=None)
 
+@app.route('/api/tank-cleaning-form/<int:reptile_id>')
+def get_tank_cleaning_form_data(reptile_id):
+    """Get tank cleaning form data as JSON"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    return jsonify({
+        'reptile': reptile,
+        'today': datetime.now().strftime('%Y-%m-%d')
+    })
+
+@app.route('/api/tank-cleaning/<int:reptile_id>', methods=['POST'])
+def api_log_tank_cleaning(reptile_id):
+    """API endpoint to log tank cleaning"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    try:
+        data = {
+            'reptile_id': reptile_id,
+            'cleaning_date': request.json.get('cleaning_date') or datetime.now().strftime('%Y-%m-%d'),
+            'cleaning_type': request.json.get('cleaning_type'),
+            'notes': request.json.get('notes') or None
+        }
+        db.add_tank_cleaning_log(**data)
+        return jsonify({'success': True, 'message': f'Tank cleaning logged for {reptile["name"]}!'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/tank-cleaning/<int:reptile_id>', methods=['GET', 'POST'])
 def log_tank_cleaning(reptile_id):
     """Log tank cleaning"""
@@ -689,6 +819,40 @@ def log_tank_cleaning(reptile_id):
     
     today = datetime.now().strftime('%Y-%m-%d')
     return render_template('tank_cleaning_form.html', reptile=reptile, today=today)
+
+@app.route('/api/handling-form/<int:reptile_id>')
+def get_handling_form_data(reptile_id):
+    """Get handling form data as JSON"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    return jsonify({
+        'reptile': reptile,
+        'today': datetime.now().strftime('%Y-%m-%d')
+    })
+
+@app.route('/api/handling/<int:reptile_id>', methods=['POST'])
+def api_log_handling(reptile_id):
+    """API endpoint to log handling"""
+    db = get_db()
+    reptile = db.get_reptile(reptile_id)
+    if not reptile:
+        return jsonify({'error': 'Reptile not found'}), 404
+    
+    try:
+        data = {
+            'reptile_id': reptile_id,
+            'handling_date': request.json.get('handling_date') or datetime.now().strftime('%Y-%m-%d'),
+            'duration_minutes': int(request.json.get('duration_minutes')) if request.json.get('duration_minutes') else None,
+            'behavior': request.json.get('behavior') or None,
+            'notes': request.json.get('notes') or None
+        }
+        db.add_handling_log(**data)
+        return jsonify({'success': True, 'message': f'Handling session logged for {reptile["name"]}!'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/handling/<int:reptile_id>', methods=['GET', 'POST'])
 def log_handling(reptile_id):
