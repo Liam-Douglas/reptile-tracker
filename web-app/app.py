@@ -337,6 +337,23 @@ def reptiles_page():
     overdue_feedings = db.get_overdue_feedings()
     upcoming_feedings = db.get_upcoming_feedings(days_ahead=7)
     
+    # Get inventory alerts
+    inventory = db.get_food_inventory()
+    low_stock = [item for item in inventory if 0 < item['quantity'] <= 5]
+    out_of_stock = [item for item in inventory if item['quantity'] == 0]
+    
+    # Calculate total alerts
+    total_alerts = len(overdue_feedings) + len(low_stock) + len(out_of_stock)
+    
+    # Debug logging
+    print(f"DEBUG: Total inventory items: {len(inventory)}")
+    print(f"DEBUG: Low stock items: {len(low_stock)}")
+    print(f"DEBUG: Out of stock items: {len(out_of_stock)}")
+    print(f"DEBUG: Overdue feedings: {len(overdue_feedings)}")
+    print(f"DEBUG: Total alerts: {total_alerts}")
+    if low_stock:
+        print(f"DEBUG: Low stock details: {low_stock}")
+    
     return render_template('reptiles.html',
                          reptiles=reptiles,
                          feeding_logs=all_feeding_logs,
@@ -345,7 +362,10 @@ def reptiles_page():
                          handling_logs=all_handling_logs,
                          reminders=reminders,
                          overdue_feedings=overdue_feedings,
-                         upcoming_feedings=upcoming_feedings)
+                         upcoming_feedings=upcoming_feedings,
+                         low_stock=low_stock,
+                         out_of_stock=out_of_stock,
+                         total_alerts=total_alerts)
 
 @app.route('/reptile/<int:reptile_id>')
 def reptile_details(reptile_id):
