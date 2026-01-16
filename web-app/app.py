@@ -1109,6 +1109,34 @@ def settings_page():
     return render_template('settings.html')
 
 
+@app.route('/settings/notifications', methods=['GET', 'POST'])
+def notification_settings():
+    """Notification settings page for email and SMS alerts"""
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            settings = {
+                'email_enabled': request.form.get('email_enabled') == 'on',
+                'email': request.form.get('email'),
+                'sms_enabled': request.form.get('sms_enabled') == 'on',
+                'phone': request.form.get('phone'),
+                'reminder_time': request.form.get('reminder_time', '09:00'),
+                'notify_overdue_only': request.form.get('notify_overdue_only') == 'on'
+            }
+            
+            db.save_notification_settings(**settings)
+            flash('Notification settings saved successfully!', 'success')
+            return redirect(url_for('notification_settings'))
+        except Exception as e:
+            flash(f'Error saving settings: {str(e)}', 'error')
+    
+    # Get current settings
+    settings = db.get_notification_settings()
+    
+    return render_template('notification_settings.html', settings=settings)
+
+
 @app.route('/help')
 def help_page():
     """Interactive help and guide system"""
