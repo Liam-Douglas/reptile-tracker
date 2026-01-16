@@ -29,8 +29,11 @@
                 </div>
                 <h4>Push Notifications</h4>
                 <p>Enable browser notifications for feeding reminders and alerts</p>
-                <button onclick="enableNotifications()" class="btn btn-primary" style="width: 100%;" id="notificationBtn">
+                <button onclick="enableNotifications()" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" id="notificationBtn">
                     <i class="fas fa-bell"></i> <span id="notificationBtnText">Enable Notifications</span>
+                </button>
+                <button onclick="testNotification()" class="btn btn-secondary" style="width: 100%;" id="testNotificationBtn" disabled>
+                    <i class="fas fa-vial"></i> Test Notification
                 </button>
                 <small id="notificationStatus" style="display: block; margin-top: 0.5rem; color: var(--text-secondary);"></small>
             </div>
@@ -235,11 +238,13 @@ function updateNotificationStatus() {
     const btn = document.getElementById('notificationBtn');
     const btnText = document.getElementById('notificationBtnText');
     const status = document.getElementById('notificationStatus');
+    const testBtn = document.getElementById('testNotificationBtn');
     
     if (!('Notification' in window)) {
         status.textContent = '❌ Notifications not supported in this browser';
         status.style.color = 'var(--danger)';
         btn.disabled = true;
+        testBtn.disabled = true;
         return;
     }
     
@@ -250,15 +255,18 @@ function updateNotificationStatus() {
         btn.classList.remove('btn-primary');
         btn.classList.add('btn-success');
         btn.disabled = true;
+        testBtn.disabled = false; // Enable test button
     } else if (Notification.permission === 'denied') {
         btnText.textContent = 'Notifications Blocked';
         status.textContent = '❌ Please enable in browser settings';
         status.style.color = 'var(--danger)';
         btn.disabled = true;
+        testBtn.disabled = true;
     } else {
         btnText.textContent = 'Enable Notifications';
         status.textContent = 'Click to enable push notifications';
         status.style.color = 'var(--text-secondary)';
+        testBtn.disabled = true;
     }
 }
 
@@ -330,6 +338,56 @@ function installApp() {
         }
         window.deferredPrompt = null;
     });
+}
+
+async function testNotification() {
+    if (Notification.permission !== 'granted') {
+        alert('Please enable notifications first!');
+        return;
+    }
+    
+    try {
+        if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification('🦎 Reptile Tracker Test', {
+                body: 'This is a test notification! Your notifications are working correctly.',
+                icon: '/static/icon-192.png',
+                badge: '/static/icon-192.png',
+                vibrate: [200, 100, 200, 100, 200],
+                tag: 'test-notification',
+                requireInteraction: false,
+                actions: [
+                    {
+                        action: 'view',
+                        title: 'View Dashboard',
+                        icon: '/static/icon-192.png'
+                    },
+                    {
+                        action: 'close',
+                        title: 'Close'
+                    }
+                ],
+                data: {
+                    url: '/',
+                    dateOfArrival: Date.now()
+                }
+            });
+            
+            // Show success message
+            const status = document.getElementById('notificationStatus');
+            status.textContent = '✅ Test notification sent! Check your notifications.';
+            status.style.color = 'var(--success)';
+            
+            setTimeout(() => {
+                status.textContent = '✅ You will receive push notifications';
+            }, 3000);
+        } else {
+            alert('Service Worker not available. Notifications may not work.');
+        }
+    } catch (error) {
+        console.error('Error sending test notification:', error);
+        alert('Error sending test notification: ' + error.message);
+    }
 }
 </script>
 {% endblock %}
