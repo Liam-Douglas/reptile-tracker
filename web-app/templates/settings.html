@@ -370,96 +370,89 @@ function installApp() {
 }
 
 async function testNotification() {
-    console.log('Test notification clicked');
-    console.log('Notification permission:', Notification.permission);
-    console.log('Is iOS:', isIOS());
-    console.log('Is standalone:', isStandalone());
-    
-    if (Notification.permission !== 'granted') {
-        alert('Please enable notifications first by clicking "Enable Notifications"!');
-        return;
-    }
+    // Show immediate feedback
+    const btn = document.getElementById('testNotificationBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    btn.disabled = true;
     
     try {
-        let notificationSent = false;
-        let method = 'none';
+        // Check permission first
+        if (Notification.permission !== 'granted') {
+            alert('❌ Notifications not enabled!\n\nPlease tap "Enable Notifications" first.');
+            return;
+        }
         
-        // For iOS PWA, try service worker first
-        if ('serviceWorker' in navigator) {
+        // Check if we're in the right environment
+        const inStandalone = isStandalone();
+        const hasServiceWorker = 'serviceWorker' in navigator;
+        const hasNotification = 'Notification' in window;
+        
+        let debugInfo = `Environment Check:\n`;
+        debugInfo += `✓ iOS Device: ${isIOS()}\n`;
+        debugInfo += `✓ Standalone Mode: ${inStandalone}\n`;
+        debugInfo += `✓ Service Worker: ${hasServiceWorker}\n`;
+        debugInfo += `✓ Notification API: ${hasNotification}\n`;
+        debugInfo += `✓ Permission: ${Notification.permission}\n\n`;
+        
+        let notificationSent = false;
+        let errorMsg = '';
+        
+        // Try service worker method (required for iOS PWA)
+        if (hasServiceWorker) {
             try {
-                console.log('Attempting service worker notification...');
                 const registration = await navigator.serviceWorker.ready;
-                console.log('Service worker ready:', registration);
-                
                 await registration.showNotification('🦎 Reptile Tracker', {
                     body: 'Test notification successful! 🎉',
                     icon: '/static/icon-192.png',
                     badge: '/static/icon-192.png',
-                    tag: 'test-notification',
-                    requireInteraction: false,
-                    silent: false
+                    tag: 'test-' + Date.now(),
+                    requireInteraction: false
                 });
-                
                 notificationSent = true;
-                method = 'service-worker';
-                console.log('✅ Notification sent via Service Worker');
+                debugInfo += '✅ Notification sent via Service Worker!';
             } catch (swError) {
-                console.error('Service Worker notification failed:', swError);
-                console.error('Error details:', swError.message, swError.stack);
+                errorMsg = swError.message || swError.toString();
+                debugInfo += `❌ Service Worker failed: ${errorMsg}\n\n`;
             }
         }
         
-        // Fallback to direct Notification API (works on some platforms)
-        if (!notificationSent && 'Notification' in window) {
+        // Try direct API as fallback
+        if (!notificationSent && hasNotification) {
             try {
-                console.log('Attempting direct Notification API...');
-                const notification = new Notification('🦎 Reptile Tracker', {
+                new Notification('🦎 Reptile Tracker', {
                     body: 'Test notification successful! 🎉',
                     icon: '/static/icon-192.png',
-                    tag: 'test-notification',
-                    silent: false
+                    tag: 'test-' + Date.now()
                 });
-                
-                // Auto-close after 5 seconds
-                setTimeout(() => {
-                    try {
-                        notification.close();
-                    } catch (e) {
-                        console.log('Could not close notification:', e);
-                    }
-                }, 5000);
-                
                 notificationSent = true;
-                method = 'direct-api';
-                console.log('✅ Notification sent via Direct API');
+                debugInfo += '✅ Notification sent via Direct API!';
             } catch (directError) {
-                console.error('Direct API notification failed:', directError);
+                errorMsg = directError.message || directError.toString();
+                debugInfo += `❌ Direct API failed: ${errorMsg}`;
             }
         }
         
         if (notificationSent) {
-            // Show success message
+            // Success!
             const status = document.getElementById('notificationStatus');
-            const originalText = status.textContent;
-            status.textContent = `✅ Test sent via ${method}! Check your notifications.`;
+            status.textContent = '✅ Test notification sent! Check your notifications.';
             status.style.color = 'var(--success)';
             
             setTimeout(() => {
-                status.textContent = originalText;
+                status.textContent = '✅ You will receive push notifications';
             }, 4000);
         } else {
-            throw new Error('Both notification methods failed. Check console for details.');
+            // Show detailed error
+            alert(debugInfo + '\n\n⚠️ iOS Limitation:\nNotifications only work when app is installed to home screen and opened from there (not Safari).\n\nIf already installed, try:\n1. Close app completely\n2. Reopen from home screen\n3. Wait 10 seconds\n4. Try again');
         }
+        
     } catch (error) {
-        console.error('❌ Test notification error:', error);
-        alert('Test notification failed!\n\n' +
-              'Error: ' + error.message + '\n\n' +
-              'Debug info:\n' +
-              '- Permission: ' + Notification.permission + '\n' +
-              '- iOS: ' + isIOS() + '\n' +
-              '- Standalone: ' + isStandalone() + '\n' +
-              '- Service Worker: ' + ('serviceWorker' in navigator) + '\n\n' +
-              'Check browser console (connect to Mac Safari) for detailed logs.');
+        alert('❌ Unexpected error:\n' + error.message + '\n\nThis might be an iOS limitation. Notifications may still work for scheduled reminders even if test fails.');
+    } finally {
+        // Restore button
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 }
 </script>
