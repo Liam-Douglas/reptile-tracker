@@ -1131,8 +1131,18 @@ def notification_settings():
         except Exception as e:
             flash(f'Error saving settings: {str(e)}', 'error')
     
-    # Get current settings
+    # Get current settings or use defaults
     settings = db.get_notification_settings()
+    if not settings:
+        # Provide default settings if none exist
+        settings = {
+            'email_enabled': False,
+            'email': '',
+            'sms_enabled': False,
+            'phone': '',
+            'reminder_time': '09:00',
+            'notify_overdue_only': False
+        }
     
     return render_template('notification_settings.html', settings=settings)
 
