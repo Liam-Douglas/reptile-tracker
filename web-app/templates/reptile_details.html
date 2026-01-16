@@ -55,20 +55,21 @@
 <!-- Quick Stats Grid - Actionable Stats -->
 <div class="profile-stats-grid">
     <!-- Last Fed -->
-    {% if feeding_logs %}
-    <div class="profile-stat-card stat-feeding">
-        <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+    {% if last_feeding_days is not none %}
+    <div class="profile-stat-card stat-feeding {% if last_feeding_days > 14 %}stat-warning{% endif %}">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ feeding_logs[0].feeding_date|days_ago }}</div>
-            <div class="stat-label">Last Fed</div>
+            <div class="stat-label">Fed {{ last_feeding_days }} day{{ 's' if last_feeding_days != 1 else '' }} ago</div>
+            {% if last_food_item %}
+            <div class="stat-food-item">{{ last_food_item }}</div>
+            {% endif %}
         </div>
     </div>
     {% else %}
     <div class="profile-stat-card stat-feeding stat-empty">
-        <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+        <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
         <div class="stat-content">
-            <div class="stat-value">Never</div>
-            <div class="stat-label">Last Fed</div>
+            <div class="stat-label">No feeding recorded</div>
         </div>
     </div>
     {% endif %}
@@ -76,67 +77,61 @@
     <!-- Next Feeding -->
     {% if next_feeding_date %}
     <div class="profile-stat-card stat-next-feeding {% if days_until_feeding <= 0 %}stat-overdue{% elif days_until_feeding <= 2 %}stat-soon{% endif %}">
-        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
         <div class="stat-content">
             {% if days_until_feeding < 0 %}
-                <div class="stat-value">{{ days_until_feeding|abs }} days ago</div>
-                <div class="stat-label">Overdue Feeding</div>
+                <div class="stat-label">Next feed {{ days_until_feeding|abs }} day{{ 's' if days_until_feeding|abs != 1 else '' }} ago</div>
             {% elif days_until_feeding == 0 %}
-                <div class="stat-value">Today</div>
-                <div class="stat-label">Next Feeding</div>
+                <div class="stat-label">Next feed today</div>
             {% elif days_until_feeding == 1 %}
-                <div class="stat-value">Tomorrow</div>
-                <div class="stat-label">Next Feeding</div>
+                <div class="stat-label">Next feed tomorrow</div>
             {% else %}
-                <div class="stat-value">In {{ days_until_feeding }} days</div>
-                <div class="stat-label">Next Feeding</div>
+                <div class="stat-label">Next feed in {{ days_until_feeding }} days</div>
+            {% endif %}
+            {% if next_food_item %}
+            <div class="stat-food-item">{{ next_food_item }}</div>
             {% endif %}
         </div>
     </div>
     {% else %}
     <div class="profile-stat-card stat-next-feeding stat-empty">
-        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
         <div class="stat-content">
-            <div class="stat-value">Not Set</div>
-            <div class="stat-label">Next Feeding</div>
+            <div class="stat-label">No feeding reminder set</div>
         </div>
     </div>
     {% endif %}
     
     <!-- Clean Tank -->
-    {% if last_tank_cleaning %}
-    <div class="profile-stat-card stat-tank">
+    {% if last_tank_cleaning_days is not none %}
+    <div class="profile-stat-card stat-tank {% if last_tank_cleaning_days > 30 %}stat-warning{% endif %}">
         <div class="stat-icon"><i class="fas fa-spray-can"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ last_tank_cleaning.cleaning_date|days_ago }}</div>
-            <div class="stat-label">Last Cleaned</div>
+            <div class="stat-label">Cleaned {{ last_tank_cleaning_days }} day{{ 's' if last_tank_cleaning_days != 1 else '' }} ago</div>
         </div>
     </div>
     {% else %}
     <div class="profile-stat-card stat-tank stat-empty">
-        <div class="stat-icon"><i class="fas fa-spray-can"></i></div>
+        <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
         <div class="stat-content">
-            <div class="stat-value">Never</div>
-            <div class="stat-label">Last Cleaned</div>
+            <div class="stat-label">No tank cleaning recorded</div>
         </div>
     </div>
     {% endif %}
     
     <!-- Last Handled -->
-    {% if last_handling %}
+    {% if last_handling_days is not none %}
     <div class="profile-stat-card stat-handled">
         <div class="stat-icon"><i class="fas fa-hand-holding"></i></div>
         <div class="stat-content">
-            <div class="stat-value">{{ last_handling.handling_date|days_ago }}</div>
-            <div class="stat-label">Last Handled</div>
+            <div class="stat-label">Handled {{ last_handling_days }} day{{ 's' if last_handling_days != 1 else '' }} ago</div>
         </div>
     </div>
     {% else %}
     <div class="profile-stat-card stat-handled stat-empty">
-        <div class="stat-icon"><i class="fas fa-hand-holding"></i></div>
+        <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
         <div class="stat-content">
-            <div class="stat-value">Never</div>
-            <div class="stat-label">Last Handled</div>
+            <div class="stat-label">No handling recorded</div>
         </div>
     </div>
     {% endif %}

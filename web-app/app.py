@@ -379,9 +379,29 @@ def reptile_details(reptile_id):
     feeding_logs = db.get_feeding_logs(reptile_id, limit=10)
     shed_records = db.get_shed_records(reptile_id, limit=10)
     
+    # Get last feeding details with food item
+    last_feeding = feeding_logs[0] if feeding_logs else None
+    last_feeding_days = None
+    last_food_item = None
+    if last_feeding:
+        from datetime import datetime
+        last_date = datetime.strptime(last_feeding['feeding_date'], '%Y-%m-%d')
+        today = datetime.now()
+        last_feeding_days = (today - last_date).days
+        # Format food item display
+        if last_feeding.get('food_size'):
+            last_food_item = f"{last_feeding['food_size']} {last_feeding['food_type']}"
+        else:
+            last_food_item = last_feeding['food_type']
+    
     # Get next feeding date from reminders
     reminder = db.get_feeding_reminders(reptile_id)
     next_feeding_date = reminder[0].get('next_feeding_date') if reminder else None
+    next_food_item = reminder[0].get('food_type') if reminder else None
+    
+    # Format next food item display
+    if next_food_item and reminder and reminder[0].get('food_size'):
+        next_food_item = f"{reminder[0]['food_size']} {next_food_item}"
     
     # Calculate days until next feeding
     days_until_feeding = None
@@ -391,18 +411,36 @@ def reptile_details(reptile_id):
         today = datetime.now()
         days_until_feeding = (next_date - today).days
     
-    # Get last tank cleaning and handling
+    # Get last tank cleaning and handling with days ago
     last_tank_cleaning = db.get_last_tank_cleaning(reptile_id)
+    last_tank_cleaning_days = None
+    if last_tank_cleaning:
+        from datetime import datetime
+        cleaning_date = datetime.strptime(last_tank_cleaning['cleaning_date'], '%Y-%m-%d')
+        today = datetime.now()
+        last_tank_cleaning_days = (today - cleaning_date).days
+    
     last_handling = db.get_last_handling(reptile_id)
+    last_handling_days = None
+    if last_handling:
+        from datetime import datetime
+        handling_date = datetime.strptime(last_handling['handling_date'], '%Y-%m-%d')
+        today = datetime.now()
+        last_handling_days = (today - handling_date).days
     
     return render_template('reptile_details.html',
                          reptile=reptile,
                          feeding_logs=feeding_logs,
                          shed_records=shed_records,
+                         last_feeding_days=last_feeding_days,
+                         last_food_item=last_food_item,
                          next_feeding_date=next_feeding_date,
+                         next_food_item=next_food_item,
                          days_until_feeding=days_until_feeding,
                          last_tank_cleaning=last_tank_cleaning,
-                         last_handling=last_handling)
+                         last_tank_cleaning_days=last_tank_cleaning_days,
+                         last_handling=last_handling,
+                         last_handling_days=last_handling_days)
 
 @app.route('/reptile/add', methods=['GET', 'POST'])
 def add_reptile():

@@ -3413,6 +3413,16 @@ body {
     color: #9ca3af;
 }
 
+.profile-stat-card.stat-warning {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-left: 4px solid #f59e0b;
+}
+
+.profile-stat-card.stat-warning .stat-icon {
+    background: #f59e0b;
+    color: white;
+}
+
 .profile-stat-card.stat-overdue {
     background: linear-gradient(135deg, #fee2e2, #fecaca);
     border-left: 4px solid #ef4444;
@@ -3433,6 +3443,10 @@ body {
     color: white;
 }
 
+.profile-stat-card.stat-feeding .stat-icon {
+    background: linear-gradient(135deg, #fa709a, #fee140);
+}
+
 .profile-stat-card.stat-next-feeding .stat-icon {
     background: linear-gradient(135deg, #667eea, #764ba2);
 }
@@ -3443,6 +3457,20 @@ body {
 
 .profile-stat-card.stat-handled .stat-icon {
     background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+/* Food item display in stat cards */
+.stat-food-item {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.profile-stat-card.stat-overdue .stat-food-item,
+.profile-stat-card.stat-soon .stat-food-item,
+.profile-stat-card.stat-warning .stat-food-item {
+    color: #374151;
 }
 
 /* Stats Tab Styles */
