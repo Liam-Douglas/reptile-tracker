@@ -9,6 +9,61 @@
     </h1>
 </div>
 
+<!-- PWA & Notifications Section -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-mobile-alt"></i> App & Notifications
+        </h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
+            Configure push notifications and app settings
+        </p>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            
+            <!-- Push Notifications Card -->
+            <div class="settings-card">
+                <div class="settings-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h4>Push Notifications</h4>
+                <p>Enable browser notifications for feeding reminders and alerts</p>
+                <button onclick="enableNotifications()" class="btn btn-primary" style="width: 100%;" id="notificationBtn">
+                    <i class="fas fa-bell"></i> <span id="notificationBtnText">Enable Notifications</span>
+                </button>
+                <small id="notificationStatus" style="display: block; margin-top: 0.5rem; color: var(--text-secondary);"></small>
+            </div>
+            
+            <!-- Install App Card -->
+            <div class="settings-card">
+                <div class="settings-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-download"></i>
+                </div>
+                <h4>Install App</h4>
+                <p>Install Reptile Tracker as a standalone app on your device</p>
+                <button onclick="installApp()" class="btn btn-primary" style="width: 100%;" id="installAppBtn">
+                    <i class="fas fa-download"></i> Install App
+                </button>
+                <small id="installStatus" style="display: block; margin-top: 0.5rem; color: var(--text-secondary);"></small>
+            </div>
+            
+            <!-- Email/SMS Notifications Card -->
+            <div class="settings-card">
+                <div class="settings-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h4>Email & SMS Alerts</h4>
+                <p>Configure email and SMS notifications for feeding reminders</p>
+                <a href="{{ url_for('notification_settings') }}" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-cog"></i> Configure Alerts
+                </a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
 <!-- Data Management Section -->
 <div class="card" style="margin-bottom: 2rem;">
     <div class="card-header">
@@ -168,4 +223,113 @@
     }
 }
 </style>
+
+<script>
+// Check notification permission status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateNotificationStatus();
+    updateInstallStatus();
+});
+
+function updateNotificationStatus() {
+    const btn = document.getElementById('notificationBtn');
+    const btnText = document.getElementById('notificationBtnText');
+    const status = document.getElementById('notificationStatus');
+    
+    if (!('Notification' in window)) {
+        status.textContent = '❌ Notifications not supported in this browser';
+        status.style.color = 'var(--danger)';
+        btn.disabled = true;
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        btnText.textContent = 'Notifications Enabled';
+        status.textContent = '✅ You will receive push notifications';
+        status.style.color = 'var(--success)';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+        btn.disabled = true;
+    } else if (Notification.permission === 'denied') {
+        btnText.textContent = 'Notifications Blocked';
+        status.textContent = '❌ Please enable in browser settings';
+        status.style.color = 'var(--danger)';
+        btn.disabled = true;
+    } else {
+        btnText.textContent = 'Enable Notifications';
+        status.textContent = 'Click to enable push notifications';
+        status.style.color = 'var(--text-secondary)';
+    }
+}
+
+function updateInstallStatus() {
+    const btn = document.getElementById('installAppBtn');
+    const status = document.getElementById('installStatus');
+    
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        btn.textContent = '✅ App Installed';
+        btn.disabled = true;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+        status.textContent = '✅ Running as installed app';
+        status.style.color = 'var(--success)';
+    } else if (!window.deferredPrompt) {
+        status.textContent = 'Install prompt will appear when available';
+        status.style.color = 'var(--text-secondary)';
+    }
+}
+
+async function enableNotifications() {
+    if (!('Notification' in window)) {
+        alert('Notifications are not supported in this browser');
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        alert('Notifications are already enabled!');
+        return;
+    }
+    
+    try {
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            // Show test notification
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.showNotification('Reptile Tracker', {
+                    body: 'Notifications enabled! You\'ll receive feeding reminders.',
+                    icon: '/static/icon-192.png',
+                    badge: '/static/icon-192.png',
+                    vibrate: [200, 100, 200]
+                });
+            }
+            updateNotificationStatus();
+        } else {
+            alert('Notification permission denied. Please enable in browser settings.');
+        }
+    } catch (error) {
+        console.error('Error requesting notification permission:', error);
+        alert('Error enabling notifications. Please try again.');
+    }
+}
+
+function installApp() {
+    if (!window.deferredPrompt) {
+        alert('App install is not available. You may have already installed it, or your browser doesn\'t support installation.');
+        return;
+    }
+    
+    window.deferredPrompt.prompt();
+    
+    window.deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+            updateInstallStatus();
+        }
+        window.deferredPrompt = null;
+    });
+}
+</script>
 {% endblock %}
