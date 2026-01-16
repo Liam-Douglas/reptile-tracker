@@ -29,6 +29,19 @@
                 </div>
                 <h4>Push Notifications</h4>
                 <p>Enable browser notifications for feeding reminders and alerts</p>
+                
+                <!-- iOS Warning -->
+                <div id="iosWarning" style="display: none; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; text-align: left;">
+                    <strong>📱 iOS Users:</strong>
+                    <ol style="margin: 0.5rem 0 0 1.2rem; padding: 0; font-size: 0.9rem;">
+                        <li>Tap Share <i class="fas fa-share"></i> in Safari</li>
+                        <li>Select "Add to Home Screen"</li>
+                        <li>Open app from home screen icon</li>
+                        <li>Enable notifications here</li>
+                    </ol>
+                    <small style="color: #856404; display: block; margin-top: 0.5rem;">⚠️ Notifications only work when installed as PWA on iOS</small>
+                </div>
+                
                 <button onclick="enableNotifications()" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" id="notificationBtn">
                     <i class="fas fa-bell"></i> <span id="notificationBtnText">Enable Notifications</span>
                 </button>
@@ -228,8 +241,24 @@
 </style>
 
 <script>
+// Detect iOS
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+}
+
 // Check notification permission status on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Show iOS warning if on iOS and not in standalone mode
+    if (isIOS() && !isStandalone()) {
+        document.getElementById('iosWarning').style.display = 'block';
+    }
+    
     updateNotificationStatus();
     updateInstallStatus();
 });
