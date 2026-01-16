@@ -347,46 +347,57 @@ async function testNotification() {
     }
     
     try {
+        let notificationSent = false;
+        
+        // Try service worker method first (preferred for PWA)
         if ('serviceWorker' in navigator) {
-            const registration = await navigator.serviceWorker.ready;
-            await registration.showNotification('🦎 Reptile Tracker Test', {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.showNotification('🦎 Reptile Tracker Test', {
+                    body: 'This is a test notification! Your notifications are working correctly.',
+                    icon: '/static/icon-192.png',
+                    badge: '/static/icon-192.png',
+                    vibrate: [200, 100, 200, 100, 200],
+                    tag: 'test-notification',
+                    requireInteraction: false
+                });
+                notificationSent = true;
+                console.log('Notification sent via Service Worker');
+            } catch (swError) {
+                console.warn('Service Worker notification failed:', swError);
+            }
+        }
+        
+        // Fallback to direct Notification API if service worker failed
+        if (!notificationSent) {
+            console.log('Using direct Notification API');
+            const notification = new Notification('🦎 Reptile Tracker Test', {
                 body: 'This is a test notification! Your notifications are working correctly.',
                 icon: '/static/icon-192.png',
                 badge: '/static/icon-192.png',
                 vibrate: [200, 100, 200, 100, 200],
-                tag: 'test-notification',
-                requireInteraction: false,
-                actions: [
-                    {
-                        action: 'view',
-                        title: 'View Dashboard',
-                        icon: '/static/icon-192.png'
-                    },
-                    {
-                        action: 'close',
-                        title: 'Close'
-                    }
-                ],
-                data: {
-                    url: '/',
-                    dateOfArrival: Date.now()
-                }
+                tag: 'test-notification'
             });
             
+            // Auto-close after 5 seconds
+            setTimeout(() => notification.close(), 5000);
+            notificationSent = true;
+        }
+        
+        if (notificationSent) {
             // Show success message
             const status = document.getElementById('notificationStatus');
+            const originalText = status.textContent;
             status.textContent = '✅ Test notification sent! Check your notifications.';
             status.style.color = 'var(--success)';
             
             setTimeout(() => {
-                status.textContent = '✅ You will receive push notifications';
+                status.textContent = originalText;
             }, 3000);
-        } else {
-            alert('Service Worker not available. Notifications may not work.');
         }
     } catch (error) {
         console.error('Error sending test notification:', error);
-        alert('Error sending test notification: ' + error.message);
+        alert('Error sending test notification: ' + error.message + '\n\nTroubleshooting:\n1. Check browser notification settings\n2. Ensure site has notification permission\n3. Try refreshing the page\n4. Check browser console for details');
     }
 }
 </script>
