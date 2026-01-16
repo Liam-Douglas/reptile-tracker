@@ -396,7 +396,11 @@ def reptile_details(reptile_id):
             last_food_item = last_feeding['food_type']
     
     # Get AI-powered feeding suggestion
-    feeding_suggestion = get_feeding_recommendation(reptile, feeding_logs)
+    try:
+        feeding_suggestion = get_feeding_recommendation(reptile, feeding_logs)
+    except Exception as e:
+        print(f"[ERROR] Failed to get feeding recommendation: {e}")
+        feeding_suggestion = None
     
     # Get next feeding date from reminders
     reminder = db.get_feeding_reminders(reptile_id)
