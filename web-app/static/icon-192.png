@@ -1,0 +1,6 @@
+<!-- This is a placeholder. In production, replace with actual PNG icon -->
+<!-- For now, creating a simple SVG that can be converted -->
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#4CAF50"/>
+  <text x="96" y="120" font-family="Arial" font-size="80" fill="white" text-anchor="middle">🦎</text>
+</svg>

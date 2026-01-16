@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track reptile care, feeding schedules, and health records">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Reptile Tracker">
     <title>{% block title %}Reptile Tracker{% endblock %}</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icon-192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='icon-512.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20251216">
     <style>
         /* Tutorial Overlay Styles */
@@ -268,5 +282,153 @@
         });
     </script>
     {% block scripts %}{% endblock %}
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                        
+                        // Request notification permission
+                        if ('Notification' in window && Notification.permission === 'default') {
+                            Notification.requestPermission().then(permission => {
+                                console.log('Notification permission:', permission);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Install prompt for PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button/banner
+            const installBanner = document.createElement('div');
+            installBanner.className = 'install-banner';
+            installBanner.innerHTML = `
+                <div class="install-banner-content">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Install Reptile Tracker app for quick access!</span>
+                    <button class="btn btn-primary btn-small" id="installBtn">Install</button>
+                    <button class="btn btn-secondary btn-small" id="dismissBtn">×</button>
+                </div>
+            `;
+            document.body.appendChild(installBanner);
+            
+            document.getElementById('installBtn').addEventListener('click', async () => {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installBanner.remove();
+            });
+            
+            document.getElementById('dismissBtn').addEventListener('click', () => {
+                installBanner.remove();
+            });
+        });
+
+        // Camera integration helper
+        function openCamera(inputElement) {
+            if (inputElement) {
+                inputElement.setAttribute('capture', 'environment');
+                inputElement.setAttribute('accept', 'image/*');
+                inputElement.click();
+            }
+        }
+
+        // Quick log offline support
+        function saveOfflineLog(data) {
+            if ('indexedDB' in window) {
+                const request = indexedDB.open('reptile-tracker-db', 1);
+                
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    const tx = db.transaction('pending-logs', 'readwrite');
+                    const store = tx.objectStore('pending-logs');
+                    store.add(data);
+                    
+                    // Register background sync
+                    if ('serviceWorker' in navigator && 'sync' in registration) {
+                        navigator.serviceWorker.ready.then(registration => {
+                            return registration.sync.register('sync-feeding-logs');
+                        });
+                    }
+                };
+            }
+        }
+
+        // Check online status
+        window.addEventListener('online', () => {
+            console.log('Back online - syncing data...');
+            if ('serviceWorker' in navigator && 'sync' in registration) {
+                navigator.serviceWorker.ready.then(registration => {
+                    return registration.sync.register('sync-feeding-logs');
+                });
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Offline mode - data will sync when back online');
+        });
+    </script>
+    
+    <style>
+        .install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        .install-banner-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .install-banner-content i {
+            font-size: 1.5rem;
+        }
+        
+        .install-banner-content span {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        @media (max-width: 768px) {
+            .install-banner-content {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </body>
 </html>

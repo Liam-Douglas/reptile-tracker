@@ -13,6 +13,7 @@ from io import BytesIO
 
 # Import database module from local directory
 from reptile_tracker_db import ReptileDatabase
+from feeding_schedules import get_feeding_recommendation, suggest_next_feeding_date
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
@@ -394,10 +395,19 @@ def reptile_details(reptile_id):
         else:
             last_food_item = last_feeding['food_type']
     
+    # Get AI-powered feeding suggestion
+    feeding_suggestion = get_feeding_recommendation(reptile, feeding_logs)
+    
     # Get next feeding date from reminders
     reminder = db.get_feeding_reminders(reptile_id)
     next_feeding_date = reminder[0].get('next_feeding_date') if reminder else None
     next_food_item = reminder[0].get('food_type') if reminder else None
+    
+    # Use AI suggestion if no manual reminder is set
+    if not next_feeding_date and feeding_suggestion and feeding_suggestion.get('suggested_date'):
+        next_feeding_date = feeding_suggestion['suggested_date']
+        # Use last food item as suggestion
+        next_food_item = last_food_item if last_food_item else None
     
     # Format next food item display
     if next_food_item and reminder and reminder[0].get('food_size'):
@@ -434,6 +444,7 @@ def reptile_details(reptile_id):
                          shed_records=shed_records,
                          last_feeding_days=last_feeding_days,
                          last_food_item=last_food_item,
+                         feeding_suggestion=feeding_suggestion,
                          next_feeding_date=next_feeding_date,
                          next_food_item=next_food_item,
                          days_until_feeding=days_until_feeding,

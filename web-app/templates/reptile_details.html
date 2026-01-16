@@ -160,6 +160,59 @@
     <!-- Care Tab -->
     <div id="care-tab" class="tab-content active">
         <div class="care-grid">
+            <!-- AI Feeding Suggestion Card -->
+            {% if feeding_suggestion %}
+            <div class="care-card suggestion-card">
+                <div class="care-card-header">
+                    <h3><i class="fas fa-robot"></i> Smart Feeding Suggestion</h3>
+                    <span class="badge badge-info">
+                        <i class="fas fa-brain"></i> AI-Powered
+                    </span>
+                </div>
+                <div class="care-card-body">
+                    <div class="suggestion-content">
+                        {% if feeding_suggestion.status == 'no_history' %}
+                            <div class="suggestion-message">
+                                <i class="fas fa-info-circle"></i>
+                                <p><strong>Recommended Schedule:</strong> Feed every {{ feeding_suggestion.recommended_interval }} days</p>
+                                <small>Based on {{ reptile.species }} ({{ feeding_suggestion.age_category }})</small>
+                            </div>
+                        {% else %}
+                            <div class="suggestion-message {% if feeding_suggestion.status == 'overdue' %}suggestion-overdue{% elif feeding_suggestion.status in ['today', 'tomorrow', 'soon'] %}suggestion-soon{% endif %}">
+                                <i class="fas fa-calendar-check"></i>
+                                <p><strong>{{ feeding_suggestion.status_message }}</strong></p>
+                                {% if feeding_suggestion.suggested_date %}
+                                <small>Suggested date: {{ feeding_suggestion.suggested_date }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="suggestion-details">
+                                <div class="suggestion-detail-item">
+                                    <span class="detail-label">Interval:</span>
+                                    <span class="detail-value">{{ feeding_suggestion.interval_range }}</span>
+                                </div>
+                                <div class="suggestion-detail-item">
+                                    <span class="detail-label">Age Category:</span>
+                                    <span class="detail-value">{{ feeding_suggestion.age_category|title }}</span>
+                                </div>
+                                <div class="suggestion-detail-item">
+                                    <span class="detail-label">Confidence:</span>
+                                    <span class="detail-value">
+                                        {% if feeding_suggestion.confidence == 'high' %}
+                                            <span class="badge badge-success">High</span>
+                                        {% elif feeding_suggestion.confidence == 'medium' %}
+                                            <span class="badge badge-warning">Medium</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Low</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             <!-- Feeding Schedule Card -->
             <div class="care-card">
                 <div class="care-card-header">

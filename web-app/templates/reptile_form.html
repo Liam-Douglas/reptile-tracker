@@ -97,17 +97,29 @@
             <label class="form-label" for="image">Photo</label>
             {% if reptile and reptile.image_path %}
                 <div style="margin-bottom: 1rem;">
-                    <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}" 
-                         alt="{{ reptile.name }}" 
+                    <img src="{{ url_for('uploaded_file', filename=reptile.image_path) }}"
+                         alt="{{ reptile.name }}"
                          style="max-width: 200px; border-radius: 8px;">
                 </div>
             {% endif %}
-            <input type="file" 
-                   id="image" 
-                   name="image" 
-                   class="form-input form-file" 
-                   accept="image/*">
-            <small style="color: var(--text-secondary);">Supported formats: JPG, PNG, GIF (max 16MB)</small>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="file"
+                       id="image"
+                       name="image"
+                       class="form-input form-file"
+                       accept="image/*"
+                       capture="environment"
+                       style="flex: 1;">
+                <button type="button"
+                        class="btn btn-secondary"
+                        onclick="document.getElementById('image').click()"
+                        style="white-space: nowrap;">
+                    <i class="fas fa-camera"></i> Take Photo
+                </button>
+            </div>
+            <small style="color: var(--text-secondary);">
+                <i class="fas fa-info-circle"></i> Tap "Take Photo" to use camera or choose from gallery
+            </small>
         </div>
 
         <div class="btn-group">
