@@ -1558,6 +1558,134 @@ class ReptileDatabase:
         self.conn.commit()
         return True
     
+    # ==================== USER AUTHENTICATION OPERATIONS ====================
+    
+    def create_user(self, email: str, password_hash: str, name: str) -> int:
+        """Create a new user account"""
+        try:
+            self.cursor.execute('''
+                INSERT INTO users (email, password_hash, name)
+                VALUES (?, ?, ?)
+            ''', (email.lower(), password_hash, name))
+            self.conn.commit()
+            return self.cursor.lastrowid
+        except sqlite3.IntegrityError:
+            return None  # Email already exists
+    
+    def get_user_by_email(self, email: str) -> Optional[Dict]:
+        """Get user by email address"""
+        self.cursor.execute('SELECT * FROM users WHERE email = ?', (email.lower(),))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def get_user_by_id(self, user_id: int) -> Optional[Dict]:
+        """Get user by ID"""
+        self.cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def update_last_login(self, user_id: int) -> bool:
+        """Update user's last login timestamp"""
+        self.cursor.execute('''
+            UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
+        ''', (user_id,))
+        self.conn.commit()
+        return True
+    
+    def update_user_password(self, user_id: int, password_hash: str) -> bool:
+        """Update user's password"""
+        self.cursor.execute('''
+            UPDATE users SET password_hash = ? WHERE id = ?
+        ''', (password_hash, user_id))
+        self.conn.commit()
+        return True
+    
+    # ==================== HOUSEHOLD OPERATIONS ====================
+    
+    def create_household(self, name: str, created_by: int) -> int:
+        """Create a new household"""
+        self.cursor.execute('''
+            INSERT INTO households (name, created_by)
+            VALUES (?, ?)
+        ''', (name, created_by))
+        self.conn.commit()
+        household_id = self.cursor.lastrowid
+        
+        # Add creator as owner
+        self.add_household_member(household_id, created_by, role='owner')
+        
+        return household_id
+    
+    def get_household(self, household_id: int) -> Optional[Dict]:
+        """Get household by ID"""
+        self.cursor.execute('SELECT * FROM households WHERE id = ?', (household_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def get_user_household(self, user_id: int) -> Optional[Dict]:
+        """Get the household a user belongs to"""
+        self.cursor.execute('''
+            SELECT h.* FROM households h
+            JOIN household_members hm ON h.id = hm.household_id
+            WHERE hm.user_id = ?
+            LIMIT 1
+        ''', (user_id,))
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+    
+    def add_household_member(self, household_id: int, user_id: int, role: str = 'member') -> bool:
+        """Add a user to a household"""
+        try:
+            self.cursor.execute('''
+                INSERT INTO household_members (household_id, user_id, role)
+                VALUES (?, ?, ?)
+            ''', (household_id, user_id, role))
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False  # User already in household
+    
+    def get_household_members(self, household_id: int) -> List[Dict]:
+        """Get all members of a household"""
+        self.cursor.execute('''
+            SELECT u.id, u.email, u.name, hm.role, hm.joined_at
+            FROM users u
+            JOIN household_members hm ON u.id = hm.user_id
+            WHERE hm.household_id = ?
+            ORDER BY hm.joined_at
+        ''', (household_id,))
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def remove_household_member(self, household_id: int, user_id: int) -> bool:
+        """Remove a user from a household"""
+        self.cursor.execute('''
+            DELETE FROM household_members 
+            WHERE household_id = ? AND user_id = ?
+        ''', (household_id, user_id))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+    
+    def generate_invite_code(self, household_id: int) -> str:
+        """Generate a unique invite code for a household"""
+        import secrets
+        code = secrets.token_urlsafe(8)
+        # Store in a new table or return directly
+        # For now, we'll use household_id encoded
+        return f"{household_id}-{code}"
+    
+    def validate_invite_code(self, code: str) -> Optional[int]:
+        """Validate an invite code and return household_id"""
+        try:
+            parts = code.split('-')
+            if len(parts) == 2:
+                household_id = int(parts[0])
+                # Verify household exists
+                household = self.get_household(household_id)
+                return household_id if household else None
+        except:
+            return None
+        return None
+    
     # ==================== EXPENSE OPERATIONS ====================
     
     def add_expense(self, expense_date: str, category: str, amount: float,

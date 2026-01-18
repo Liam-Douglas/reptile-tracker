@@ -15,9 +15,10 @@ from io import BytesIO
 from reptile_tracker_db import ReptileDatabase
 from feeding_schedules import get_feeding_recommendation, suggest_next_feeding_date
 from scheduler import init_scheduler, get_scheduler
+from auth import init_auth
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production-CHANGE-ME')
 
 # Use persistent storage path if available (for Render/Railway)
 DATA_DIR = os.environ.get('DATA_DIR', os.path.dirname(os.path.abspath(__file__)))
@@ -37,6 +38,14 @@ print(f"[INFO] Database path: {DB_PATH}")
 print(f"[INFO] Data directory: {DATA_DIR}")
 print(f"[INFO] Upload path: {UPLOAD_PATH}")
 print(f"[INFO] Database exists: {os.path.exists(DB_PATH)}")
+
+# Initialize authentication system
+try:
+    bcrypt, login_manager = init_auth(app, DB_PATH)
+    print("[INFO] Authentication system initialized successfully")
+except Exception as e:
+    print(f"[ERROR] Failed to initialize authentication: {e}")
+    print("[ERROR] User login will not work")
 
 # Initialize the background scheduler for automated reminders
 scheduler = None

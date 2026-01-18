@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Reptile Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-user-circle"></i> My Profile
+    </h1>
+</div>
+
+<!-- User Info Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-user"></i> Account Information
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Name:</span>
+                <span class="info-value">{{ current_user.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ current_user.email }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Household Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-home"></i> Household
+        </h3>
+    </div>
+    <div class="card-body">
+        {% if household %}
+            <div class="info-grid" style="margin-bottom: 2rem;">
+                <div class="info-item">
+                    <span class="info-label">Household Name:</span>
+                    <span class="info-value">{{ household.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Members:</span>
+                    <span class="info-value">{{ members|length }}</span>
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 1rem;">
+                <i class="fas fa-users"></i> Members
+            </h4>
+            <div class="members-list">
+                {% for member in members %}
+                <div class="member-card">
+                    <div class="member-info">
+                        <i class="fas fa-user-circle" style="font-size: 2rem; color: var(--primary-color);"></i>
+                        <div style="margin-left: 1rem;">
+                            <strong>{{ member.name }}</strong>
+                            <br>
+                            <small style="color: var(--text-secondary);">{{ member.email }}</small>
+                        </div>
+                    </div>
+                    <div class="member-role">
+                        {% if member.role == 'owner' %}
+                            <span class="badge badge-primary">
+                                <i class="fas fa-crown"></i> Owner
+                            </span>
+                        {% else %}
+                            <span class="badge badge-secondary">
+                                <i class="fas fa-user"></i> Member
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <hr style="margin: 2rem 0;">
+
+            <div style="text-align: center;">
+                <h4 style="margin-bottom: 1rem;">
+                    <i class="fas fa-user-plus"></i> Invite Someone
+                </h4>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Share this code with your partner or family member to give them access to your reptile collection
+                </p>
+                <form method="POST" action="{{ url_for('auth.generate_invite') }}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-ticket-alt"></i> Generate Invite Code
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <p style="text-align: center; color: var(--text-secondary);">
+                You are not part of a household yet.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Devices Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-mobile-alt"></i> Registered Devices
+        </h3>
+    </div>
+    <div class="card-body">
+        {% if devices %}
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                These devices will receive push notifications for feeding reminders
+            </p>
+            <div class="devices-list">
+                {% for device in devices %}
+                <div class="device-card">
+                    <div class="device-info">
+                        <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                        <div style="margin-left: 1rem;">
+                            <strong>{{ device.device_name or 'Unnamed Device' }}</strong>
+                            <br>
+                            <small style="color: var(--text-secondary);">
+                                Registered: {{ device.created_at[:10] }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="device-actions">
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle"></i> Active
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1rem;">
+                No devices registered yet
+            </p>
+            <div style="text-align: center;">
+                <a href="{{ url_for('settings_page') }}" class="btn btn-primary">
+                    <i class="fas fa-bell"></i> Enable Notifications
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.info-label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.members-list, .devices-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.member-card, .device-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+}
+
+.member-info, .device-info {
+    display: flex;
+    align-items: center;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.badge-secondary {
+    background: var(--text-secondary);
+    color: white;
+}
+
+.badge-success {
+    background: var(--success);
+    color: white;
+}
+</style>
+{% endblock %}
