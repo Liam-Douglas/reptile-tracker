@@ -68,10 +68,24 @@ def auto_migrate():
         household_id = db.create_household(f"{default_name}'s Household", user_id)
         print(f"[AUTO-MIGRATE] ✅ Created household")
         
+        # Check if household_id column exists in reptiles table
+        db.cursor.execute("PRAGMA table_info(reptiles)")
+        columns = [column[1] for column in db.cursor.fetchall()]
+        
+        if 'household_id' not in columns:
+            print("[AUTO-MIGRATE] 🔧 Adding household_id column to reptiles table...")
+            db.cursor.execute("""
+                ALTER TABLE reptiles
+                ADD COLUMN household_id INTEGER
+                REFERENCES households(id)
+            """)
+            db.conn.commit()
+            print("[AUTO-MIGRATE] ✅ household_id column added")
+        
         # Assign all existing reptiles to this household
         db.cursor.execute("""
-            UPDATE reptiles 
-            SET household_id = ? 
+            UPDATE reptiles
+            SET household_id = ?
             WHERE household_id IS NULL
         """, (household_id,))
         
