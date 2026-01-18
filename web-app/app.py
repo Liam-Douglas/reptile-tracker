@@ -4,6 +4,7 @@ Flask-based web interface for tracking reptile care
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file, make_response, session
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 import sys
@@ -15,7 +16,7 @@ from io import BytesIO
 from reptile_tracker_db import ReptileDatabase
 from feeding_schedules import get_feeding_recommendation, suggest_next_feeding_date
 from scheduler import init_scheduler, get_scheduler
-from auth import init_auth
+from auth import init_auth, household_required
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production-CHANGE-ME')
@@ -237,10 +238,13 @@ def calculate_age_filter(date_string):
 
 @app.route('/')
 def index():
-    """Redirect to reptiles page as main landing page"""
-    return redirect(url_for('reptiles_page'))
+    """Redirect to reptiles page or login if not authenticated"""
+    if current_user.is_authenticated:
+        return redirect(url_for('reptiles_page'))
+    return redirect(url_for('auth.login'))
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """Dashboard - show all reptiles with inventory and expense overview (legacy route)"""
     db = get_db()
@@ -318,10 +322,19 @@ def dashboard():
                          now=datetime.now())
 
 @app.route('/reptiles')
+@login_required
+@household_required
 def reptiles_page():
     """Show all reptiles with records and reminders"""
     db = get_db()
-    reptiles = db.get_all_reptiles()
+    # Get user's household
+    household = db.get_user_household(current_user.id)
+    if not household:
+        flash('No household found. Please contact support.', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Get reptiles for this household
+    reptiles = db.get_reptiles_by_household(household['id'])
     
     # Get last feeding, next feeding, tank cleaning, and handling for each reptile
     for reptile in reptiles:
@@ -388,6 +401,8 @@ def reptiles_page():
                          total_alerts=total_alerts)
 
 @app.route('/reptile/<int:reptile_id>')
+@login_required
+@household_required
 def reptile_details(reptile_id):
     """Show detailed reptile information"""
     db = get_db()
@@ -477,9 +492,17 @@ def reptile_details(reptile_id):
                          last_handling_days=last_handling_days)
 
 @app.route('/reptile/add', methods=['GET', 'POST'])
+@login_required
+@household_required
 def add_reptile():
     """Add new reptile"""
     db = get_db()
+    # Get user's household
+    household = db.get_user_household(current_user.id)
+    if not household:
+        flash('No household found. Please contact support.', 'error')
+        return redirect(url_for('auth.profile'))
+    
     if request.method == 'POST':
         try:
             # Handle image upload
@@ -506,7 +529,8 @@ def add_reptile():
                 'weight_grams': float(request.form.get('weight_grams')) if request.form.get('weight_grams') else None,
                 'length_cm': float(request.form.get('length_cm')) if request.form.get('length_cm') else None,
                 'notes': request.form.get('notes') or None,
-                'image_path': image_path
+                'image_path': image_path,
+                'household_id': household['id']
             }
             
             reptile_id = db.add_reptile(**data)
@@ -518,6 +542,8 @@ def add_reptile():
     return render_template('reptile_form.html', mode='add', reptile=None)
 
 @app.route('/reptile/<int:reptile_id>/edit', methods=['GET', 'POST'])
+@login_required
+@household_required
 def edit_reptile(reptile_id):
     """Edit existing reptile"""
     db = get_db()
@@ -563,6 +589,8 @@ def edit_reptile(reptile_id):
     return render_template('reptile_form.html', mode='edit', reptile=reptile)
 
 @app.route('/reptile/<int:reptile_id>/delete', methods=['POST'])
+@login_required
+@household_required
 def delete_reptile(reptile_id):
     """Delete reptile"""
     db = get_db()
@@ -764,6 +792,8 @@ def delete_feeding(log_id):
     return redirect(url_for('feeding_logs'))
 
 @app.route('/shed')
+@login_required
+@household_required
 def shed_records():
     """Show all shed records"""
     db = get_db()
@@ -1110,6 +1140,8 @@ def upload_import():
 
 # ==================== HELP & GUIDE SYSTEM ====================
 @app.route('/records')
+@login_required
+@household_required
 def records_page():
     """Records hub page with feeding and shed records"""
     db = get_db()
@@ -1127,6 +1159,7 @@ def records_page():
                          recent_sheds=recent_sheds)
 
 @app.route('/settings')
+@login_required
 def settings_page():
     """Settings page with data management options"""
     return render_template('settings.html')

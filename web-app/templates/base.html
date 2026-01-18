@@ -170,6 +170,7 @@
             </button>
         </div>
         <div class="nav-menu" id="navMenu">
+            {% if current_user.is_authenticated %}
             <a href="{{ url_for('reptiles_page') }}" class="nav-link {% if request.endpoint in ['index', 'reptiles_page', 'reptile_details', 'add_reptile', 'edit_reptile', 'records_page', 'feeding_logs', 'shed_records', 'add_feeding', 'add_shed', 'feeding_reminders', 'set_feeding_reminder'] %}active{% endif %}">
                 <i class="fas fa-home"></i> My Reptiles
             </a>
@@ -182,6 +183,22 @@
             <a href="{{ url_for('help_page') }}" class="nav-link {% if request.endpoint == 'help_page' %}active{% endif %}">
                 <i class="fas fa-question-circle"></i> Help
             </a>
+            <div style="border-top: 1px solid #ddd; margin: 0.5rem 0; padding-top: 0.5rem;">
+                <a href="{{ url_for('auth.profile') }}" class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+                    <i class="fas fa-user"></i> {{ current_user.name }}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="nav-link">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="nav-link">
+                <i class="fas fa-user-plus"></i> Register
+            </a>
+            {% endif %}
         </div>
     </nav>
 

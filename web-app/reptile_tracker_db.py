@@ -422,14 +422,14 @@ class ReptileDatabase:
     def add_reptile(self, name: str, species: str, morph: str = None, sex: str = None,
                    date_of_birth: str = None, acquisition_date: str = None,
                    weight_grams: float = None, length_cm: float = None,
-                   notes: str = None, image_path: str = None) -> int:
+                   notes: str = None, image_path: str = None, household_id: int = None) -> int:
         """Add a new reptile to the database"""
         self.cursor.execute('''
-            INSERT INTO reptiles (name, species, morph, sex, date_of_birth, 
-                                acquisition_date, weight_grams, length_cm, notes, image_path)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO reptiles (name, species, morph, sex, date_of_birth,
+                                acquisition_date, weight_grams, length_cm, notes, image_path, household_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (name, species, morph, sex, date_of_birth, acquisition_date,
-              weight_grams, length_cm, notes, image_path))
+              weight_grams, length_cm, notes, image_path, household_id))
         self.conn.commit()
         return self.cursor.lastrowid
     
@@ -442,6 +442,15 @@ class ReptileDatabase:
     def get_all_reptiles(self) -> List[Dict]:
         """Get all reptiles"""
         self.cursor.execute('SELECT * FROM reptiles ORDER BY name')
+    
+    def get_reptiles_by_household(self, household_id: int) -> List[Dict]:
+        """Get all reptiles for a specific household"""
+        self.cursor.execute('''
+            SELECT * FROM reptiles 
+            WHERE household_id = ? 
+            ORDER BY name
+        ''', (household_id,))
+        return [dict(row) for row in self.cursor.fetchall()]
         return [dict(row) for row in self.cursor.fetchall()]
     
     def update_reptile(self, reptile_id: int, **kwargs) -> bool:
