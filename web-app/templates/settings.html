@@ -376,9 +376,17 @@ async function testNotification() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
     btn.disabled = true;
     
+    // Set timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert('⏱️ Test timed out!\n\nService Worker is not responding. This is common on iOS.\n\n✅ Good news: Notifications may still work for actual feeding reminders even if this test fails.\n\nThe test requires Service Worker which can be unreliable on iOS, but scheduled notifications use a different system.');
+    }, 5000);
+    
     try {
         // Check permission first
         if (Notification.permission !== 'granted') {
+            clearTimeout(timeoutId);
             alert('❌ Notifications not enabled!\n\nPlease tap "Enable Notifications" first.');
             return;
         }
@@ -398,10 +406,31 @@ async function testNotification() {
         let notificationSent = false;
         let errorMsg = '';
         
-        // Try service worker method (required for iOS PWA)
-        if (hasServiceWorker) {
+        // Try direct API first (faster, more reliable on iOS)
+        if (hasNotification) {
             try {
-                const registration = await navigator.serviceWorker.ready;
+                new Notification('🦎 Reptile Tracker', {
+                    body: 'Test notification successful! 🎉',
+                    icon: '/static/icon-192.png',
+                    tag: 'test-' + Date.now()
+                });
+                notificationSent = true;
+                debugInfo += '✅ Notification sent via Direct API!';
+            } catch (directError) {
+                errorMsg = directError.message || directError.toString();
+                debugInfo += `❌ Direct API failed: ${errorMsg}\n\n`;
+            }
+        }
+        
+        // Try service worker method only if direct failed
+        if (!notificationSent && hasServiceWorker) {
+            try {
+                // Add timeout for service worker ready
+                const registration = await Promise.race([
+                    navigator.serviceWorker.ready,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Service Worker timeout')), 3000))
+                ]);
+                
                 await registration.showNotification('🦎 Reptile Tracker', {
                     body: 'Test notification successful! 🎉',
                     icon: '/static/icon-192.png',
@@ -413,25 +442,11 @@ async function testNotification() {
                 debugInfo += '✅ Notification sent via Service Worker!';
             } catch (swError) {
                 errorMsg = swError.message || swError.toString();
-                debugInfo += `❌ Service Worker failed: ${errorMsg}\n\n`;
+                debugInfo += `❌ Service Worker failed: ${errorMsg}`;
             }
         }
         
-        // Try direct API as fallback
-        if (!notificationSent && hasNotification) {
-            try {
-                new Notification('🦎 Reptile Tracker', {
-                    body: 'Test notification successful! 🎉',
-                    icon: '/static/icon-192.png',
-                    tag: 'test-' + Date.now()
-                });
-                notificationSent = true;
-                debugInfo += '✅ Notification sent via Direct API!';
-            } catch (directError) {
-                errorMsg = directError.message || directError.toString();
-                debugInfo += `❌ Direct API failed: ${errorMsg}`;
-            }
-        }
+        clearTimeout(timeoutId);
         
         if (notificationSent) {
             // Success!
@@ -442,15 +457,19 @@ async function testNotification() {
             setTimeout(() => {
                 status.textContent = '✅ You will receive push notifications';
             }, 4000);
+            
+            alert(debugInfo);
         } else {
             // Show detailed error
-            alert(debugInfo + '\n\n⚠️ iOS Limitation:\nNotifications only work when app is installed to home screen and opened from there (not Safari).\n\nIf already installed, try:\n1. Close app completely\n2. Reopen from home screen\n3. Wait 10 seconds\n4. Try again');
+            alert(debugInfo + '\n\n⚠️ iOS Limitation:\nWeb notifications on iOS are experimental and unreliable.\n\n✅ Good news: Actual feeding reminders may still work even if this test fails!\n\nThe app uses server-side notifications which are more reliable than browser-based test notifications.');
         }
         
     } catch (error) {
-        alert('❌ Unexpected error:\n' + error.message + '\n\nThis might be an iOS limitation. Notifications may still work for scheduled reminders even if test fails.');
+        clearTimeout(timeoutId);
+        alert('❌ Unexpected error:\n' + error.message + '\n\n✅ Don\'t worry: Scheduled feeding reminders may still work even if this test fails. iOS has limitations with browser-based notification testing.');
     } finally {
         // Restore button
+        clearTimeout(timeoutId);
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
