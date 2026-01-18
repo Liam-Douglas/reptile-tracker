@@ -1133,12 +1133,25 @@ def notification_settings():
             flash('Notification settings saved successfully!', 'success')
             return redirect(url_for('notification_settings'))
         except Exception as e:
+            print(f"[ERROR] Failed to save notification settings: {e}")
             flash(f'Error saving settings: {str(e)}', 'error')
     
     # Get current settings or use defaults
-    settings = db.get_notification_settings()
-    if not settings:
-        # Provide default settings if none exist
+    try:
+        settings = db.get_notification_settings()
+        if not settings:
+            # Provide default settings if none exist
+            settings = {
+                'email_enabled': False,
+                'email': '',
+                'sms_enabled': False,
+                'phone': '',
+                'reminder_time': '09:00',
+                'notify_overdue_only': False
+            }
+    except Exception as e:
+        print(f"[ERROR] Failed to get notification settings: {e}")
+        # Provide default settings on error
         settings = {
             'email_enabled': False,
             'email': '',
@@ -1147,6 +1160,7 @@ def notification_settings():
             'reminder_time': '09:00',
             'notify_overdue_only': False
         }
+        flash('Using default settings. Save to create your notification preferences.', 'info')
     
     return render_template('notification_settings.html', settings=settings)
 
