@@ -40,6 +40,14 @@ print(f"[INFO] Data directory: {DATA_DIR}")
 print(f"[INFO] Upload path: {UPLOAD_PATH}")
 print(f"[INFO] Database exists: {os.path.exists(DB_PATH)}")
 
+# Run automatic migration if needed (preserves existing data)
+try:
+    from auto_migrate import auto_migrate
+    auto_migrate()
+except Exception as e:
+    print(f"[WARNING] Auto-migration check failed: {e}")
+    print("[WARNING] If you have existing data, it may not be accessible")
+
 # Initialize authentication system
 try:
     bcrypt, login_manager = init_auth(app, DB_PATH)
