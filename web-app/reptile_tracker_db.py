@@ -226,6 +226,7 @@ class ReptileDatabase:
                 notify_overdue_only BOOLEAN DEFAULT 0,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        ''')
         
         # Push subscriptions table for multi-device notifications
         self.cursor.execute('''
@@ -239,7 +240,6 @@ class ReptileDatabase:
                 last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
-        ''')
         ''')
         
         # Expenses table
