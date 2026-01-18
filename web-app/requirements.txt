@@ -14,9 +14,11 @@ openpyxl>=3.1.0
 # For production deployment
 gunicorn>=21.0.0
 
-# For notifications
+# For notifications and scheduling
 twilio>=8.0.0
 APScheduler>=3.10.0
+pywebpush>=1.14.0
+py-vapid>=1.9.0
 
 # Note: Tesseract OCR must be installed on the system
 # Installation instructions:

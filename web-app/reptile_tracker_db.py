@@ -188,6 +188,20 @@ class ReptileDatabase:
                 notify_overdue_only BOOLEAN DEFAULT 0,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        
+        # Push subscriptions table for multi-device notifications
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                device_name TEXT,
+                subscription_json TEXT NOT NULL,
+                user_agent TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            )
+        ''')
         ''')
         
         # Expenses table
@@ -1467,6 +1481,42 @@ class ReptileDatabase:
             ''', (email_enabled, email, sms_enabled, phone, reminder_time,
                   advance_notice, notify_overdue_only))
         
+        self.conn.commit()
+        return True
+    
+    # ==================== PUSH SUBSCRIPTION OPERATIONS ====================
+    
+    def add_push_subscription(self, subscription_json: str, user_id: int = None, 
+                             device_name: str = None, user_agent: str = None) -> int:
+        """Add a new push subscription for notifications"""
+        self.cursor.execute('''
+            INSERT INTO push_subscriptions (user_id, device_name, subscription_json, user_agent)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, device_name, subscription_json, user_agent))
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def get_push_subscriptions(self, user_id: int = None) -> List[Dict]:
+        """Get all push subscriptions, optionally filtered by user"""
+        if user_id:
+            self.cursor.execute('SELECT * FROM push_subscriptions WHERE user_id = ?', (user_id,))
+        else:
+            self.cursor.execute('SELECT * FROM push_subscriptions')
+        return [dict(row) for row in self.cursor.fetchall()]
+    
+    def remove_push_subscription(self, subscription_id: int) -> bool:
+        """Remove a push subscription"""
+        self.cursor.execute('DELETE FROM push_subscriptions WHERE id = ?', (subscription_id,))
+        self.conn.commit()
+        return True
+    
+    def update_subscription_last_used(self, subscription_id: int) -> bool:
+        """Update the last_used timestamp for a subscription"""
+        self.cursor.execute('''
+            UPDATE push_subscriptions 
+            SET last_used = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        ''', (subscription_id,))
         self.conn.commit()
         return True
     

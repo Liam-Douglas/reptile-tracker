@@ -14,6 +14,7 @@ from io import BytesIO
 # Import database module from local directory
 from reptile_tracker_db import ReptileDatabase
 from feeding_schedules import get_feeding_recommendation, suggest_next_feeding_date
+from scheduler import init_scheduler, get_scheduler
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
@@ -36,6 +37,15 @@ print(f"[INFO] Database path: {DB_PATH}")
 print(f"[INFO] Data directory: {DATA_DIR}")
 print(f"[INFO] Upload path: {UPLOAD_PATH}")
 print(f"[INFO] Database exists: {os.path.exists(DB_PATH)}")
+
+# Initialize the background scheduler for automated reminders
+scheduler = None
+try:
+    scheduler = init_scheduler(app, DB_PATH)
+    print("[INFO] Background scheduler initialized successfully")
+except Exception as e:
+    print(f"[WARNING] Failed to initialize scheduler: {e}")
+    print("[WARNING] Automated reminders will not work")
 
 def get_db():
     """Get database connection for current request"""
