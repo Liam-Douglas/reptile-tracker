@@ -40,6 +40,44 @@ class ReptileDatabase:
     def create_tables(self):
         """Create all necessary database tables"""
         
+        # Users table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                name TEXT NOT NULL,
+                is_active BOOLEAN DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP
+            )
+        ''')
+        
+        # Households table (for sharing reptile collections)
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS households (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                created_by INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        # Household members table (many-to-many relationship)
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS household_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                household_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                role TEXT DEFAULT 'member',
+                joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (household_id) REFERENCES households (id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                UNIQUE(household_id, user_id)
+            )
+        ''')
+        
         # Reptiles table
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS reptiles (

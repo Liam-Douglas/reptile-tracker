@@ -20,6 +20,11 @@ APScheduler>=3.10.0
 pywebpush>=1.14.0
 py-vapid>=1.9.0
 
+# For user authentication
+Flask-Login>=0.6.2
+Flask-Bcrypt>=1.0.1
+email-validator>=2.0.0
+
 # Note: Tesseract OCR must be installed on the system
 # Installation instructions:
 # - Ubuntu/Debian: sudo apt-get install tesseract-ocr
