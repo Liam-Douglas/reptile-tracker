@@ -23,10 +23,15 @@ class User(UserMixin):
         self.id = user_dict['id']
         self.email = user_dict['email']
         self.name = user_dict['name']
-        self.is_active = user_dict.get('is_active', True)
+        self._is_active = user_dict.get('is_active', True)
     
     def get_id(self):
         return str(self.id)
+    
+    @property
+    def is_active(self):
+        """Override UserMixin's is_active property"""
+        return self._is_active
 
 
 def init_auth(app, db_path):
@@ -184,17 +189,26 @@ def login():
             return render_template('auth/login.html')
         
         # Log user in
-        user = User(user_dict)
-        login_user(user, remember=remember)
-        db.update_last_login(user_dict['id'])
-        
-        # Redirect to next page or dashboard
-        next_page = request.args.get('next')
-        if next_page:
-            return redirect(next_page)
-        
-        flash(f'Welcome back, {user.name}!', 'success')
-        return redirect(url_for('index'))
+        try:
+            user = User(user_dict)
+            login_user(user, remember=remember)
+            db.update_last_login(user_dict['id'])
+            
+            print(f"[AUTH] User {user.name} logged in successfully")
+            
+            # Redirect to next page or dashboard
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            
+            flash(f'Welcome back, {user.name}!', 'success')
+            return redirect(url_for('index'))
+        except Exception as e:
+            print(f"[AUTH ERROR] Login failed: {e}")
+            import traceback
+            traceback.print_exc()
+            flash('An error occurred during login. Please try again.', 'error')
+            return render_template('auth/login.html')
     
     return render_template('auth/login.html')
 
