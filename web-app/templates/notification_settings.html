@@ -66,19 +66,110 @@
             <h2>⚙️ Notification Preferences</h2>
             
             <div class="form-group">
-                <label for="advance_notice">Advance Notice (days)</label>
-                <input type="number" id="advance_notice" name="advance_notice" 
-                       value="{{ settings.advance_notice or 0 }}" 
-                       min="0" max="7">
+                <label for="notification_types">What to notify about</label>
+                <select id="notification_types" name="notification_types" class="form-control">
+                    <option value="all" {% if settings.notification_types == 'all' or not settings.notification_types %}selected{% endif %}>
+                        All (Overdue + Upcoming)
+                    </option>
+                    <option value="overdue_only" {% if settings.notification_types == 'overdue_only' %}selected{% endif %}>
+                        Overdue feedings only
+                    </option>
+                    <option value="upcoming_only" {% if settings.notification_types == 'upcoming_only' %}selected{% endif %}>
+                        Upcoming feedings only
+                    </option>
+                </select>
+                <small>Choose which types of feeding reminders to receive</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="notification_frequency">Notification frequency</label>
+                <select id="notification_frequency" name="notification_frequency" class="form-control">
+                    <option value="once_daily" {% if settings.notification_frequency == 'once_daily' or not settings.notification_frequency %}selected{% endif %}>
+                        Once daily (at reminder time)
+                    </option>
+                    <option value="daily_while_overdue" {% if settings.notification_frequency == 'daily_while_overdue' %}selected{% endif %}>
+                        Daily while overdue
+                    </option>
+                    <option value="every_12h_overdue" {% if settings.notification_frequency == 'every_12h_overdue' %}selected{% endif %}>
+                        Every 12 hours while overdue
+                    </option>
+                </select>
+                <small>How often to send notifications for overdue feedings</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="upcoming_days">Upcoming reminder (days ahead)</label>
+                <input type="number" id="upcoming_days" name="upcoming_days"
+                       value="{{ settings.upcoming_days or 1 }}"
+                       min="0" max="7" class="form-control">
                 <small>Send reminder this many days before feeding is due (0 = day of only)</small>
             </div>
             
             <div class="form-group">
                 <label for="notify_overdue_only">
-                    <input type="checkbox" id="notify_overdue_only" name="notify_overdue_only" 
+                    <input type="checkbox" id="notify_overdue_only" name="notify_overdue_only"
                            {% if settings.notify_overdue_only %}checked{% endif %}>
-                    Only notify for overdue feedings
+                    Only notify for overdue feedings (legacy option)
                 </label>
+            </div>
+            
+            <div class="form-group">
+                <label for="quiet_hours_start">Quiet hours (optional)</label>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="flex: 1;">
+                        <input type="time" id="quiet_hours_start" name="quiet_hours_start"
+                               value="{{ settings.quiet_hours_start or '' }}"
+                               class="form-control"
+                               placeholder="Start">
+                        <small>Start time</small>
+                    </div>
+                    <span>to</span>
+                    <div style="flex: 1;">
+                        <input type="time" id="quiet_hours_end" name="quiet_hours_end"
+                               value="{{ settings.quiet_hours_end or '' }}"
+                               class="form-control"
+                               placeholder="End">
+                        <small>End time</small>
+                    </div>
+                </div>
+                <small>No notifications will be sent during these hours (leave empty to disable)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="group_notifications">
+                    <input type="checkbox" id="group_notifications" name="group_notifications"
+                           {% if settings.group_notifications %}checked{% endif %}>
+                    Group multiple reminders into one notification
+                </label>
+                <small>Combine all due feedings into a single notification instead of separate ones</small>
+            </div>
+        </div>
+        
+        <!-- Push Notification Settings -->
+        <div class="settings-section">
+            <h2>🔔 Push Notifications (Web/Mobile)</h2>
+            <p class="section-description">Receive instant notifications on your devices</p>
+            
+            <div class="form-group">
+                <label for="push_enabled">
+                    <input type="checkbox" id="push_enabled" name="push_enabled"
+                           {% if settings.push_enabled %}checked{% endif %}>
+                    Enable Push Notifications
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" onclick="requestPushPermission()" class="btn btn-secondary">
+                    <i class="fas fa-bell"></i> Enable Push on This Device
+                </button>
+                <small>Click to allow push notifications on this device</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Registered Devices</label>
+                <div id="device-list" style="margin-top: 0.5rem;">
+                    <p style="color: var(--text-secondary);">Loading devices...</p>
+                </div>
             </div>
         </div>
         
@@ -145,6 +236,110 @@
         </div>
     </div>
 </div>
+
+
+// Push Notification Functions
+async function requestPushPermission() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('❌ Push notifications are not supported in your browser');
+        return;
+    }
+    
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array('{{ vapid_public_key }}')
+            });
+            
+            // Send subscription to server
+            const response = await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    subscription: subscription.toJSON(),
+                    device_name: navigator.userAgent.match(/\(([^)]+)\)/)[1] || 'Unknown Device'
+                })
+            });
+            
+            if (response.ok) {
+                alert('✅ Push notifications enabled on this device!');
+                loadDeviceList();
+            } else {
+                alert('❌ Failed to register device');
+            }
+        } else {
+            alert('❌ Permission denied for push notifications');
+        }
+    } catch (error) {
+        console.error('Error enabling push notifications:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function loadDeviceList() {
+    try {
+        const response = await fetch('/api/push/devices');
+        const devices = await response.json();
+        
+        const deviceList = document.getElementById('device-list');
+        if (devices.length === 0) {
+            deviceList.innerHTML = '<p style="color: var(--text-secondary);">No devices registered yet</p>';
+        } else {
+            deviceList.innerHTML = devices.map(device => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">
+                    <div>
+                        <i class="fas fa-mobile-alt"></i> ${device.device_name || 'Unknown Device'}
+                        <br>
+                        <small style="color: var(--text-secondary);">Registered: ${new Date(device.created_at).toLocaleDateString()}</small>
+                    </div>
+                    <button onclick="removeDevice(${device.id})" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading devices:', error);
+    }
+}
+
+async function removeDevice(deviceId) {
+    if (!confirm('Remove this device from notifications?')) return;
+    
+    try {
+        const response = await fetch(`/api/push/device/${deviceId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('✅ Device removed');
+            loadDeviceList();
+        } else {
+            alert('❌ Failed to remove device');
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// Load device list on page load
+document.addEventListener('DOMContentLoaded', loadDeviceList);
 
 <script>
 function sendTestEmail() {
