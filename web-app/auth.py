@@ -268,6 +268,132 @@ def generate_invite():
     flash(f'Invite code: {invite_code}', 'success')
     return redirect(url_for('auth.profile'))
 
+@auth_bp.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    """Update user profile (name and email)"""
+    from reptile_tracker_db import ReptileDatabase
+    from app import DB_PATH
+    
+    db = ReptileDatabase(DB_PATH)
+    
+    name = request.form.get('name')
+    email = request.form.get('email')
+    
+    if not name or not email:
+        flash('Name and email are required', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Check if email is already taken by another user
+    existing_user = db.get_user_by_email(email)
+    if existing_user and existing_user['id'] != current_user.id:
+        flash('Email already in use by another account', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Update user
+    try:
+        db.cursor.execute("""
+            UPDATE users 
+            SET name = ?, email = ?
+            WHERE id = ?
+        """, (name, email, current_user.id))
+        db.conn.commit()
+        
+        flash('Profile updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating profile: {e}', 'error')
+    
+    return redirect(url_for('auth.profile'))
+
+
+@auth_bp.route('/profile/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Change user password"""
+    from reptile_tracker_db import ReptileDatabase
+    from app import DB_PATH
+    
+    db = ReptileDatabase(DB_PATH)
+    
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    if not all([current_password, new_password, confirm_password]):
+        flash('All password fields are required', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    if new_password != confirm_password:
+        flash('New passwords do not match', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    if len(new_password) < 8:
+        flash('Password must be at least 8 characters', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Get current user from database
+    user_dict = db.get_user_by_id(current_user.id)
+    
+    # Verify current password
+    if not bcrypt.check_password_hash(user_dict['password_hash'], current_password):
+        flash('Current password is incorrect', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Update password
+    try:
+        new_password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        db.cursor.execute("""
+            UPDATE users 
+            SET password_hash = ?
+            WHERE id = ?
+        """, (new_password_hash, current_user.id))
+        db.conn.commit()
+        
+        flash('Password changed successfully!', 'success')
+    except Exception as e:
+        flash(f'Error changing password: {e}', 'error')
+    
+    return redirect(url_for('auth.profile'))
+
+
+@auth_bp.route('/household/update', methods=['POST'])
+@login_required
+def update_household():
+    """Update household name"""
+    from reptile_tracker_db import ReptileDatabase
+    from app import DB_PATH
+    
+    db = ReptileDatabase(DB_PATH)
+    
+    household_name = request.form.get('household_name')
+    
+    if not household_name:
+        flash('Household name is required', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Get user's household
+    household = db.get_user_household(current_user.id)
+    
+    if not household:
+        flash('You are not part of a household', 'error')
+        return redirect(url_for('auth.profile'))
+    
+    # Update household name
+    try:
+        db.cursor.execute("""
+            UPDATE households 
+            SET name = ?
+            WHERE id = ?
+        """, (household_name, household['id']))
+        db.conn.commit()
+        
+        flash('Household name updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating household: {e}', 'error')
+    
+    return redirect(url_for('auth.profile'))
+
+
 
 def household_required(f):
     """Decorator to require user to be in a household"""

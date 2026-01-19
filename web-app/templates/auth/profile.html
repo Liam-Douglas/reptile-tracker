@@ -15,9 +15,13 @@
         <h3 class="card-title">
             <i class="fas fa-user"></i> Account Information
         </h3>
+        <button class="btn btn-sm btn-secondary" onclick="toggleEditProfile()">
+            <i class="fas fa-edit"></i> Edit
+        </button>
     </div>
     <div class="card-body">
-        <div class="info-grid">
+        <!-- View Mode -->
+        <div id="profile-view" class="info-grid">
             <div class="info-item">
                 <span class="info-label">Name:</span>
                 <span class="info-value">{{ current_user.name }}</span>
@@ -27,6 +31,59 @@
                 <span class="info-value">{{ current_user.email }}</span>
             </div>
         </div>
+        
+        <!-- Edit Mode -->
+        <form id="profile-edit" method="POST" action="{{ url_for('auth.update_profile') }}" style="display: none;">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ current_user.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="toggleEditProfile()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
+        
+        <hr style="margin: 2rem 0;">
+        
+        <!-- Change Password -->
+        <h4 style="margin-bottom: 1rem;">
+            <i class="fas fa-key"></i> Change Password
+        </h4>
+        <button class="btn btn-secondary" onclick="toggleChangePassword()">
+            <i class="fas fa-lock"></i> Change Password
+        </button>
+        
+        <form id="password-form" method="POST" action="{{ url_for('auth.change_password') }}" style="display: none; margin-top: 1rem;">
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" name="current_password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password" class="form-control" required minlength="8">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Password
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="toggleChangePassword()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -36,10 +93,16 @@
         <h3 class="card-title">
             <i class="fas fa-home"></i> Household
         </h3>
+        {% if household %}
+        <button class="btn btn-sm btn-secondary" onclick="toggleEditHousehold()">
+            <i class="fas fa-edit"></i> Edit Name
+        </button>
+        {% endif %}
     </div>
     <div class="card-body">
         {% if household %}
-            <div class="info-grid" style="margin-bottom: 2rem;">
+            <!-- View Mode -->
+            <div id="household-view" class="info-grid" style="margin-bottom: 2rem;">
                 <div class="info-item">
                     <span class="info-label">Household Name:</span>
                     <span class="info-value">{{ household.name }}</span>
@@ -49,6 +112,22 @@
                     <span class="info-value">{{ members|length }}</span>
                 </div>
             </div>
+            
+            <!-- Edit Mode -->
+            <form id="household-edit" method="POST" action="{{ url_for('auth.update_household') }}" style="display: none; margin-bottom: 2rem;">
+                <div class="form-group">
+                    <label for="household_name">Household Name</label>
+                    <input type="text" id="household_name" name="household_name" class="form-control" value="{{ household.name }}" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleEditHousehold()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
 
             <h4 style="margin-bottom: 1rem;">
                 <i class="fas fa-users"></i> Members
@@ -220,3 +299,36 @@
 }
 </style>
 {% endblock %}
+
+<script>
+function toggleEditProfile() {
+    const viewMode = document.getElementById('profile-view');
+    const editMode = document.getElementById('profile-edit');
+    
+    if (viewMode.style.display === 'none') {
+        viewMode.style.display = 'grid';
+        editMode.style.display = 'none';
+    } else {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+    }
+}
+
+function toggleChangePassword() {
+    const form = document.getElementById('password-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleEditHousehold() {
+    const viewMode = document.getElementById('household-view');
+    const editMode = document.getElementById('household-edit');
+    
+    if (viewMode.style.display === 'none') {
+        viewMode.style.display = 'grid';
+        editMode.style.display = 'none';
+    } else {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+    }
+}
+</script>
