@@ -342,7 +342,23 @@ def reptiles_page():
         return redirect(url_for('auth.profile'))
     
     # Get reptiles for this household
-    reptiles = db.get_reptiles_by_household(household['id'])
+    try:
+        reptiles = db.get_reptiles_by_household(household['id'])
+    except Exception as e:
+        print(f"[ERROR] Failed to get reptiles by household: {e}")
+        # Fallback: get all reptiles and filter manually
+        all_reptiles = db.get_all_reptiles()
+        reptiles = [r for r in all_reptiles if r.get('household_id') == household['id']]
+        
+        # If no reptiles have household_id, assign them now
+        if not reptiles and all_reptiles:
+            print(f"[WARNING] No reptiles assigned to household, assigning all {len(all_reptiles)} reptiles now")
+            for reptile in all_reptiles:
+                if not reptile.get('household_id'):
+                    db.cursor.execute("UPDATE reptiles SET household_id = ? WHERE id = ?",
+                                    (household['id'], reptile['id']))
+            db.conn.commit()
+            reptiles = all_reptiles
     
     # Get last feeding, next feeding, tank cleaning, and handling for each reptile
     for reptile in reptiles:
