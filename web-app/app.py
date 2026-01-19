@@ -366,17 +366,20 @@ def reptiles_page():
         if all_reptiles is None:
             all_reptiles = []
         
-        reptiles = [r for r in all_reptiles if r.get('household_id') == household['id']]
+        # Check if any reptiles lack household_id
+        orphaned_reptiles = [r for r in all_reptiles if not r.get('household_id')]
         
-        # If no reptiles have household_id, assign them now
-        if not reptiles and all_reptiles:
-            print(f"[WARNING] No reptiles assigned to household, assigning all {len(all_reptiles)} reptiles now")
-            for reptile in all_reptiles:
-                if not reptile.get('household_id'):
-                    db.cursor.execute("UPDATE reptiles SET household_id = ? WHERE id = ?",
-                                    (household['id'], reptile['id']))
+        if orphaned_reptiles:
+            print(f"[WARNING] Found {len(orphaned_reptiles)} reptiles without household_id, assigning to household {household['id']}")
+            for reptile in orphaned_reptiles:
+                db.cursor.execute("UPDATE reptiles SET household_id = ? WHERE id = ?",
+                                (household['id'], reptile['id']))
             db.conn.commit()
-            reptiles = all_reptiles
+            print(f"[SUCCESS] Assigned {len(orphaned_reptiles)} reptiles to household")
+            # Refresh the reptile list after assignment
+            all_reptiles = db.get_all_reptiles()
+        
+        reptiles = [r for r in all_reptiles if r.get('household_id') == household['id']]
     
     # Get last feeding, next feeding, tank cleaning, and handling for each reptile
     for reptile in reptiles:
