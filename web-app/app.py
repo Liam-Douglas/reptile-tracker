@@ -346,8 +346,26 @@ def reptiles_page():
         reptiles = db.get_reptiles_by_household(household['id'])
     except Exception as e:
         print(f"[ERROR] Failed to get reptiles by household: {e}")
+        
+        # Check if household_id column exists
+        db.cursor.execute("PRAGMA table_info(reptiles)")
+        columns = [column[1] for column in db.cursor.fetchall()]
+        
+        if 'household_id' not in columns:
+            print("[ERROR] household_id column missing, adding it now...")
+            db.cursor.execute("""
+                ALTER TABLE reptiles
+                ADD COLUMN household_id INTEGER
+                REFERENCES households(id)
+            """)
+            db.conn.commit()
+            print("[SUCCESS] household_id column added")
+        
         # Fallback: get all reptiles and filter manually
         all_reptiles = db.get_all_reptiles()
+        if all_reptiles is None:
+            all_reptiles = []
+        
         reptiles = [r for r in all_reptiles if r.get('household_id') == household['id']]
         
         # If no reptiles have household_id, assign them now
