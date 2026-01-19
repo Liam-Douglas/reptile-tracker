@@ -1812,6 +1812,8 @@ def expense_reports():
     
     # Get all reptiles for filter
     reptiles = db.get_all_reptiles()
+    if reptiles is None:
+        reptiles = []
     
     return render_template('expense_reports.html',
                          summary=summary,
@@ -1868,6 +1870,8 @@ def finance():
     )
     
     reptiles = db.get_all_reptiles()
+    if reptiles is None:
+        reptiles = []
     categories = db.get_expense_categories()
     
     # Calculate monthly expenses (last 30 days)
