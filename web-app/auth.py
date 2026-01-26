@@ -217,16 +217,16 @@ def login():
 @login_required
 def logout():
     """User logout"""
+    name = current_user.name
+    logout_user()
+    flash(f'Goodbye, {name}!', 'info')
+    return redirect(url_for('auth.login'))
+
 
 @auth_bp.route('/forgot-password')
 def forgot_password():
     """Forgot password page with instructions"""
     return render_template('auth/forgot_password.html')
-
-    name = current_user.name
-    logout_user()
-    flash(f'Goodbye, {name}!', 'info')
-    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/profile')
