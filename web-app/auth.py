@@ -23,6 +23,7 @@ class User(UserMixin):
         self.id = user_dict['id']
         self.email = user_dict['email']
         self.name = user_dict['name']
+        self.household_id = user_dict.get('household_id')
         self._is_active = user_dict.get('is_active', True)
     
     def get_id(self):
