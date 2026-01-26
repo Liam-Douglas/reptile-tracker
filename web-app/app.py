@@ -707,7 +707,8 @@ def api_log_feeding(reptile_id):
             'ate': request.json.get('ate') == 'yes',
             'notes': request.json.get('notes') or None,
             'inventory_id': inventory_id,
-            'auto_deduct': True
+            'auto_deduct': True,
+            'created_by': current_user.id
         }
         db.add_feeding_log(**data)
         
@@ -847,6 +848,8 @@ def shed_records():
     return render_template('shed_records.html', records=records, reptiles=reptiles)
 
 @app.route('/api/shed-form/<int:reptile_id>')
+@login_required
+@household_required
 def get_shed_form_data(reptile_id):
     """Get shed form data as JSON"""
     db = get_db()
@@ -854,12 +857,18 @@ def get_shed_form_data(reptile_id):
     if not reptile:
         return jsonify({'error': 'Reptile not found'}), 404
     
+    # Verify reptile belongs to user's household
+    if reptile.get('household_id') != current_user.household_id:
+        return jsonify({'error': 'Access denied'}), 403
+    
     return jsonify({
         'reptile': reptile,
         'today': datetime.now().strftime('%Y-%m-%d')
     })
 
 @app.route('/api/shed/<int:reptile_id>', methods=['POST'])
+@login_required
+@household_required
 def api_log_shed(reptile_id):
     """API endpoint to log shed"""
     db = get_db()
@@ -867,13 +876,18 @@ def api_log_shed(reptile_id):
     if not reptile:
         return jsonify({'error': 'Reptile not found'}), 404
     
+    # Verify reptile belongs to user's household
+    if reptile.get('household_id') != current_user.household_id:
+        return jsonify({'error': 'Access denied'}), 403
+    
     try:
         data = {
             'reptile_id': reptile_id,
             'shed_date': request.json.get('date') or datetime.now().strftime('%Y-%m-%d'),
             'complete': request.json.get('complete') == 'yes',
             'shed_length_cm': float(request.json.get('shed_length_cm')) if request.json.get('shed_length_cm') else None,
-            'notes': request.json.get('notes') or None
+            'notes': request.json.get('notes') or None,
+            'created_by': current_user.id
         }
         db.add_shed_record(**data)
         return jsonify({'success': True, 'message': f'Shed record logged for {reptile["name"]}!'})
@@ -881,12 +895,19 @@ def api_log_shed(reptile_id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/shed/<int:reptile_id>', methods=['GET', 'POST'])
+@login_required
+@household_required
 def log_shed(reptile_id):
     """Log shed for specific reptile"""
     db = get_db()
     reptile = db.get_reptile(reptile_id)
     if not reptile:
         flash('Reptile not found', 'error')
+        return redirect(url_for('reptiles_page'))
+    
+    # Verify reptile belongs to user's household
+    if reptile.get('household_id') != current_user.household_id:
+        flash('Access denied', 'error')
         return redirect(url_for('reptiles_page'))
     
     if request.method == 'POST':
@@ -907,13 +928,22 @@ def log_shed(reptile_id):
     return render_template('shed_form.html', reptile=reptile, record=None)
 
 @app.route('/shed/add', methods=['GET', 'POST'])
+@login_required
+@household_required
 def add_shed():
     """Add shed record"""
     db = get_db()
     if request.method == 'POST':
         try:
+            reptile_id = int(request.form.get('reptile_id'))
+            # Verify reptile belongs to user's household
+            reptile = db.get_reptile(reptile_id)
+            if not reptile or reptile.get('household_id') != current_user.household_id:
+                flash('Access denied', 'error')
+                return redirect(url_for('shed_records'))
+            
             data = {
-                'reptile_id': int(request.form.get('reptile_id')),
+                'reptile_id': reptile_id,
                 'shed_date': request.form.get('date'),
                 'complete': request.form.get('complete') == 'yes',
                 'shed_length_cm': float(request.form.get('shed_length_cm')) if request.form.get('shed_length_cm') else None,
@@ -925,7 +955,8 @@ def add_shed():
         except Exception as e:
             flash(f'Error adding shed record: {str(e)}', 'error')
     
-    reptiles = db.get_all_reptiles()
+    # Get reptiles for user's household
+    reptiles = db.get_reptiles_by_household(current_user.household_id) or []
     return render_template('shed_form.html', reptiles=reptiles, record=None)
 
 @app.route('/api/tank-cleaning-form/<int:reptile_id>')
@@ -954,7 +985,8 @@ def api_log_tank_cleaning(reptile_id):
             'reptile_id': reptile_id,
             'cleaning_date': request.json.get('cleaning_date') or datetime.now().strftime('%Y-%m-%d'),
             'cleaning_type': request.json.get('cleaning_type'),
-            'notes': request.json.get('notes') or None
+            'notes': request.json.get('notes') or None,
+            'created_by': current_user.id
         }
         db.add_tank_cleaning_log(**data)
         return jsonify({'success': True, 'message': f'Tank cleaning logged for {reptile["name"]}!'})
@@ -1014,7 +1046,8 @@ def api_log_handling(reptile_id):
             'handling_date': request.json.get('handling_date') or datetime.now().strftime('%Y-%m-%d'),
             'duration_minutes': int(request.json.get('duration_minutes')) if request.json.get('duration_minutes') else None,
             'behavior': request.json.get('behavior') or None,
-            'notes': request.json.get('notes') or None
+            'notes': request.json.get('notes') or None,
+            'created_by': current_user.id
         }
         db.add_handling_log(**data)
         return jsonify({'success': True, 'message': f'Handling session logged for {reptile["name"]}!'})
@@ -1037,7 +1070,8 @@ def log_handling(reptile_id):
                 'handling_date': request.form.get('handling_date') or datetime.now().strftime('%Y-%m-%d'),
                 'duration_minutes': int(request.form.get('duration_minutes')) if request.form.get('duration_minutes') else None,
                 'behavior': request.form.get('behavior') or None,
-                'notes': request.form.get('notes') or None
+                'notes': request.form.get('notes') or None,
+                'created_by': current_user.id
             }
             db.add_handling_log(**data)
             flash(f'Handling session logged for {reptile["name"]}!', 'success')
@@ -1313,7 +1347,8 @@ def add_weight(reptile_id):
             'reptile_id': reptile_id,
             'measurement_date': request.form.get('measurement_date'),
             'weight_grams': float(request.form.get('weight_grams')),
-            'notes': request.form.get('notes') or None
+            'notes': request.form.get('notes') or None,
+            'created_by': current_user.id
         }
         db.add_weight_measurement(**data)
         
@@ -1362,7 +1397,8 @@ def add_length(reptile_id):
             'reptile_id': reptile_id,
             'measurement_date': request.form.get('measurement_date'),
             'length_cm': float(request.form.get('length_cm')),
-            'notes': request.form.get('notes') or None
+            'notes': request.form.get('notes') or None,
+            'created_by': current_user.id
         }
         db.add_length_measurement(**data)
         

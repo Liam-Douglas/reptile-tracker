@@ -27,9 +27,15 @@ class ReptileDatabase:
         self.migrate_database()
     
     def connect(self):
-        """Establish database connection"""
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        """Establish database connection with timeout"""
+        self.conn = sqlite3.connect(
+            self.db_path,
+            check_same_thread=False,
+            timeout=30.0  # 30 second timeout for locked database
+        )
         self.conn.row_factory = sqlite3.Row  # Enable column access by name
+        # Enable WAL mode for better concurrency
+        self.conn.execute('PRAGMA journal_mode=WAL')
         self.cursor = self.conn.cursor()
     
     def close(self):
@@ -413,6 +419,41 @@ class ReptileDatabase:
                 ''')
                 self.conn.commit()
                 print("[MIGRATION] Food data populated successfully")
+            
+            # Add audit trail columns to record tables
+            tables_to_audit = [
+                'feeding_logs', 'shed_records', 'weight_history', 'length_history',
+                'tank_cleaning_logs', 'handling_logs', 'expenses'
+            ]
+            
+            for table in tables_to_audit:
+                try:
+                    self.cursor.execute(f"PRAGMA table_info({table})")
+                    table_columns = [column[1] for column in self.cursor.fetchall()]
+                    
+                    columns_to_add = []
+                    if 'created_by' not in table_columns:
+                        columns_to_add.append(('created_by', 'INTEGER REFERENCES users(id) ON DELETE SET NULL'))
+                    if 'updated_by' not in table_columns:
+                        columns_to_add.append(('updated_by', 'INTEGER REFERENCES users(id) ON DELETE SET NULL'))
+                    if 'updated_at' not in table_columns:
+                        columns_to_add.append(('updated_at', 'TIMESTAMP'))
+                    
+                    # Add all columns for this table in one transaction
+                    if columns_to_add:
+                        print(f"[MIGRATION] Adding audit columns to {table} table...")
+                        for col_name, col_type in columns_to_add:
+                            self.cursor.execute(f'ALTER TABLE {table} ADD COLUMN {col_name} {col_type}')
+                        self.conn.commit()
+                        print(f"[MIGRATION] Audit columns added to {table}: {[c[0] for c in columns_to_add]}")
+                    
+                except sqlite3.OperationalError as op_error:
+                    if 'locked' in str(op_error).lower():
+                        print(f"[MIGRATION WARNING] Database locked while migrating {table}, will retry on next startup")
+                    else:
+                        print(f"[MIGRATION ERROR] Failed to add audit columns to {table}: {str(op_error)}")
+                except Exception as table_error:
+                    print(f"[MIGRATION ERROR] Failed to add audit columns to {table}: {str(table_error)}")
                 
         except Exception as e:
             print(f"[MIGRATION ERROR] {str(e)}")
@@ -446,11 +487,10 @@ class ReptileDatabase:
     def get_reptiles_by_household(self, household_id: int) -> List[Dict]:
         """Get all reptiles for a specific household"""
         self.cursor.execute('''
-            SELECT * FROM reptiles 
-            WHERE household_id = ? 
+            SELECT * FROM reptiles
+            WHERE household_id = ?
             ORDER BY name
         ''', (household_id,))
-        return [dict(row) for row in self.cursor.fetchall()]
         return [dict(row) for row in self.cursor.fetchall()]
     
     def update_reptile(self, reptile_id: int, **kwargs) -> bool:
@@ -483,15 +523,16 @@ class ReptileDatabase:
     
     def add_feeding_log(self, reptile_id: int, feeding_date: str, food_type: str,
                        food_size: str = None, quantity: int = 1, ate: bool = True,
-                       notes: str = None, inventory_id: int = None, auto_deduct: bool = True) -> int:
+                       notes: str = None, inventory_id: int = None, auto_deduct: bool = True,
+                       created_by: int = None) -> int:
         """Add a feeding log entry and optionally deduct from inventory"""
         
         # Insert feeding log first to get the ID
         self.cursor.execute('''
             INSERT INTO feeding_logs (reptile_id, feeding_date, food_type,
-                                     food_size, quantity, ate, notes, inventory_id, auto_deducted)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (reptile_id, feeding_date, food_type, food_size, quantity, ate, notes, inventory_id, False))
+                                     food_size, quantity, ate, notes, inventory_id, auto_deducted, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (reptile_id, feeding_date, food_type, food_size, quantity, ate, notes, inventory_id, False, created_by))
         self.conn.commit()
         feeding_log_id = self.cursor.lastrowid
         
@@ -681,12 +722,13 @@ class ReptileDatabase:
     # ==================== SHED RECORD OPERATIONS ====================
     
     def add_shed_record(self, reptile_id: int, shed_date: str, complete: bool = True,
-                       shed_length_cm: float | None = None, notes: str | None = None) -> int:
+                       shed_length_cm: float | None = None, notes: str | None = None,
+                       created_by: int = None) -> int:
         """Add a shed record"""
         self.cursor.execute('''
-            INSERT INTO shed_records (reptile_id, shed_date, complete, shed_length_cm, notes)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (reptile_id, shed_date, complete, shed_length_cm, notes))
+            INSERT INTO shed_records (reptile_id, shed_date, complete, shed_length_cm, notes, created_by)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (reptile_id, shed_date, complete, shed_length_cm, notes, created_by))
         self.conn.commit()
         return self.cursor.lastrowid
     
@@ -1070,12 +1112,12 @@ class ReptileDatabase:
     # ==================== WEIGHT HISTORY OPERATIONS ====================
     
     def add_weight_measurement(self, reptile_id: int, measurement_date: str,
-                              weight_grams: float, notes: str = None) -> int:
+                              weight_grams: float, notes: str = None, created_by: int = None) -> int:
         """Add a weight measurement"""
         self.cursor.execute('''
-            INSERT INTO weight_history (reptile_id, measurement_date, weight_grams, notes)
-            VALUES (?, ?, ?, ?)
-        ''', (reptile_id, measurement_date, weight_grams, notes))
+            INSERT INTO weight_history (reptile_id, measurement_date, weight_grams, notes, created_by)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (reptile_id, measurement_date, weight_grams, notes, created_by))
         self.conn.commit()
         return self.cursor.lastrowid
     
@@ -1454,12 +1496,12 @@ class ReptileDatabase:
     # ==================== LENGTH HISTORY OPERATIONS ====================
     
     def add_length_measurement(self, reptile_id: int, measurement_date: str,
-                              length_cm: float, notes: str = None) -> int:
+                              length_cm: float, notes: str = None, created_by: int = None) -> int:
         """Add a length measurement"""
         self.cursor.execute('''
-            INSERT INTO length_history (reptile_id, measurement_date, length_cm, notes)
-            VALUES (?, ?, ?, ?)
-        ''', (reptile_id, measurement_date, length_cm, notes))
+            INSERT INTO length_history (reptile_id, measurement_date, length_cm, notes, created_by)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (reptile_id, measurement_date, length_cm, notes, created_by))
         self.conn.commit()
         return self.cursor.lastrowid
     
