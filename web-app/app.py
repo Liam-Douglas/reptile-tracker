@@ -17,6 +17,7 @@ from reptile_tracker_db import ReptileDatabase
 from feeding_schedules import get_feeding_recommendation, suggest_next_feeding_date
 from scheduler import init_scheduler, get_scheduler
 from auth import init_auth, household_required
+from food_recognition import analyze_food_image, format_food_description
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production-CHANGE-ME')
@@ -731,6 +732,47 @@ def api_log_feeding(reptile_id):
         return jsonify({'success': True, 'message': message})
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+@app.route('/api/analyze-food', methods=['POST'])
+@login_required
+def analyze_food():
+    """Analyze food image using AI to identify food items"""
+    try:
+        data = request.get_json()
+        image_data = data.get('image')
+        
+        if not image_data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Remove data URI prefix if present
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+        
+        # Analyze the image
+        result = analyze_food_image(image_data)
+        
+        if not result.get('success'):
+            return jsonify({
+                'error': result.get('error', 'Failed to analyze image'),
+                'food_items': [],
+                'food_type': 'Unknown'
+            }), 400
+        
+        # Format the response
+        food_description = format_food_description(result['food_items'])
+        
+        return jsonify({
+            'success': True,
+            'food_items': result['food_items'],
+            'food_type': result['food_type'],
+            'food_description': food_description,
+            'confidence': result['confidence'],
+            'description': result.get('description', '')
+        })
+        
+    except Exception as e:
+        print(f"Error in analyze_food: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/feeding/<int:reptile_id>', methods=['GET', 'POST'])
 def log_feeding(reptile_id):
