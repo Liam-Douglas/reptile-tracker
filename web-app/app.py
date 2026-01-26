@@ -3,7 +3,7 @@ Reptile Tracker Web Application
 Flask-based web interface for tracking reptile care
 """
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file, make_response, session
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file, make_response, session, g
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
@@ -66,8 +66,17 @@ except Exception as e:
     print("[WARNING] Automated reminders will not work")
 
 def get_db():
-    """Get database connection for current request"""
-    return ReptileDatabase(DB_PATH)
+    """Get database connection for current request (singleton per request)"""
+    if 'db' not in g:
+        g.db = ReptileDatabase(DB_PATH)
+    return g.db
+
+@app.teardown_appcontext
+def close_db(error):
+    """Close database connection at end of request"""
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
