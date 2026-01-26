@@ -867,8 +867,13 @@ def get_shed_form_data(reptile_id):
         return jsonify({'error': 'Reptile not found'}), 404
     
     # Verify reptile belongs to user's household
-    if reptile.get('household_id') != current_user.household_id:
-        return jsonify({'error': 'Access denied'}), 403
+    reptile_household = reptile.get('household_id')
+    user_household = current_user.household_id
+    
+    # Allow access if both are None (legacy data) or if they match
+    if reptile_household is not None and user_household is not None:
+        if reptile_household != user_household:
+            return jsonify({'error': 'Access denied'}), 403
     
     return jsonify({
         'reptile': reptile,
@@ -886,8 +891,13 @@ def api_log_shed(reptile_id):
         return jsonify({'error': 'Reptile not found'}), 404
     
     # Verify reptile belongs to user's household
-    if reptile.get('household_id') != current_user.household_id:
-        return jsonify({'error': 'Access denied'}), 403
+    reptile_household = reptile.get('household_id')
+    user_household = current_user.household_id
+    
+    # Allow access if both are None (legacy data) or if they match
+    if reptile_household is not None and user_household is not None:
+        if reptile_household != user_household:
+            return jsonify({'error': 'Access denied'}), 403
     
     try:
         data = {
@@ -915,9 +925,14 @@ def log_shed(reptile_id):
         return redirect(url_for('reptiles_page'))
     
     # Verify reptile belongs to user's household
-    if reptile.get('household_id') != current_user.household_id:
-        flash('Access denied', 'error')
-        return redirect(url_for('reptiles_page'))
+    reptile_household = reptile.get('household_id')
+    user_household = current_user.household_id
+    
+    # Allow access if both are None (legacy data) or if they match
+    if reptile_household is not None and user_household is not None:
+        if reptile_household != user_household:
+            flash('Access denied', 'error')
+            return redirect(url_for('reptiles_page'))
     
     if request.method == 'POST':
         try:
@@ -947,9 +962,18 @@ def add_shed():
             reptile_id = int(request.form.get('reptile_id'))
             # Verify reptile belongs to user's household
             reptile = db.get_reptile(reptile_id)
-            if not reptile or reptile.get('household_id') != current_user.household_id:
-                flash('Access denied', 'error')
+            if not reptile:
+                flash('Reptile not found', 'error')
                 return redirect(url_for('shed_records'))
+            
+            reptile_household = reptile.get('household_id')
+            user_household = current_user.household_id
+            
+            # Allow access if both are None (legacy data) or if they match
+            if reptile_household is not None and user_household is not None:
+                if reptile_household != user_household:
+                    flash('Access denied', 'error')
+                    return redirect(url_for('shed_records'))
             
             data = {
                 'reptile_id': reptile_id,
