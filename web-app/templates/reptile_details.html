@@ -217,9 +217,9 @@
             <div class="care-card">
                 <div class="care-card-header">
                     <h3><i class="fas fa-calendar-alt"></i> Feeding Schedule</h3>
-                    <a href="{{ url_for('add_feeding') }}?reptile_id={{ reptile.id }}" class="btn-small btn-primary">
+                    <button onclick="openFeedingModal()" class="btn-small btn-primary">
                         <i class="fas fa-plus"></i> Log Feeding
-                    </a>
+                    </button>
                 </div>
                 <div class="care-card-body">
                     {% if feeding_logs %}
@@ -287,9 +287,9 @@
             <div class="care-card">
                 <div class="care-card-header">
                     <h3><i class="fas fa-sync-alt"></i> Shed History</h3>
-                    <a href="{{ url_for('add_shed') }}?reptile_id={{ reptile.id }}" class="btn-small btn-primary">
+                    <button onclick="openShedModal()" class="btn-small btn-primary">
                         <i class="fas fa-plus"></i> Log Shed
-                    </a>
+                    </button>
                 </div>
                 <div class="care-card-body">
                     {% if shed_records %}
@@ -627,25 +627,370 @@
 
 <form id="deleteForm" method="POST" action="{{ url_for('delete_reptile', reptile_id=reptile.id) }}" style="display: none;"></form>
 
+<!-- Quick Log Feeding Modal -->
+<div id="feedingModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-utensils"></i> Log Feeding - {{ reptile.name }}</h2>
+            <button class="modal-close" onclick="closeFeedingModal()">&times;</button>
+        </div>
+        <form id="feedingForm" onsubmit="submitFeeding(event)">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="feeding_date">Date *</label>
+                    <input type="date" id="feeding_date" name="feeding_date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="food_type">Food Type *</label>
+                    <select id="food_type" name="food_type" class="form-select" required>
+                        <option value="">Select food type...</option>
+                        <option value="Mouse">Mouse</option>
+                        <option value="Rat">Rat</option>
+                        <option value="Chick">Chick</option>
+                        <option value="Rabbit">Rabbit</option>
+                        <option value="Insects">Insects</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="food_size">Food Size *</label>
+                    <select id="food_size" name="food_size" class="form-select" required>
+                        <option value="">Select size...</option>
+                        <option value="Pinkie">Pinkie</option>
+                        <option value="Fuzzy">Fuzzy</option>
+                        <option value="Hopper">Hopper</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                        <option value="Extra Large">Extra Large</option>
+                        <option value="Jumbo">Jumbo</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Did they eat? *</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="ate" value="yes" checked> Yes
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="ate" value="no"> No (Refused)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="feeding_notes">Notes</label>
+                    <textarea id="feeding_notes" name="notes" class="form-textarea" rows="3" placeholder="Any observations..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeFeedingModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Log Feeding
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Log Shed Modal -->
+<div id="shedModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-sync-alt"></i> Log Shed - {{ reptile.name }}</h2>
+            <button class="modal-close" onclick="closeShedModal()">&times;</button>
+        </div>
+        <form id="shedForm" onsubmit="submitShed(event)">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="shed_date">Date *</label>
+                    <input type="date" id="shed_date" name="date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="complete">Was the shed complete? *</label>
+                    <select id="complete" name="complete" class="form-select" required>
+                        <option value="yes">Yes - Complete</option>
+                        <option value="no">No - Partial/Stuck Shed</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="shed_length_cm">Shed Length (cm)</label>
+                    <input type="number" id="shed_length_cm" name="shed_length_cm" class="form-input" step="0.1" placeholder="Optional - if measurable">
+                    <small style="color: var(--text-secondary);">Measure the shed skin if possible</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="shed_notes">Notes</label>
+                    <textarea id="shed_notes" name="notes" class="form-textarea" rows="3" placeholder="Any observations about the shed..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeShedModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Log Shed
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.radio-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+</style>
+
 <script>
+// Tab switching
 function switchProfileTab(tabName) {
-    // Hide all tab contents
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(content => {
         content.classList.remove('active');
     });
     
-    // Remove active class from all tabs
     const tabs = document.querySelectorAll('.profile-tab');
     tabs.forEach(tab => {
         tab.classList.remove('active');
     });
     
-    // Show selected tab content
     document.getElementById(tabName + '-tab').classList.add('active');
-    
-    // Add active class to clicked tab
     event.target.closest('.profile-tab').classList.add('active');
 }
+
+// Feeding Modal Functions
+function openFeedingModal() {
+    document.getElementById('feedingModal').style.display = 'flex';
+    document.getElementById('feeding_date').valueAsDate = new Date();
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFeedingModal() {
+    document.getElementById('feedingModal').style.display = 'none';
+    document.getElementById('feedingForm').reset();
+    document.body.style.overflow = 'auto';
+}
+
+async function submitFeeding(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const data = {
+        date: formData.get('feeding_date'),
+        food_type: formData.get('food_type'),
+        food_size: formData.get('food_size'),
+        quantity: 1,
+        ate: formData.get('ate') === 'yes' ? 'yes' : 'no',
+        notes: formData.get('notes') || ''
+    };
+    
+    try {
+        const response = await fetch('/api/feeding/{{ reptile.id }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            closeFeedingModal();
+            location.reload();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to log feeding'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to log feeding. Please try again.');
+    }
+}
+
+// Shed Modal Functions
+function openShedModal() {
+    document.getElementById('shedModal').style.display = 'flex';
+    document.getElementById('shed_date').valueAsDate = new Date();
+    document.body.style.overflow = 'hidden';
+}
+
+function closeShedModal() {
+    document.getElementById('shedModal').style.display = 'none';
+    document.getElementById('shedForm').reset();
+    document.body.style.overflow = 'auto';
+}
+
+async function submitShed(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const data = {
+        date: formData.get('date'),
+        complete: formData.get('complete') === 'yes',
+        shed_length_cm: formData.get('shed_length_cm') || null,
+        notes: formData.get('notes')
+    };
+    
+    try {
+        const response = await fetch('/api/shed/{{ reptile.id }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            closeShedModal();
+            location.reload();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to log shed'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to log shed. Please try again.');
+    }
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const feedingModal = document.getElementById('feedingModal');
+    const shedModal = document.getElementById('shedModal');
+    
+    if (event.target === feedingModal) {
+        closeFeedingModal();
+    }
+    if (event.target === shedModal) {
+        closeShedModal();
+    }
+}
+
+// Close modals with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeFeedingModal();
+        closeShedModal();
+    }
+});
 </script>
 {% endblock %}
