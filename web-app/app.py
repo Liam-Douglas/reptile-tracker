@@ -1556,7 +1556,6 @@ def delete_push_device(device_id):
             'success': False,
             'message': f'Error: {str(e)}'
         }), 500
-        }), 500
 
 
 @app.route('/help')
