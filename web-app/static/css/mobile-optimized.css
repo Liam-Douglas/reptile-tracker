@@ -185,10 +185,10 @@
        CARDS & GRIDS
        ============================================ */
     
-    /* Reptile cards */
+    /* Reptile cards - 2 columns on mobile */
     .reptile-grid {
-        grid-template-columns: 1fr;
-        gap: 1.25rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
     
     .reptile-card {
@@ -273,9 +273,9 @@
         line-height: 1.6;
     }
     
-    /* Profile stats grid */
+    /* Profile stats grid - 2 columns on mobile */
     .profile-stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
         margin-bottom: 1.5rem;
     }
