@@ -84,6 +84,28 @@
         <input type="hidden" id="food_size_hidden" name="food_size" value="">
 
         <div id="manual-entry" style="display: block;">
+            <!-- AI Food Recognition -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-camera"></i> AI Food Recognition (Optional)
+                </label>
+                <div class="ai-food-section">
+                    <input type="file" id="food_image" accept="image/*" capture="environment" style="display: none;" onchange="analyzeFoodImage(event)">
+                    <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('food_image').click()">
+                        <i class="fas fa-camera"></i> Take Photo of Food
+                    </button>
+                    <div id="ai_analysis_result" class="ai-result" style="display: none;">
+                        <div class="ai-result-header">
+                            <i class="fas fa-robot"></i> AI Analysis
+                        </div>
+                        <div id="ai_result_content"></div>
+                    </div>
+                    <div id="ai_loading" class="ai-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Analyzing food...
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label" for="quantity">Quantity</label>
                 <input type="number"
@@ -230,5 +252,193 @@
 
     // Add event listener for quantity changes
     document.getElementById('inventory_quantity').addEventListener('input', checkStock);
+
+    // AI Food Recognition
+    async function analyzeFoodImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Show loading
+        document.getElementById('ai_loading').style.display = 'block';
+        document.getElementById('ai_analysis_result').style.display = 'none';
+        
+        try {
+            // Convert image to base64
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const imageData = e.target.result;
+                
+                // Call API
+                const response = await fetch('/api/analyze-food', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('ai_loading').style.display = 'none';
+                
+                if (result.success) {
+                    // Show results
+                    displayFoodAnalysis(result);
+                    
+                    // Auto-fill form fields
+                    if (result.food_type) {
+                        const foodTypeSelect = document.getElementById('food_type');
+                        // Try to match the food type
+                        for (let option of foodTypeSelect.options) {
+                            if (option.value.toLowerCase() === result.food_type.toLowerCase()) {
+                                foodTypeSelect.value = option.value;
+                                updateHiddenFields();
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Add to notes
+                    if (result.food_description) {
+                        const notesField = document.getElementById('notes');
+                        const aiNote = `AI identified: ${result.food_description}`;
+                        notesField.value = notesField.value ? `${notesField.value}\n${aiNote}` : aiNote;
+                    }
+                } else {
+                    alert('Failed to analyze image: ' + (result.error || 'Unknown error'));
+                }
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            document.getElementById('ai_loading').style.display = 'none';
+            console.error('Error analyzing food:', error);
+            alert('Failed to analyze image. Please try again.');
+        }
+    }
+
+    function displayFoodAnalysis(result) {
+        const resultDiv = document.getElementById('ai_analysis_result');
+        const contentDiv = document.getElementById('ai_result_content');
+        
+        let confidenceClass = 'confidence-medium';
+        if (result.confidence === 'high') confidenceClass = 'confidence-high';
+        if (result.confidence === 'low') confidenceClass = 'confidence-low';
+        
+        let html = `
+            <div class="ai-result-item">
+                <span class="ai-result-label">Food Type:</span>
+                <span class="ai-result-value">${result.food_type}</span>
+            </div>
+        `;
+        
+        if (result.food_items && result.food_items.length > 0) {
+            html += `
+                <div class="ai-result-item">
+                    <span class="ai-result-label">Items Detected:</span>
+                    <span class="ai-result-value">${result.food_items.join(', ')}</span>
+                </div>
+            `;
+        }
+        
+        if (result.description) {
+            html += `
+                <div class="ai-result-item">
+                    <span class="ai-result-label">Description:</span>
+                    <span class="ai-result-value">${result.description}</span>
+                </div>
+            `;
+        }
+        
+        html += `
+            <div class="ai-result-item">
+                <span class="ai-result-label">Confidence:</span>
+                <span class="confidence-badge ${confidenceClass}">${result.confidence.toUpperCase()}</span>
+            </div>
+        `;
+        
+        contentDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
 </script>
+
+<style>
+/* AI Food Recognition Styles */
+.ai-food-section {
+    margin-top: 0.5rem;
+}
+
+.btn-block {
+    width: 100%;
+    justify-content: center;
+}
+
+.ai-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px solid #4CAF50;
+}
+
+.ai-result-header {
+    font-weight: 600;
+    color: #4CAF50;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ai-result-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.ai-result-item:last-child {
+    border-bottom: none;
+}
+
+.ai-result-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-right: 0.5rem;
+}
+
+.ai-result-value {
+    color: var(--text-primary);
+}
+
+.ai-loading {
+    margin-top: 1rem;
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.confidence-high {
+    background: #4CAF50;
+    color: white;
+}
+
+.confidence-medium {
+    background: #FF9800;
+    color: white;
+}
+
+.confidence-low {
+    background: #9E9E9E;
+    color: white;
+}
+</style>
 {% endblock %}
