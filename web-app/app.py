@@ -1372,6 +1372,74 @@ def notification_settings():
     
     return render_template('notification_settings.html', settings=settings)
 
+@app.route('/api/send-test-notification', methods=['POST'])
+@login_required
+def send_test_notification():
+    """Send a test notification to verify settings"""
+    try:
+        notification_type = request.json.get('type', 'push')
+        
+        if notification_type == 'push':
+            # Send test push notification
+            from notifications import send_push_notification
+            
+            db = get_db()
+            subscriptions = db.get_push_subscriptions(user_id=current_user.id)
+            
+            if not subscriptions:
+                return jsonify({
+                    'success': False,
+                    'message': 'No push subscriptions found. Please enable notifications in your browser.'
+                }), 400
+            
+            success_count = 0
+            for sub in subscriptions:
+                try:
+                    send_push_notification(
+                        sub,
+                        'Test Notification',
+                        'This is a test notification from Reptile Tracker! 🦎'
+                    )
+                    success_count += 1
+                except Exception as e:
+                    print(f"Failed to send to subscription {sub.get('id')}: {e}")
+            
+            if success_count > 0:
+                return jsonify({
+                    'success': True,
+                    'message': f'Test notification sent to {success_count} device(s)!'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Failed to send test notification. Please check your subscription.'
+                }), 500
+                
+        elif notification_type == 'email':
+            return jsonify({
+                'success': False,
+                'message': 'Email notifications are not yet implemented.'
+            }), 501
+            
+        elif notification_type == 'sms':
+            return jsonify({
+                'success': False,
+                'message': 'SMS notifications are not yet implemented.'
+            }), 501
+        
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid notification type.'
+            }), 400
+            
+    except Exception as e:
+        print(f"Error sending test notification: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
+
 
 @app.route('/help')
 def help_page():
