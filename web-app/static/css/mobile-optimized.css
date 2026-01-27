@@ -594,6 +594,238 @@
         -webkit-user-select: none;
         user-select: none;
     }
+    
+    /* ============================================
+       DASHBOARD MOBILE OPTIMIZATIONS
+       ============================================ */
+    
+    /* Modern header - stack on mobile */
+    .modern-header {
+        padding: 1rem !important;
+    }
+    
+    .header-content {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .header-title {
+        font-size: 1.5rem !important;
+    }
+    
+    .header-subtitle {
+        font-size: 0.95rem !important;
+    }
+    
+    .header-actions {
+        width: 100%;
+    }
+    
+    .header-actions .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Stats grid - 2 columns on mobile */
+    .modern-stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+    
+    .modern-stat-card {
+        padding: 1rem !important;
+    }
+    
+    .stat-icon {
+        font-size: 1.5rem !important;
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem !important;
+    }
+    
+    .stat-hint {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Stock alerts - mobile friendly */
+    .dashboard-stock-alert {
+        margin: 1rem 0 !important;
+    }
+    
+    .alert-header {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .alert-header h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    .alert-header .btn {
+        width: 100%;
+    }
+    
+    .alert-item {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .alert-item .btn {
+        width: 100%;
+    }
+    
+    /* Overdue feedings - mobile layout */
+    .modern-overdue-card {
+        margin: 1rem 0 !important;
+    }
+    
+    .overdue-header {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .overdue-title {
+        font-size: 1.1rem !important;
+    }
+    
+    .btn-view-all {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .overdue-item {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+        padding: 0.75rem !important;
+    }
+    
+    .overdue-info {
+        flex-direction: column !important;
+        gap: 0.25rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .btn-feed-now {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Upcoming feedings - mobile cards */
+    .card-header {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .card-header .btn {
+        width: 100%;
+    }
+    
+    /* Activity feed - mobile optimization */
+    .activity-feed-card {
+        margin: 1rem 0 !important;
+    }
+    
+    .activity-item {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+        padding: 0.75rem !important;
+    }
+    
+    .activity-icon {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+    }
+    
+    .activity-content {
+        flex: 1;
+        width: 100%;
+    }
+    
+    .activity-title {
+        font-size: 1rem !important;
+    }
+    
+    .activity-meta {
+        font-size: 0.85rem !important;
+    }
+    
+    .activity-time {
+        font-size: 0.8rem !important;
+        width: 100%;
+        text-align: left;
+        margin-top: 0.25rem;
+    }
+    
+    /* Quick access card - mobile padding */
+    .card {
+        margin: 1rem 0 !important;
+    }
+    
+    .card > div {
+        padding: 1.5rem 1rem !important;
+    }
+    
+    .card h3 {
+        font-size: 1.25rem !important;
+    }
+    
+    .card p {
+        font-size: 0.95rem !important;
+    }
+    
+    .card .btn {
+        width: 100%;
+        padding: 0.75rem 1.5rem !important;
+    }
+    
+    /* Tutorial overlay - mobile friendly */
+    .tutorial-content {
+        width: 95% !important;
+        max-width: 95% !important;
+        padding: 1.5rem !important;
+        max-height: 85vh !important;
+    }
+    
+    .tutorial-header h2 {
+        font-size: 1.25rem !important;
+    }
+    
+    .tutorial-icon {
+        font-size: 3rem !important;
+    }
+    
+    .tutorial-body h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    .tutorial-body p,
+    .tutorial-body li {
+        font-size: 0.95rem !important;
+    }
+    
+    .tutorial-footer {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+    
+    .tutorial-footer .btn {
+        width: 100%;
+    }
 }
 
 /* ============================================
