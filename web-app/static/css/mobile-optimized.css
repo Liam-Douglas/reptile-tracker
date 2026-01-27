@@ -794,6 +794,353 @@
     }
     
     /* Tutorial overlay - mobile friendly */
+    
+    /* ============================================
+       REPTILE DETAILS PAGE MOBILE OPTIMIZATIONS
+       ============================================ */
+    
+    /* Profile header - stack image and info */
+    .modern-profile-header {
+        padding: 1rem !important;
+    }
+    
+    .profile-hero {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .profile-image-section {
+        width: 100% !important;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .profile-hero-image {
+        width: 150px !important;
+        height: 150px !important;
+        max-width: 150px !important;
+    }
+    
+    .profile-hero-info {
+        width: 100% !important;
+        text-align: center;
+    }
+    
+    .profile-name-section {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: center !important;
+    }
+    
+    .profile-name {
+        font-size: 1.75rem !important;
+    }
+    
+    .sex-badge {
+        font-size: 0.9rem !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    
+    .profile-species {
+        font-size: 1rem !important;
+        justify-content: center;
+    }
+    
+    .profile-morph-badge {
+        font-size: 0.9rem !important;
+        justify-content: center;
+    }
+    
+    .profile-notes {
+        font-size: 0.9rem !important;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    /* Profile stats grid already optimized with 2 columns */
+    .profile-stat-card {
+        padding: 0.75rem !important;
+    }
+    
+    .profile-stat-card .stat-icon {
+        font-size: 1.25rem !important;
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    .profile-stat-card .stat-label {
+        font-size: 0.9rem !important;
+    }
+    
+    .profile-stat-card .stat-food-item {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Profile tabs - scrollable on mobile */
+    .profile-tabs-container {
+        margin: 1rem 0 !important;
+    }
+    
+    .profile-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        gap: 0.5rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    .profile-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .profile-tab {
+        min-width: 100px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9rem !important;
+        white-space: nowrap;
+    }
+    
+    .profile-tab i {
+        font-size: 1rem !important;
+    }
+    
+    /* Care grid - single column on mobile */
+    .care-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    /* Care cards - mobile optimization */
+    .care-card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .care-card-header {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+        padding: 1rem !important;
+    }
+    
+    .care-card-header h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    .care-card-header .btn-small {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .care-card-body {
+        padding: 1rem !important;
+    }
+    
+    /* AI Suggestion card - mobile friendly */
+    .suggestion-card {
+        border-left-width: 4px !important;
+    }
+    
+    .suggestion-content {
+        gap: 1rem !important;
+    }
+    
+    .suggestion-message {
+        padding: 0.75rem !important;
+        font-size: 0.95rem !important;
+    }
+    
+    .suggestion-details {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .suggestion-detail-item {
+        flex-direction: row !important;
+        justify-content: space-between;
+        padding: 0.5rem !important;
+    }
+    
+    .detail-label {
+        font-size: 0.9rem !important;
+    }
+    
+    .detail-value {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Schedule info - mobile layout */
+    .schedule-info {
+        gap: 0.75rem !important;
+    }
+    
+    .schedule-item {
+        flex-direction: column !important;
+        gap: 0.25rem !important;
+        align-items: flex-start !important;
+        padding: 0.5rem !important;
+    }
+    
+    .schedule-label {
+        font-size: 0.85rem !important;
+    }
+    
+    .schedule-value {
+        font-size: 1rem !important;
+    }
+    
+    /* History list - mobile cards */
+    .history-list {
+        gap: 0.75rem !important;
+    }
+    
+    .history-item {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+        padding: 0.75rem !important;
+    }
+    
+    .history-date {
+        font-size: 0.9rem !important;
+        width: 100%;
+    }
+    
+    .history-details {
+        flex-direction: column !important;
+        gap: 0.25rem !important;
+        align-items: flex-start !important;
+        width: 100%;
+    }
+    
+    .history-food {
+        font-size: 1rem !important;
+    }
+    
+    .history-amount {
+        font-size: 0.85rem !important;
+    }
+    
+    .history-status {
+        width: 100%;
+    }
+    
+    .history-status .badge {
+        width: 100%;
+        justify-content: center;
+        padding: 0.5rem !important;
+    }
+    
+    /* Empty states - mobile friendly */
+    .empty-state {
+        padding: 2rem 1rem !important;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem !important;
+    }
+    
+    .empty-state p {
+        font-size: 1rem !important;
+    }
+    
+    /* Action buttons grid - mobile optimization */
+    .profile-actions-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+    
+    .profile-action-btn {
+        padding: 1rem !important;
+        font-size: 1rem !important;
+    }
+    
+    .profile-action-btn i {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Stats tab - mobile layout */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .stat-box {
+        padding: 1rem !important;
+    }
+    
+    .stat-box-label {
+        font-size: 0.9rem !important;
+    }
+    
+    .stat-box-value {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Reminders tab - mobile cards */
+    .reminder-card {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .reminder-header {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .reminder-header .btn {
+        width: 100%;
+    }
+    
+    .reminder-body {
+        padding: 0.75rem 0 !important;
+    }
+    
+    .reminder-info {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+    }
+    
+    /* Growth tab - mobile charts */
+    .growth-chart-container {
+        padding: 1rem !important;
+        overflow-x: auto;
+    }
+    
+    .chart-wrapper {
+        min-width: 300px;
+    }
+    
+    /* Modal forms - already optimized but ensure consistency */
+    .modal-content {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 1rem auto !important;
+    }
+    
+    .modal-header {
+        padding: 1rem !important;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.25rem !important;
+    }
+    
+    .modal-body {
+        padding: 1rem !important;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse !important;
+        gap: 0.75rem !important;
+        padding: 1rem !important;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
     .tutorial-content {
         width: 95% !important;
         max-width: 95% !important;
