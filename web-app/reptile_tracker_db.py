@@ -615,19 +615,26 @@ class ReptileDatabase:
         self.conn.commit()
         return self.cursor.rowcount > 0
     
-    def get_all_feeding_logs(self, limit: int = None) -> List[Dict]:
-        """Get all feeding logs across all reptiles"""
+    def get_all_feeding_logs(self, limit: int = None, household_id: int = None) -> List[Dict]:
+        """Get all feeding logs across all reptiles, optionally filtered by household"""
         query = '''
             SELECT fl.*, r.name as reptile_name
             FROM feeding_logs fl
             JOIN reptiles r ON fl.reptile_id = r.id
-            ORDER BY fl.feeding_date DESC
         '''
+        params = []
+        
+        if household_id:
+            query += ' WHERE r.household_id = ?'
+            params.append(household_id)
+        
+        query += ' ORDER BY fl.feeding_date DESC'
         
         if limit:
             query += f' LIMIT {limit}'
         
-        self.cursor.execute(query)
+        self.cursor.execute(query, params)
+        return [dict(row) for row in self.cursor.fetchall()]
     
     def get_food_item_by_type_size(self, food_type: str, food_size: str) -> Optional[Dict]:
         """Get a food inventory item by type and size"""
@@ -733,15 +740,19 @@ class ReptileDatabase:
         return self.cursor.lastrowid
     
     def get_shed_records(self, reptile_id: int = None, start_date: str = None,
-                        end_date: str = None, limit: int = None) -> List[Dict]:
+                        end_date: str = None, limit: int = None, household_id: int = None) -> List[Dict]:
         """Get shed records with optional filters"""
         query = '''
-            SELECT sr.*, r.name as reptile_name 
+            SELECT sr.*, r.name as reptile_name
             FROM shed_records sr
             JOIN reptiles r ON sr.reptile_id = r.id
             WHERE 1=1
         '''
         params = []
+        
+        if household_id:
+            query += ' AND r.household_id = ?'
+            params.append(household_id)
         
         if reptile_id:
             query += ' AND sr.reptile_id = ?'

@@ -1303,11 +1303,11 @@ def records_page():
     # Get stats
     stats = db.get_dashboard_stats()
     
-    # Get recent activity
-    recent_feedings = db.get_all_feeding_logs(limit=5)
-    recent_sheds = db.get_shed_records(limit=5)
+    # Get recent activity filtered by household
+    recent_feedings = db.get_all_feeding_logs(limit=5, household_id=current_user.household_id)
+    recent_sheds = db.get_shed_records(limit=5, household_id=current_user.household_id)
     
-    return render_template('records.html', 
+    return render_template('records.html',
                          stats=stats,
                          recent_feedings=recent_feedings,
                          recent_sheds=recent_sheds)
