@@ -1438,6 +1438,123 @@ def send_test_notification():
         return jsonify({
             'success': False,
             'message': f'Error: {str(e)}'
+
+@app.route('/api/push/subscribe', methods=['POST'])
+@login_required
+def push_subscribe():
+    """Subscribe to push notifications"""
+    try:
+        subscription_data = request.json
+        
+        if not subscription_data:
+            return jsonify({'success': False, 'message': 'No subscription data provided'}), 400
+        
+        db = get_db()
+        
+        # Save subscription to database with user_id
+        subscription_id = db.save_push_subscription(
+            user_id=current_user.id,
+            subscription_json=json.dumps(subscription_data)
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Successfully subscribed to push notifications!',
+            'subscription_id': subscription_id
+        })
+        
+    except Exception as e:
+        print(f"Error subscribing to push notifications: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
+
+
+@app.route('/api/push/devices', methods=['GET'])
+@login_required
+def get_push_devices():
+    """Get list of registered push notification devices for current user"""
+    try:
+        db = get_db()
+        subscriptions = db.get_push_subscriptions(user_id=current_user.id)
+        
+        # Format subscriptions for display
+        devices = []
+        for sub in subscriptions:
+            try:
+                sub_data = json.loads(sub.get('subscription_json', '{}'))
+                endpoint = sub_data.get('endpoint', '')
+                
+                # Extract browser/device info from endpoint
+                device_info = 'Unknown Device'
+                if 'fcm.googleapis.com' in endpoint:
+                    device_info = 'Chrome/Android'
+                elif 'updates.push.services.mozilla.com' in endpoint:
+                    device_info = 'Firefox'
+                elif 'web.push.apple.com' in endpoint:
+                    device_info = 'Safari/iOS'
+                
+                devices.append({
+                    'id': sub.get('id'),
+                    'device_info': device_info,
+                    'created_at': sub.get('created_at', 'Unknown'),
+                    'endpoint_preview': endpoint[:50] + '...' if len(endpoint) > 50 else endpoint
+                })
+            except Exception as e:
+                print(f"Error parsing subscription {sub.get('id')}: {e}")
+                continue
+        
+        return jsonify({
+            'success': True,
+            'devices': devices
+        })
+        
+    except Exception as e:
+        print(f"Error getting push devices: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
+
+
+@app.route('/api/push/device/<int:device_id>', methods=['DELETE'])
+@login_required
+def delete_push_device(device_id):
+    """Delete a push notification device subscription"""
+    try:
+        db = get_db()
+        
+        # Verify the subscription belongs to the current user
+        subscriptions = db.get_push_subscriptions(user_id=current_user.id)
+        subscription_ids = [sub.get('id') for sub in subscriptions]
+        
+        if device_id not in subscription_ids:
+            return jsonify({
+                'success': False,
+                'message': 'Device not found or does not belong to you'
+            }), 404
+        
+        # Delete the subscription
+        success = db.remove_push_subscription(device_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Device removed successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to remove device'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error deleting push device: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
         }), 500
 
 
