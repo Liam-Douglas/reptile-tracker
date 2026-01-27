@@ -1438,6 +1438,7 @@ def send_test_notification():
         return jsonify({
             'success': False,
             'message': f'Error: {str(e)}'
+        }), 500
 
 @app.route('/api/push/subscribe', methods=['POST'])
 @login_required
