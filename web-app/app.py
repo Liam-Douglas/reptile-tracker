@@ -656,6 +656,8 @@ def delete_reptile(reptile_id):
     return redirect(url_for('index'))
 
 @app.route('/feeding')
+@login_required
+@household_required
 def feeding_logs():
     """Show all feeding logs with optional reptile filter"""
     db = get_db()
@@ -664,9 +666,9 @@ def feeding_logs():
     if reptile_id:
         logs = db.get_feeding_logs(reptile_id=reptile_id, limit=100)
     else:
-        logs = db.get_all_feeding_logs(limit=100)
+        logs = db.get_all_feeding_logs(limit=100, household_id=current_user.household_id)
     
-    reptiles = db.get_all_reptiles()
+    reptiles = db.get_reptiles_by_household(current_user.household_id)
     return render_template('feeding_logs.html', logs=logs, reptiles=reptiles, selected_reptile_id=reptile_id)
 
 @app.route('/api/feeding-form/<int:reptile_id>')
