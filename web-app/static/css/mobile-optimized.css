@@ -793,6 +793,175 @@
         padding: 0.75rem 1.5rem !important;
     }
     
+    /* ============================================
+       DASHBOARD - UPCOMING FEEDINGS SECTION
+       ============================================ */
+    
+    /* Upcoming feedings card - better mobile layout */
+    .card[style*="border-left: 4px solid #3b82f6"] {
+        margin: 1rem 0 !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] .card-header {
+        padding: 1rem !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] .card-title {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Upcoming feeding items - stack vertically on mobile */
+    .card[style*="border-left: 4px solid #3b82f6"] > div[style*="padding: 1rem"] {
+        padding: 0.75rem !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] > div > div[style*="display: grid"] {
+        gap: 0.75rem !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] div[style*="display: flex; justify-content: space-between"] {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+        padding: 0.75rem !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] div[style*="display: flex; justify-content: space-between"] > div {
+        width: 100% !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] div[style*="display: flex; justify-content: space-between"] strong {
+        font-size: 1rem !important;
+        display: block !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] div[style*="display: flex; justify-content: space-between"] span {
+        font-size: 0.9rem !important;
+        display: block !important;
+    }
+    
+    .card[style*="border-left: 4px solid #3b82f6"] .btn {
+        width: 100% !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 1rem !important;
+        min-height: 44px !important;
+    }
+    
+    /* ============================================
+       DASHBOARD - QUICK ACCESS CARD
+       ============================================ */
+    
+    /* Quick access to reptiles - gradient card */
+    .card[style*="background: linear-gradient"] {
+        margin: 1.5rem 0 !important;
+    }
+    
+    .card[style*="background: linear-gradient"] > div {
+        padding: 1.5rem 1rem !important;
+    }
+    
+    .card[style*="background: linear-gradient"] i[style*="font-size: 3rem"] {
+        font-size: 2.5rem !important;
+    }
+    
+    .card[style*="background: linear-gradient"] h3 {
+        font-size: 1.3rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .card[style*="background: linear-gradient"] p {
+        font-size: 0.95rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .card[style*="background: linear-gradient"] .btn {
+        width: 100% !important;
+        padding: 0.75rem 1.5rem !important;
+        font-size: 1rem !important;
+        min-height: 44px !important;
+    }
+    
+    /* ============================================
+       DASHBOARD - ACTIVITY FEED ENHANCEMENTS
+       ============================================ */
+    
+    /* Activity feed - better spacing and readability */
+    .activity-feed {
+        padding: 0.5rem !important;
+    }
+    
+    .activity-item {
+        margin-bottom: 0.75rem !important;
+        padding: 1rem !important;
+        border-radius: 8px !important;
+        background: var(--bg-secondary) !important;
+    }
+    
+    .activity-item:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    .activity-icon {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .activity-content {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .activity-title strong {
+        font-size: 1rem !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .activity-meta {
+        font-size: 0.9rem !important;
+        color: var(--text-secondary) !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    .activity-time {
+        font-size: 0.85rem !important;
+        color: var(--text-muted) !important;
+        padding-top: 0.5rem !important;
+        border-top: 1px solid var(--border-color) !important;
+    }
+    
+    .activity-view-more {
+        text-align: center !important;
+        padding: 1rem !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    .activity-view-more a {
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Empty state in activity feed */
+    .activity-feed .empty-state {
+        padding: 2rem 1rem !important;
+        text-align: center !important;
+    }
+    
+    .activity-feed .empty-state i {
+        font-size: 2.5rem !important;
+        margin-bottom: 1rem !important;
+        opacity: 0.5 !important;
+    }
+    
+    .activity-feed .empty-state h3 {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .activity-feed .empty-state p {
+        font-size: 0.9rem !important;
+        color: var(--text-secondary) !important;
+    }
+    
     /* Tutorial overlay - mobile friendly */
     
     /* ============================================
