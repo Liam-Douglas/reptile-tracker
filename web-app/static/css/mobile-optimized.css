@@ -1,0 +1,631 @@
+/* Mobile-First Optimizations for Reptile Tracker */
+/* This file provides enhanced mobile experience with larger touch targets and better readability */
+
+/* ============================================
+   MOBILE-FIRST BASE IMPROVEMENTS
+   ============================================ */
+
+/* Increase base font size for better mobile readability */
+@media (max-width: 768px) {
+    html {
+        font-size: 16px; /* Ensure minimum 16px to prevent zoom on iOS */
+    }
+    
+    body {
+        font-size: 1rem;
+        line-height: 1.6;
+        -webkit-text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Improve touch target sizes (minimum 44x44px per Apple HIG) */
+    button, a, input[type="submit"], input[type="button"], .btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* ============================================
+       NAVIGATION IMPROVEMENTS
+       ============================================ */
+    
+    .mobile-nav {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    
+    .nav-header {
+        padding: 1rem 1.25rem;
+        min-height: 60px;
+    }
+    
+    .nav-header h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .menu-toggle {
+        font-size: 1.75rem;
+        padding: 0.75rem;
+        min-width: 48px;
+        min-height: 48px;
+    }
+    
+    .nav-link {
+        padding: 1.25rem 1.5rem;
+        font-size: 1.1rem;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .nav-link i {
+        font-size: 1.25rem;
+        margin-right: 1rem;
+        width: 24px;
+    }
+
+    /* ============================================
+       CONTAINER & SPACING
+       ============================================ */
+    
+    .container {
+        padding: 1.25rem;
+        max-width: 100%;
+    }
+    
+    /* Increase spacing between elements */
+    .card {
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+    }
+    
+    .card-header {
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* ============================================
+       BUTTONS - LARGER TOUCH TARGETS
+       ============================================ */
+    
+    .btn {
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        min-height: 48px;
+        border-radius: 10px;
+    }
+    
+    .btn-small {
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        min-height: 44px;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+    }
+    
+    /* Icon buttons */
+    .btn i {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+
+    /* ============================================
+       FORMS - BETTER INPUT EXPERIENCE
+       ============================================ */
+    
+    .form-group {
+        margin-bottom: 1.75rem;
+    }
+    
+    .form-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    
+    .form-input, 
+    .form-select, 
+    .form-textarea {
+        padding: 1rem;
+        font-size: 1.1rem;
+        min-height: 48px;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+    }
+    
+    .form-input:focus, 
+    .form-select:focus, 
+    .form-textarea:focus {
+        border-color: var(--primary);
+        border-width: 2px;
+        outline: none;
+    }
+    
+    .form-textarea {
+        min-height: 120px;
+        line-height: 1.6;
+    }
+    
+    /* Select dropdowns */
+    .form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234CAF50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 20px;
+        padding-right: 3rem;
+    }
+    
+    /* Form help text */
+    .form-help, small {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-top: 0.5rem;
+        display: block;
+    }
+
+    /* ============================================
+       CARDS & GRIDS
+       ============================================ */
+    
+    /* Reptile cards */
+    .reptile-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    
+    .reptile-card {
+        border-radius: 12px;
+    }
+    
+    .reptile-image {
+        height: 220px;
+    }
+    
+    .reptile-info {
+        padding: 1.25rem;
+    }
+    
+    .reptile-name {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .reptile-species {
+        font-size: 1.05rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .reptile-meta {
+        font-size: 1rem;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+    }
+    
+    /* Stats grid */
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    /* ============================================
+       PROFILE PAGE IMPROVEMENTS
+       ============================================ */
+    
+    .modern-profile-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .profile-hero {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .profile-hero-image {
+        width: 100%;
+        height: 280px;
+        border-radius: 12px;
+    }
+    
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    
+    .profile-species {
+        font-size: 1.2rem;
+    }
+    
+    .profile-notes {
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+    
+    /* Profile stats grid */
+    .profile-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .profile-stat-card {
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        width: 48px;
+        height: 48px;
+    }
+    
+    .stat-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .stat-food-item {
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Profile tabs */
+    .profile-tabs {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .profile-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .profile-tab {
+        padding: 1rem 1.5rem;
+        font-size: 1.05rem;
+        min-height: 48px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .profile-tab i {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+    
+    /* Care cards */
+    .care-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    
+    .care-card {
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+    
+    .care-card-header h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+    
+    /* Action cards */
+    .profile-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .action-card {
+        padding: 1.25rem;
+        min-height: 100px;
+        border-radius: 12px;
+    }
+    
+    .action-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .action-label {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    /* ============================================
+       MODALS - MOBILE OPTIMIZED
+       ============================================ */
+    
+    .modal {
+        padding: 0.5rem;
+    }
+    
+    .modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 16px;
+        margin: 0;
+    }
+    
+    .modal-header {
+        padding: 1.25rem;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+    
+    .modal-close {
+        font-size: 2rem;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .modal-body {
+        padding: 1.25rem;
+    }
+    
+    .modal-footer {
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+    
+    .modal-footer .btn {
+        flex: 1;
+    }
+
+    /* ============================================
+       TABLES - MOBILE RESPONSIVE
+       ============================================ */
+    
+    table {
+        font-size: 1rem;
+    }
+    
+    th, td {
+        padding: 1rem 0.75rem;
+    }
+    
+    th {
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+    
+    /* Make tables scrollable on mobile */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* ============================================
+       BADGES & LABELS
+       ============================================ */
+    
+    .badge {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    
+    .sex-badge {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    /* ============================================
+       FLASH MESSAGES
+       ============================================ */
+    
+    .flash-container {
+        top: 65px;
+        width: 95%;
+    }
+    
+    .flash {
+        padding: 1.25rem;
+        font-size: 1.05rem;
+        border-radius: 10px;
+    }
+    
+    .flash-close {
+        font-size: 1.75rem;
+        padding: 0.5rem;
+    }
+
+    /* ============================================
+       LISTS & HISTORY
+       ============================================ */
+    
+    .history-list {
+        gap: 1rem;
+    }
+    
+    .history-item {
+        padding: 1.25rem;
+        border-radius: 10px;
+    }
+    
+    .history-date {
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+    
+    .history-details {
+        font-size: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .history-food {
+        font-size: 1.05rem;
+    }
+
+    /* ============================================
+       AI FOOD RECOGNITION
+       ============================================ */
+    
+    .ai-food-section .btn {
+        padding: 1.25rem;
+        font-size: 1.1rem;
+    }
+    
+    .ai-result {
+        padding: 1.25rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+    
+    .ai-result-header {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .ai-result-item {
+        padding: 1rem 0;
+    }
+    
+    .ai-result-label {
+        font-size: 1.05rem;
+    }
+    
+    .ai-result-value {
+        font-size: 1.05rem;
+    }
+    
+    .confidence-badge {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    /* ============================================
+       DASHBOARD IMPROVEMENTS
+       ============================================ */
+    
+    .dashboard-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    
+    .dashboard-section {
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-section h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+    }
+
+    /* ============================================
+       UTILITY CLASSES
+       ============================================ */
+    
+    .text-small {
+        font-size: 0.95rem;
+    }
+    
+    .text-large {
+        font-size: 1.2rem;
+    }
+    
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-3 { margin-top: 1.5rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .mb-2 { margin-bottom: 1rem; }
+    .mb-3 { margin-bottom: 1.5rem; }
+    
+    .p-1 { padding: 0.5rem; }
+    .p-2 { padding: 1rem; }
+    .p-3 { padding: 1.5rem; }
+
+    /* ============================================
+       ACCESSIBILITY IMPROVEMENTS
+       ============================================ */
+    
+    /* Larger tap targets for better accessibility */
+    a, button, input, select, textarea {
+        -webkit-tap-highlight-color: rgba(76, 175, 80, 0.2);
+    }
+    
+    /* Focus indicators */
+    a:focus, button:focus, input:focus, select:focus, textarea:focus {
+        outline: 3px solid var(--primary);
+        outline-offset: 2px;
+    }
+    
+    /* Prevent text selection on buttons */
+    button, .btn {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}
+
+/* ============================================
+   EXTRA SMALL DEVICES (< 375px)
+   ============================================ */
+
+@media (max-width: 374px) {
+    .profile-actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+}
+
+/* ============================================
+   LANDSCAPE ORIENTATION
+   ============================================ */
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .profile-hero-image {
+        height: 200px;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+    }
+}
+
+/* Made with Bob */
