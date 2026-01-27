@@ -1382,6 +1382,232 @@
             display: block !important;
         }
     }
+    
+    /* ============================================
+       PHOTO GALLERY MOBILE OPTIMIZATIONS
+       ============================================ */
+    
+    /* Page header - mobile friendly */
+    .modern-page-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .header-content {
+        width: 100%;
+        flex-direction: row !important;
+        gap: 1rem !important;
+    }
+    
+    .header-icon {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 1.5rem !important;
+    }
+    
+    .header-title {
+        font-size: 1.5rem !important;
+    }
+    
+    .header-subtitle {
+        font-size: 0.9rem !important;
+    }
+    
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem !important;
+    }
+    
+    /* Upload card - mobile form */
+    .upload-card .modern-form {
+        padding: 1rem !important;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .form-group-modern {
+        width: 100%;
+    }
+    
+    .form-label-modern {
+        font-size: 1rem !important;
+    }
+    
+    .form-input-modern {
+        font-size: 1rem !important;
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .file-input-label {
+        padding: 1rem !important;
+        font-size: 1rem !important;
+    }
+    
+    .file-input-label span {
+        font-size: 0.95rem !important;
+    }
+    
+    .checkbox-modern {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .form-actions {
+        width: 100%;
+    }
+    
+    .btn-primary-modern {
+        width: 100%;
+        padding: 0.875rem 1.5rem !important;
+        font-size: 1rem !important;
+    }
+    
+    /* Gallery grid - 2 columns on mobile */
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem !important;
+        padding: 1rem !important;
+    }
+    
+    .gallery-item {
+        border-radius: 12px !important;
+    }
+    
+    /* Gallery image container - maintain aspect ratio */
+    .gallery-image-container {
+        padding-top: 100% !important; /* Square on mobile */
+    }
+    
+    /* Primary badge - smaller on mobile */
+    .primary-badge {
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Gallery overlay - adjust for mobile */
+    .gallery-overlay {
+        font-size: 0.85rem !important;
+    }
+    
+    .gallery-overlay i {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Gallery info - mobile padding */
+    .gallery-info {
+        padding: 1rem !important;
+    }
+    
+    .gallery-caption {
+        font-size: 0.95rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .gallery-date {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Gallery actions - stack on very small screens */
+    .gallery-actions {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .btn-gallery {
+        width: 100% !important;
+        padding: 0.65rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Card header - mobile friendly */
+    .card-header-modern {
+        padding: 1rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+    
+    .card-title-modern {
+        font-size: 1.1rem !important;
+    }
+    
+    .record-count {
+        font-size: 0.8rem !important;
+        padding: 0.35rem 0.75rem !important;
+    }
+    
+    /* Empty state - mobile friendly */
+    .empty-state-modern {
+        padding: 3rem 1.5rem !important;
+    }
+    
+    .empty-icon {
+        width: 60px !important;
+        height: 60px !important;
+        font-size: 2rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .empty-text {
+        font-size: 1.1rem !important;
+    }
+    
+    .empty-subtext {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Lightbox - mobile optimizations */
+    .lightbox {
+        padding: 1rem !important;
+    }
+    
+    .lightbox-close {
+        top: 1rem !important;
+        right: 1rem !important;
+        font-size: 2rem !important;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+    }
+    
+    .lightbox-content {
+        max-width: 95% !important;
+        max-height: 70vh !important;
+    }
+    
+    .lightbox-caption {
+        font-size: 1rem !important;
+        margin-top: 1rem !important;
+        padding: 0 1rem;
+    }
+    
+    /* Modern card - mobile spacing */
+    .modern-card {
+        margin-bottom: 1.5rem !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Ensure touch targets are adequate */
+    .gallery-item {
+        min-height: 44px;
+    }
+    
+    .gallery-image-container {
+        min-height: 150px;
+    }
         width: 95% !important;
         max-width: 95% !important;
         padding: 1.5rem !important;
