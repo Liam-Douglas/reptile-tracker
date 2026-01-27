@@ -1142,6 +1142,246 @@
         width: 100%;
     }
     .tutorial-content {
+    
+    /* ============================================
+       FEEDING LOGS & SHED RECORDS MOBILE OPTIMIZATIONS
+       ============================================ */
+    
+    /* Filter section - mobile friendly */
+    .card-header {
+        padding: 1rem !important;
+    }
+    
+    .card-header h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Filter form - stack on mobile */
+    form[action*="feeding_logs"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+    
+    form[action*="feeding_logs"] label {
+        font-size: 1rem !important;
+    }
+    
+    form[action*="feeding_logs"] select {
+        max-width: 100% !important;
+        width: 100% !important;
+        font-size: 1rem !important;
+        padding: 0.75rem !important;
+    }
+    
+    form[action*="feeding_logs"] .btn {
+        width: 100%;
+    }
+    
+    /* Hide table, show mobile cards instead */
+    .table-container {
+        display: none !important;
+    }
+    
+    /* Create mobile card layout for table data */
+    .table-container::after {
+        content: '';
+        display: block;
+    }
+    
+    /* Mobile card styles for feeding logs */
+    .table tbody tr {
+        display: block !important;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+    }
+    
+    .table tbody tr:hover {
+        background: var(--bg-hover);
+    }
+    
+    .table thead {
+        display: none !important;
+    }
+    
+    .table tbody td {
+        display: block !important;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        text-align: left !important;
+    }
+    
+    /* Add labels before each data cell on mobile */
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        display: inline-block;
+        width: 100px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    /* Feeding logs specific mobile layout */
+    .table tbody td:first-child {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 1px solid var(--border) !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .table tbody td:first-child::before {
+        content: '';
+        display: none;
+    }
+    
+    .table tbody td:last-child {
+        padding-top: 0.75rem !important;
+        border-top: 1px solid var(--border) !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    .table tbody td:last-child::before {
+        content: '';
+        display: none;
+    }
+    
+    /* Action buttons - full width on mobile */
+    .table tbody td:last-child form {
+        width: 100%;
+    }
+    
+    .table tbody td:last-child .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem !important;
+        font-size: 1rem !important;
+    }
+    
+    /* Badges - better mobile display */
+    .table .badge {
+        font-size: 0.9rem !important;
+        padding: 0.4rem 0.8rem !important;
+        display: inline-block;
+    }
+    
+    /* Empty state - mobile friendly */
+    .empty-state {
+        padding: 3rem 1.5rem !important;
+        text-align: center;
+    }
+    
+    .empty-state i {
+        font-size: 3rem !important;
+        margin-bottom: 1rem !important;
+        opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .empty-state p {
+        font-size: 1rem !important;
+        color: var(--text-secondary);
+    }
+    
+    /* FAB button - ensure it's visible and accessible */
+    .fab {
+        width: 56px !important;
+        height: 56px !important;
+        font-size: 1.5rem !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .fab:active {
+        transform: scale(0.95);
+    }
+    
+    /* Specific optimizations for feeding logs table */
+    table.table tbody tr td:nth-child(2)::before {
+        content: 'Date: ';
+    }
+    
+    table.table tbody tr td:nth-child(3)::before {
+        content: 'Food: ';
+    }
+    
+    table.table tbody tr td:nth-child(4)::before {
+        content: 'Qty: ';
+    }
+    
+    table.table tbody tr td:nth-child(5)::before {
+        content: 'Ate: ';
+    }
+    
+    table.table tbody tr td:nth-child(6)::before {
+        content: 'Source: ';
+    }
+    
+    /* Specific optimizations for shed records table */
+    body:has([title*="Shed"]) table.table tbody tr td:nth-child(2)::before {
+        content: 'Date: ';
+    }
+    
+    body:has([title*="Shed"]) table.table tbody tr td:nth-child(3)::before {
+        content: 'Status: ';
+    }
+    
+    body:has([title*="Shed"]) table.table tbody tr td:nth-child(4)::before {
+        content: 'Notes: ';
+    }
+    
+    /* Make entire card clickable on mobile */
+    .table tbody tr[onclick] {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .table tbody tr[onclick]:active {
+        transform: scale(0.98);
+        background: var(--primary-color) !important;
+        color: white;
+    }
+    
+    /* Adjust text color when card is pressed */
+    .table tbody tr[onclick]:active * {
+        color: white !important;
+    }
+    
+    /* Better spacing for mobile cards */
+    .card {
+        margin: 1rem 0 !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Card header with better mobile spacing */
+    .card > div[style*="padding"] {
+        padding: 1rem !important;
+    }
+    
+    /* Ensure table container shows cards on mobile */
+    @media (max-width: 768px) {
+        .table-container {
+            display: block !important;
+            padding: 1rem;
+        }
+        
+        .table {
+            display: block !important;
+            width: 100% !important;
+        }
+        
+        .table tbody {
+            display: block !important;
+        }
+    }
         width: 95% !important;
         max-width: 95% !important;
         padding: 1.5rem !important;
