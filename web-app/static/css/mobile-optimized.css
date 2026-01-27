@@ -187,7 +187,7 @@
     
     /* Reptile cards - 2 columns on mobile */
     .reptile-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 1rem;
     }
     
@@ -275,7 +275,7 @@
     
     /* Profile stats grid - 2 columns on mobile */
     .profile-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 1rem;
         margin-bottom: 1.5rem;
     }
