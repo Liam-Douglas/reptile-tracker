@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header">
     <h1>📧 Notification Settings</h1>
-    <p>Configure email and SMS reminders for feeding schedules</p>
+    <p>Configure email, SMS, and push notifications for feeding schedules</p>
 </div>
 
 <div class="settings-container">
@@ -106,14 +106,6 @@
             </div>
             
             <div class="form-group">
-                <label for="notify_overdue_only">
-                    <input type="checkbox" id="notify_overdue_only" name="notify_overdue_only"
-                           {% if settings.notify_overdue_only %}checked{% endif %}>
-                    Only notify for overdue feedings (legacy option)
-                </label>
-            </div>
-            
-            <div class="form-group">
                 <label for="quiet_hours_start">Quiet hours (optional)</label>
                 <div style="display: flex; gap: 1rem; align-items: center;">
                     <div style="flex: 1;">
@@ -170,6 +162,13 @@
                 <div id="device-list" style="margin-top: 0.5rem;">
                     <p style="color: var(--text-secondary);">Loading devices...</p>
                 </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" onclick="sendTestPushNotification()" class="btn btn-secondary">
+                    🔔 Send Test Push Notification
+                </button>
+                <small>Test push notifications on all registered devices</small>
             </div>
         </div>
         
@@ -234,14 +233,37 @@
                 <li>Redeploy your service</li>
             </ol>
         </div>
+        
+        <div class="instruction-section">
+            <h3>Push Notifications Setup</h3>
+            <ol>
+                <li>VAPID keys are automatically generated on first use</li>
+                <li>Check your server logs for the generated keys</li>
+                <li>Add them to Render environment variables:
+                    <ul>
+                        <li><code>VAPID_PRIVATE_KEY=your-private-key</code></li>
+                        <li><code>VAPID_PUBLIC_KEY=your-public-key</code></li>
+                    </ul>
+                </li>
+                <li>Redeploy your service</li>
+                <li>Click "Enable Push on This Device" above to register</li>
+            </ol>
+        </div>
     </div>
 </div>
 
-
+<script>
 // Push Notification Functions
+const VAPID_PUBLIC_KEY = '{{ vapid_public_key }}';
+
 async function requestPushPermission() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         alert('❌ Push notifications are not supported in your browser');
+        return;
+    }
+    
+    if (!VAPID_PUBLIC_KEY) {
+        alert('❌ VAPID keys not configured. Check server logs for generated keys.');
         return;
     }
     
@@ -251,7 +273,7 @@ async function requestPushPermission() {
             const registration = await navigator.serviceWorker.ready;
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array('{{ vapid_public_key }}')
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
             });
             
             // Send subscription to server
@@ -262,7 +284,7 @@ async function requestPushPermission() {
                 },
                 body: JSON.stringify({
                     subscription: subscription.toJSON(),
-                    device_name: navigator.userAgent.match(/\(([^)]+)\)/)[1] || 'Unknown Device'
+                    device_name: getDeviceName()
                 })
             });
             
@@ -270,7 +292,8 @@ async function requestPushPermission() {
                 alert('✅ Push notifications enabled on this device!');
                 loadDeviceList();
             } else {
-                alert('❌ Failed to register device');
+                const error = await response.json();
+                alert('❌ Failed to register device: ' + (error.message || 'Unknown error'));
             }
         } else {
             alert('❌ Permission denied for push notifications');
@@ -292,23 +315,34 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
+function getDeviceName() {
+    const ua = navigator.userAgent;
+    if (/iPhone/.test(ua)) return 'iPhone';
+    if (/iPad/.test(ua)) return 'iPad';
+    if (/Android/.test(ua)) return 'Android';
+    if (/Mac/.test(ua)) return 'Mac';
+    if (/Windows/.test(ua)) return 'Windows';
+    if (/Linux/.test(ua)) return 'Linux';
+    return 'Unknown Device';
+}
+
 async function loadDeviceList() {
     try {
         const response = await fetch('/api/push/devices');
-        const devices = await response.json();
+        const data = await response.json();
         
         const deviceList = document.getElementById('device-list');
-        if (devices.length === 0) {
+        if (!data.success || data.devices.length === 0) {
             deviceList.innerHTML = '<p style="color: var(--text-secondary);">No devices registered yet</p>';
         } else {
-            deviceList.innerHTML = devices.map(device => `
+            deviceList.innerHTML = data.devices.map(device => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">
                     <div>
-                        <i class="fas fa-mobile-alt"></i> ${device.device_name || 'Unknown Device'}
+                        <i class="fas fa-mobile-alt"></i> ${device.device_info || 'Unknown Device'}
                         <br>
                         <small style="color: var(--text-secondary);">Registered: ${new Date(device.created_at).toLocaleDateString()}</small>
                     </div>
-                    <button onclick="removeDevice(${device.id})" class="btn btn-sm btn-danger">
+                    <button onclick="removeDevice(${device.id})" class="btn btn-sm btn-danger" type="button">
                         <i class="fas fa-trash"></i> Remove
                     </button>
                 </div>
@@ -316,6 +350,7 @@ async function loadDeviceList() {
         }
     } catch (error) {
         console.error('Error loading devices:', error);
+        document.getElementById('device-list').innerHTML = '<p style="color: red;">Error loading devices</p>';
     }
 }
 
@@ -338,17 +373,36 @@ async function removeDevice(deviceId) {
     }
 }
 
-// Load device list on page load
-document.addEventListener('DOMContentLoaded', loadDeviceList);
+async function sendTestPushNotification() {
+    try {
+        const response = await fetch('/api/send-test-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                type: 'push'
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            alert('✅ ' + data.message);
+        } else {
+            alert('❌ ' + data.message);
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
 
-<script>
 function sendTestEmail() {
     if (!document.getElementById('email').value) {
         alert('Please enter an email address first');
         return;
     }
     
-    fetch('{{ url_for("send_test_notification") }}', {
+    fetch('/api/send-test-notification', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -363,7 +417,7 @@ function sendTestEmail() {
         if (data.success) {
             alert('✅ Test email sent! Check your inbox.');
         } else {
-            alert('❌ Failed to send test email: ' + data.error);
+            alert('❌ Failed to send test email: ' + data.message);
         }
     })
     .catch(error => {
@@ -377,7 +431,7 @@ function sendTestSMS() {
         return;
     }
     
-    fetch('{{ url_for("send_test_notification") }}', {
+    fetch('/api/send-test-notification', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -392,13 +446,16 @@ function sendTestSMS() {
         if (data.success) {
             alert('✅ Test SMS sent! Check your phone.');
         } else {
-            alert('❌ Failed to send test SMS: ' + data.error);
+            alert('❌ Failed to send test SMS: ' + data.message);
         }
     })
     .catch(error => {
         alert('❌ Error: ' + error);
     });
 }
+
+// Load device list on page load
+document.addEventListener('DOMContentLoaded', loadDeviceList);
 </script>
 
 <style>
@@ -448,7 +505,8 @@ function sendTestSMS() {
 .form-group input[type="email"],
 .form-group input[type="tel"],
 .form-group input[type="time"],
-.form-group input[type="number"] {
+.form-group input[type="number"],
+.form-group select.form-control {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -470,6 +528,7 @@ function sendTestSMS() {
 .button-group {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .form-actions {
@@ -517,6 +576,21 @@ function sendTestSMS() {
 .instruction-section a {
     color: #2c5f2d;
     text-decoration: underline;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
 }
 </style>
 {% endblock %}

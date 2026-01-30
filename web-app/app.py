@@ -1322,6 +1322,7 @@ def settings_page():
 
 
 @app.route('/settings/notifications', methods=['GET', 'POST'])
+@login_required
 def notification_settings():
     """Notification settings page for email and SMS alerts"""
     db = get_db()
@@ -1334,7 +1335,14 @@ def notification_settings():
                 'sms_enabled': request.form.get('sms_enabled') == 'on',
                 'phone': request.form.get('phone'),
                 'reminder_time': request.form.get('reminder_time', '09:00'),
-                'notify_overdue_only': request.form.get('notify_overdue_only') == 'on'
+                'notify_overdue_only': request.form.get('notify_overdue_only') == 'on',
+                'push_enabled': request.form.get('push_enabled') == 'on',
+                'notification_types': request.form.get('notification_types', 'all'),
+                'notification_frequency': request.form.get('notification_frequency', 'once_daily'),
+                'upcoming_days': int(request.form.get('upcoming_days', 1)),
+                'quiet_hours_start': request.form.get('quiet_hours_start', ''),
+                'quiet_hours_end': request.form.get('quiet_hours_end', ''),
+                'group_notifications': request.form.get('group_notifications') == 'on'
             }
             
             db.save_notification_settings(**settings)
@@ -1355,7 +1363,14 @@ def notification_settings():
                 'sms_enabled': False,
                 'phone': '',
                 'reminder_time': '09:00',
-                'notify_overdue_only': False
+                'notify_overdue_only': False,
+                'push_enabled': False,
+                'notification_types': 'all',
+                'notification_frequency': 'once_daily',
+                'upcoming_days': 1,
+                'quiet_hours_start': '',
+                'quiet_hours_end': '',
+                'group_notifications': False
             }
     except Exception as e:
         print(f"[ERROR] Failed to get notification settings: {e}")
@@ -1366,11 +1381,25 @@ def notification_settings():
             'sms_enabled': False,
             'phone': '',
             'reminder_time': '09:00',
-            'notify_overdue_only': False
+            'notify_overdue_only': False,
+            'push_enabled': False,
+            'notification_types': 'all',
+            'notification_frequency': 'once_daily',
+            'upcoming_days': 1,
+            'quiet_hours_start': '',
+            'quiet_hours_end': '',
+            'group_notifications': False
         }
         flash('Using default settings. Save to create your notification preferences.', 'info')
     
-    return render_template('notification_settings.html', settings=settings)
+    # Get VAPID public key for push notifications
+    from notifications import get_or_create_vapid_keys
+    vapid_keys = get_or_create_vapid_keys()
+    vapid_public_key = vapid_keys['public_key'] if vapid_keys else ''
+    
+    return render_template('notification_settings.html',
+                         settings=settings,
+                         vapid_public_key=vapid_public_key)
 
 @app.route('/api/send-test-notification', methods=['POST'])
 @login_required

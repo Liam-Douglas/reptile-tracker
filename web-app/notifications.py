@@ -1,10 +1,11 @@
 """
 Notification Service for Reptile Tracker
-Handles email and SMS notifications for feeding reminders
+Handles email, SMS, and push notifications for feeding reminders
 """
 
 import os
 import smtplib
+import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -16,6 +17,15 @@ try:
     TWILIO_AVAILABLE = True
 except ImportError:
     TWILIO_AVAILABLE = False
+
+# Web Push for push notifications
+try:
+    from pywebpush import webpush, WebPushException
+    from py_vapid import Vapid
+    WEBPUSH_AVAILABLE = True
+except ImportError:
+    WEBPUSH_AVAILABLE = False
+    print("[WARNING] pywebpush not available. Push notifications will not work.")
 
 
 class NotificationService:
@@ -45,7 +55,7 @@ class NotificationService:
                 print(f"[WARNING] Failed to initialize Twilio client: {e}")
                 self.sms_enabled = False
     
-    def send_email(self, to_email: str, subject: str, body: str, html_body: str = None) -> bool:
+    def send_email(self, to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> bool:
         """Send an email notification"""
         if not self.email_enabled:
             print("[INFO] Email notifications are disabled")
@@ -91,12 +101,12 @@ class NotificationService:
             return False
         
         try:
-            message = self.twilio_client.messages.create(
+            message_obj = self.twilio_client.messages.create(
                 body=message,
                 from_=self.twilio_phone_number,
                 to=to_phone
             )
-            print(f"[INFO] SMS sent to {to_phone}, SID: {message.sid}")
+            print(f"[INFO] SMS sent to {to_phone}, SID: {message_obj.sid}")
             return True
             
         except Exception as e:
@@ -104,7 +114,7 @@ class NotificationService:
             return False
     
     def send_feeding_reminder(self, reptile_name: str, days_overdue: int, 
-                            email: str = None, phone: str = None) -> Dict[str, bool]:
+                            email: Optional[str] = None, phone: Optional[str] = None) -> Dict[str, bool]:
         """Send feeding reminder via email and/or SMS"""
         results = {'email': False, 'sms': False}
         
@@ -150,7 +160,7 @@ class NotificationService:
         return results
     
     def send_batch_reminders(self, overdue_feedings: List[Dict], 
-                           email: str = None, phone: str = None) -> Dict[str, int]:
+                           email: Optional[str] = None, phone: Optional[str] = None) -> Dict[str, int]:
         """Send batch reminders for multiple overdue feedings"""
         results = {'email_sent': 0, 'sms_sent': 0, 'total': len(overdue_feedings)}
         
@@ -187,12 +197,12 @@ class NotificationService:
 notification_service = NotificationService()
 
 
-def check_and_send_reminders(db, email: str = None, phone: str = None) -> Dict[str, int]:
+def check_and_send_reminders(db_instance, email: Optional[str] = None, phone: Optional[str] = None) -> Dict[str, int]:
     """
     Check for overdue feedings and send reminders
     This function can be called by a scheduled job
     """
-    overdue = db.get_overdue_feedings()
+    overdue = db_instance.get_overdue_feedings()
     
     if not overdue:
         print("[INFO] No overdue feedings found")
@@ -200,5 +210,130 @@ def check_and_send_reminders(db, email: str = None, phone: str = None) -> Dict[s
     
     print(f"[INFO] Found {len(overdue)} overdue feeding(s)")
     return notification_service.send_batch_reminders(overdue, email, phone)
+
+
+# ==================== PUSH NOTIFICATION FUNCTIONS ====================
+
+def get_or_create_vapid_keys():
+    """Get existing VAPID keys or generate new ones"""
+    private_key = os.environ.get('VAPID_PRIVATE_KEY')
+    public_key = os.environ.get('VAPID_PUBLIC_KEY')
+    
+    if private_key and public_key:
+        return {
+            'private_key': private_key,
+            'public_key': public_key
+        }
+    
+    # Generate new VAPID keys if not found
+    if not WEBPUSH_AVAILABLE:
+        print("[ERROR] Cannot generate VAPID keys - pywebpush not installed")
+        return None
+    
+    try:
+        vapid = Vapid()
+        vapid.generate_keys()
+        
+        # Get keys in the format needed
+        private_key = vapid.private_pem().decode('utf-8').strip()
+        public_key = vapid.public_key.public_bytes_urlsafe_base64()
+        
+        print("[INFO] Generated new VAPID keys")
+        print(f"[INFO] Add these to your environment variables:")
+        print(f"VAPID_PRIVATE_KEY={private_key}")
+        print(f"VAPID_PUBLIC_KEY={public_key}")
+        
+        return {
+            'private_key': private_key,
+            'public_key': public_key
+        }
+    except Exception as e:
+        print(f"[ERROR] Failed to generate VAPID keys: {e}")
+        # Return a fallback for development
+        print("[WARNING] Using fallback keys for development only!")
+        return {
+            'private_key': '',
+            'public_key': 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
+        }
+
+
+def send_push_notification(subscription_info: Dict, title: str, body: str, url: str = '/') -> bool:
+    """Send a push notification to a specific subscription"""
+    if not WEBPUSH_AVAILABLE:
+        print("[ERROR] Push notifications not available - pywebpush not installed")
+        return False
+    
+    vapid_keys = get_or_create_vapid_keys()
+    if not vapid_keys:
+        print("[ERROR] VAPID keys not available")
+        return False
+    
+    try:
+        # Parse subscription if it's a JSON string
+        if isinstance(subscription_info, str):
+            subscription_info = json.loads(subscription_info)
+        
+        # Extract subscription data
+        if 'subscription' in subscription_info:
+            subscription_data = subscription_info['subscription']
+        elif 'subscription_json' in subscription_info:
+            subscription_data = json.loads(subscription_info['subscription_json'])
+        else:
+            subscription_data = subscription_info
+        
+        # Prepare notification payload
+        notification_data = {
+            'title': title,
+            'body': body,
+            'url': url,
+            'icon': '/static/icon-192.png',
+            'badge': '/static/icon-192.png'
+        }
+        
+        # Send push notification
+        webpush(
+            subscription_info=subscription_data,
+            data=json.dumps(notification_data),
+            vapid_private_key=vapid_keys['private_key'],
+            vapid_claims={
+                "sub": "mailto:reptiletracker@example.com"
+            }
+        )
+        
+        print(f"[INFO] Push notification sent: {title}")
+        return True
+        
+    except WebPushException as e:
+        print(f"[ERROR] WebPush failed: {e}")
+        # If subscription is invalid (410 Gone), it should be removed from database
+        if e.response and e.response.status_code == 410:
+            print("[INFO] Subscription expired (410 Gone) - should be removed")
+        return False
+    except Exception as e:
+        print(f"[ERROR] Failed to send push notification: {e}")
+        return False
+
+
+def send_push_to_user(db_instance, user_id: int, title: str, body: str, url: str = '/') -> Dict[str, int]:
+    """Send push notification to all devices registered for a user"""
+    results = {'success_count': 0, 'failed_count': 0, 'expired_subscriptions': []}
+    
+    try:
+        subscriptions = db_instance.get_push_subscriptions(user_id=user_id)
+        
+        for sub in subscriptions:
+            success = send_push_notification(sub, title, body, url)
+            if success:
+                results['success_count'] += 1
+            else:
+                results['failed_count'] += 1
+                # Track potentially expired subscriptions
+                results['expired_subscriptions'].append(sub.get('id'))
+        
+        return results
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to send push notifications to user {user_id}: {e}")
+        return results
 
 # Made with Bob
