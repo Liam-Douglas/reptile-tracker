@@ -234,9 +234,20 @@ def get_or_create_vapid_keys():
         vapid = Vapid()
         vapid.generate_keys()
         
-        # Get keys in the format needed
+        # Get keys using the correct py-vapid methods
         private_key = vapid.private_pem().decode('utf-8').strip()
-        public_key = vapid.public_key.public_bytes_urlsafe_base64()
+        
+        # Use save_public_key to get the base64 encoded public key
+        import base64
+        from io import BytesIO
+        public_key_file = BytesIO()
+        vapid.save_public_key(public_key_file)
+        public_key_file.seek(0)
+        public_key_pem = public_key_file.read()
+        
+        # Extract the base64 part from PEM format and make it URL-safe
+        public_key_b64 = public_key_pem.decode('utf-8').split('\n')[1:-2]
+        public_key = ''.join(public_key_b64).replace('+', '-').replace('/', '_').rstrip('=')
         
         print("[INFO] Generated new VAPID keys")
         print(f"[INFO] Add these to your environment variables:")
@@ -249,6 +260,8 @@ def get_or_create_vapid_keys():
         }
     except Exception as e:
         print(f"[ERROR] Failed to generate VAPID keys: {e}")
+        import traceback
+        traceback.print_exc()
         # Return a fallback for development
         print("[WARNING] Using fallback keys for development only!")
         return {
