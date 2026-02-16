@@ -527,6 +527,17 @@ class ReptileDatabase:
                        created_by: int = None) -> int:
         """Add a feeding log entry and optionally deduct from inventory"""
         
+        # If no inventory_id provided but we have food_type, try to auto-match from inventory
+        if not inventory_id and food_type and ate and auto_deduct:
+            try:
+                # Search for matching inventory item
+                matching_item = self.get_food_item_by_type(food_type, food_size or '')
+                if matching_item and matching_item['quantity'] >= quantity:
+                    inventory_id = matching_item['id']
+                    logger.info(f"Auto-matched inventory item: {matching_item['food_type']} - {matching_item['food_size']} (ID: {inventory_id})")
+            except Exception as e:
+                logger.warning(f"Could not auto-match inventory: {str(e)}")
+        
         # Insert feeding log first to get the ID
         self.cursor.execute('''
             INSERT INTO feeding_logs (reptile_id, feeding_date, food_type,
@@ -536,7 +547,7 @@ class ReptileDatabase:
         self.conn.commit()
         feeding_log_id = self.cursor.lastrowid
         
-        # If inventory_id is provided and reptile ate, deduct from inventory
+        # If inventory_id is available (provided or auto-matched) and reptile ate, deduct from inventory
         auto_deducted = False
         if inventory_id and ate and auto_deduct:
             try:
@@ -556,10 +567,11 @@ class ReptileDatabase:
                         UPDATE feeding_logs SET auto_deducted = ? WHERE id = ?
                     ''', (True, feeding_log_id))
                     self.conn.commit()
+                    logger.info(f"Successfully deducted {quantity} items from inventory {inventory_id}")
                 else:
-                    print(f"Warning: Could not deduct {quantity} items from inventory {inventory_id}")
+                    logger.warning(f"Could not deduct {quantity} items from inventory {inventory_id}")
             except Exception as e:
-                print(f"Error deducting inventory: {str(e)}")
+                logger.error(f"Error deducting inventory: {str(e)}")
         
         return feeding_log_id
     
